@@ -1,0 +1,198 @@
+
+// commons module - Created on 27-Jan-2023 19:00
+module cforms;
+
+import std::io;
+import libc;
+const uint WHITE = 0xffffff;
+macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
+
+// macro uint Hwnd.rehash(Hwnd i) => (uint)((iptr)i);
+
+
+// My Own Messages
+	const uint MM_MOUSE_LBCLICK = 9000;
+	const uint MM_MOUSE_RBCLICK = 9001;
+	const uint MM_NOTIFY_REFLECT = 9002;
+	const uint MM_RUNDTOR = 9003;
+	const uint MM_COLOR_STATIC = 9004;
+	const uint MM_COLOR_EDIT = 9005;
+	const uint MM_COLOR_LBOX = 9006;
+	const uint MM_CTL_COMMAND = 9007;
+
+// End of My own messages
+
+// Common Constants
+	const Dword BCM_FIRST = 0x1600;
+	const Dword BCN_FIRST = (Dword)-1250;
+	const int TRANSPARENT = 1;
+	const Dword CDRF_DODEFAULT         = 0;
+	const Dword CDRF_NEWFONT           = 2;
+	const Dword CDRF_SKIPDEFAULT       = 4;
+	const Dword CDRF_DOERASE           = 8;
+	const Dword CDRF_NOTIFYPOSTPAINT   = 16;
+	const Dword CDRF_NOTIFYITEMDRAW    = 32;
+	const Dword CDRF_NOTIFYSUBITEMDRAW = 32;
+	const Dword CDRF_NOTIFYPOSTERASE   = 64;
+	const Dword CDRF_NOTIFYITEMERASE   = 128;
+	const Dword CDRF_SKIPPOSTPAINT     = 256;
+
+	const Dword CDDS_PREPAINT      = 1;   // This comes second
+	const Dword CDDS_POSTPAINT     = 2;     // this coms last
+	const Dword CDDS_PREERASE      = 3;  // This comes first
+	const Dword CDDS_POSTERASE     = 4; // This is 4rth combined ith pre erase
+	const Dword CDDS_ITEM          = 65536;
+	const Dword CDDS_SUBITEM       = 0x20000;
+	const Dword CDDS_ITEMPOSTERASE = CDDS_ITEM | CDDS_POSTERASE;
+	const Dword CDDS_ITEMPOSTPAINT = CDDS_ITEM | CDDS_POSTPAINT;
+	const Dword CDDS_ITEMPREERASE  = CDDS_ITEM | CDDS_PREERASE;
+	const Dword CDDS_ITEMPREPAINT  = CDDS_ITEM | CDDS_PREPAINT;
+
+	// DrawText flags
+	const uint DT_BOTTOM = 8;
+	const uint DT_CALCRECT = 1024;
+	const uint DT_CENTER = 1;
+	const uint DT_EDITCONTROL = 8192;
+	const uint DT_END_ELLIPSIS = 32768;
+	const uint DT_PATH_ELLIPSIS = 16384;
+	const uint DT_WORD_ELLIPSIS = 0x40000;
+	const uint DT_EXPANDTABS = 64;
+	const uint DT_EXTERNALLEADING = 512;
+	const uint DT_LEFT = 0;
+	const uint DT_MODIFYSTRING = 65536;
+	const uint DT_NOCLIP = 256;
+	const uint DT_NOPREFIX = 2048;
+	const uint DT_RIGHT = 2;
+	const uint DT_RTLREADING = 131072;
+	const uint DT_SINGLELINE = 32;
+	const uint DT_TABSTOP = 128;
+	const uint DT_TOP = 0;
+	const uint DT_VCENTER = 4;
+	const uint DT_WORDBREAK = 16;
+	const uint DT_INTERNAL = 4096;
+
+	const uint WS_CHILD = 1073741824;
+	const uint WS_TABSTOP = 65536;
+	const uint WS_VISIBLE = 268435456;
+
+	const int PS_SOLID = 0;
+
+	const int BDR_RAISEDINNER =	4;
+	const int BF_ADJUST = 0x2000;
+
+// End of Common Constants
+
+macro isStrLiteral(x) {
+	var $res = false;
+	var $typ = $typeof(x).typeid;
+	$if ($typ.kindof == TypeKind.POINTER):
+		var $inner = $typ.inner;
+		$if (($inner.kindof == TypeKind.ARRAY) && ($inner.inner == char.typeid)):
+			$res = true;
+		$endif;
+	$endif;
+	return $res;
+}
+
+fn void printWchars(Char16* txt, int count) {
+	cptf("wchar codes in font name 'Tahoma' : ", null);
+	for (int i = 0; i < count + 1; i++ ) {
+		cptf(" %d, ", txt[i]);
+	}
+	io::println("");
+}
+
+private fn char[] int_to_string(int i) {
+	@pool() {
+		VarString v = string::new_with_capacity(16, mem::temp_allocator());
+		v.printf("%d", i);
+		return v.copy_str();
+	};
+}
+
+private fn char[] dbl_to_string(double i) {
+	@pool() {
+		VarString v = string::new_with_capacity(16, mem::temp_allocator());
+		v.printf("%f", i);
+		return v.copy_str();
+	};
+}
+
+macro String toStr(x) {
+	var $Type = $typeof(x);
+	$switch ($Type):
+		$case int: return int_to_string(x);
+		$case double: return dbl_to_string(x);
+		$default:
+			@pool() {
+				VarString v = string::new_with_capacity(16, mem::temp_allocator());
+				v.printf("%d", i);
+				return v.copy_str();
+			};
+	$endswitch;
+}
+
+fn void printStr(String ca) { io::println((char*)&ca);}
+fn void printStr2(String ca, variant x) {
+	char[] fmt;
+	switch (x) {
+		case int:
+			io::printfn("%s - %d", (char*)&ca, *(int*)x);
+		case double:
+			io::printfn("%s - %f", (char*)&ca, *(double*)x);
+		case float:
+			io::printfn("%s - %f", (char*)&ca, *(float*)x);
+		case Hwnd:
+			io::printfn("%s - %p", (char*)&ca, *(Hwnd*)x);
+		case String:
+
+			io::printfn("%s - %p", (char*)&ca, ((String*)x)[0] );
+
+	}
+
+}
+
+fn void concatNum(char* s, char* name,  int i) {
+	int ret = libc::sprintf(s, "%s_%d", name, i);
+	// io::printfn("btn name len %d", ret);
+	// return ret;
+
+}
+
+fn int getNumLength(int num) {
+	if (num < 10) {
+		return 1;
+	} else if (num < 100) {
+		return 2;
+	} else if (num < 1000) {
+		return 3;
+	}
+	return 1;
+}
+
+
+
+fn void VarString.concatNum(VarString* vs, int num) {
+	// int nlen = getNumLength(num);
+	char[4] nstr;
+	int nLen = getNumLength(num);
+	char[] nStr = nstr[:nLen + 1];
+	libc::sprintf((char*)&nStr, "%d", num);
+	vs.append(((ZString)&nStr).as_str());
+
+}
+
+enum TextAlignment : char { // For label &
+    TOPLEFT,
+	TOPCENTER,
+	TOPRIGHT,
+	MIDLEFT,
+    CENTER,
+	MIDRIGHT,
+	BOTTOMLEFT,
+	BOTTOMCENTER,
+	BOTTOMRIGHT
+}
+
+enum Alignment : char {LEFT, RIGHT, CENTER} // For ListView, TextBox
+
