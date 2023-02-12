@@ -6,6 +6,7 @@ define EventHandler = fn void(Control* c, EventArgs* e);
 define MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
 define SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
 define KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
+define DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
 
 struct Area {
 	int width;
@@ -43,6 +44,12 @@ struct KeyEventArgs {
 	bool ctrlPressed;
 	bool shiftPressed;
 	bool supressKey;
+}
+
+struct DateTimeEventArgs {
+    inline EventArgs eventArgs;
+    Lpcwstr dateString;
+    SystemTime dateStruct;
 }
 
 fn MouseEventArgs newMouseEventArgs(uint msg, Wparam wpm, Lparam lpm) {
@@ -108,6 +115,11 @@ fn KeyEventArgs newKeyEventArgs(Wparam wpm) {
 	return this;
 }
 
+fn DateTimeEventArgs newDateTimeEventArgs(Lpcwstr dtpStr) {
+    DateTimeEventArgs this;
+    this.dateString = dtpStr;
+    return this;
+}
 
 macro Word loWord(x) {return (Word)(x & 0xffff);}
 macro Word hiWord(x) {return (Word)(x >> 16);}

@@ -4,6 +4,11 @@ module cforms;
 
 import std::io;
 import libc;
+import std::collections::list;
+
+define StrList = List<String>;
+define IntList = List<int>;
+
 const uint WHITE = 0xffffff;
 macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 
@@ -19,12 +24,15 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const uint MM_COLOR_EDIT = 9005;
 	const uint MM_COLOR_LBOX = 9006;
 	const uint MM_CTL_COMMAND = 9007;
+	const uint MM_BUDDY_RESIZE = 9008;
 
 // End of My own messages
 
 // Common Constants
+	const WM_USER = 0x0400;
 	const Dword BCM_FIRST = 0x1600;
 	const Dword BCN_FIRST = (Dword)-1250;
+
 	const int TRANSPARENT = 1;
 	const Dword CDRF_DODEFAULT         = 0;
 	const Dword CDRF_NEWFONT           = 2;
@@ -47,6 +55,16 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const Dword CDDS_ITEMPOSTPAINT = CDDS_ITEM | CDDS_POSTPAINT;
 	const Dword CDDS_ITEMPREERASE  = CDDS_ITEM | CDDS_PREERASE;
 	const Dword CDDS_ITEMPREPAINT  = CDDS_ITEM | CDDS_PREPAINT;
+
+	const Dword SWP_NOZORDER = 0x0004;
+	const Dword SWP_SHOWWINDOW = 0x0040;
+	const Dword SWP_NOACTIVATE = 0x0010;
+	const BF_LEFT = 0x0001;
+	const BF_TOP = 0x0002;
+	const BF_RIGHT = 0x0004;
+	const BF_BOTTOM = 0x0008;
+	const BF_TOPLEFT = (BF_TOP | BF_LEFT);
+	const BF_BOTTOMRIGHT = (BF_BOTTOM | BF_RIGHT);
 
 	// DrawText flags
 	const uint DT_BOTTOM = 8;
@@ -77,8 +95,11 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 
 	const int PS_SOLID = 0;
 
-	const int BDR_RAISEDINNER =	4;
-	const int BF_ADJUST = 0x2000;
+
+	const BF_ADJUST = 0x2000;
+	const BDR_RAISEDINNER =	4;
+	const BDR_SUNKENOUTER = 0x0002;
+
 
 // End of Common Constants
 
@@ -116,6 +137,11 @@ private fn char[] dbl_to_string(double i) {
 		v.printf("%f", i);
 		return v.copy_str();
 	};
+}
+
+private fn double strToDouble(String s) {
+	char* cp;
+	return libc::strtod(&s[0], &cp);
 }
 
 macro String toStr(x) {
@@ -195,4 +221,8 @@ enum TextAlignment : char { // For label &
 }
 
 enum Alignment : char {LEFT, RIGHT, CENTER} // For ListView, TextBox
+
+fn void printRect(Rect rc, String msg = "Rect") {
+	ptf("%s - Left: %s, Top: %s, Right: %s, Bottom: %s", msg, rc.left, rc.top, rc.right, rc.bottom  );
+}
 

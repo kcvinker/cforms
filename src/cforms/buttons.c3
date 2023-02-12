@@ -271,25 +271,25 @@ private fn void GradDraw.dtor(GradDraw* g) {
 
 
 private fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
-	Button* btn = (Button*)((void*)refData);
+	Button* this = (Button*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(btn.handle, &btnWndProc, scID);;
-		case WM_LBUTTONDOWN: btn.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: btn.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: btn.leftClickHandler();
+		case WM_DESTROY: api_RemoveWindowSubclass(hw, &btnWndProc, scID);;
+		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK: this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: btn.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: btn.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: btn.rightClickHandler();
+		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK: this.rightClickHandler();
 
-		case WM_MOUSEMOVE: btn.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: btn.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: btn.mouseWheelHandler(msg, wp, lp);
+		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE: this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
 
-		case MM_NOTIFY_REFLECT: return btn.wmNotifyHandler(lp);
+		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(lp);
 
-		case MM_RUNDTOR: btn.dtor(); return 0;
+		case MM_RUNDTOR: this.dtor(); return 0;
 
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);

@@ -42,6 +42,10 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_MoveWindow(Hwnd, int, int, int, int, bool) @extname("MoveWindow");
 	extern fn Hdc api_BeginPaint(Hwnd, PaintStruct*) @extname("BeginPaint");
 	extern fn Bool api_EndPaint(Hwnd, PaintStruct*) @extname("EndPaint");
+	extern fn Bool api_SetRect(Rect*, int, int, int, int) @extname("SetRect");
+	extern fn Bool api_SetWindowText(Hwnd, Lpcwstr) @extname("SetWindowTextW");
+	extern fn int api_GetWindowTextLength(Hwnd) @extname("GetWindowTextLengthW");
+	extern fn int api_GetWindowText(Hwnd, Char16*, int) @extname("GetWindowTextW");
 
 
 // End User32
@@ -73,6 +77,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_RoundRect(Hdc, int, int, int, int, int, int) @extname("RoundRect");
 	extern fn Bool api_GetTextExtentPoint32(Hdc, Lpcwstr, int, Size*) @extname("GetTextExtentPoint32W");
 	extern fn Bool api_SetBkColor(Hdc, Colorref) @extname("SetBkColor");
+	extern fn Bool api_MoveToEx(Hdc, int, int, Point*) @extname("MoveToEx");
+	extern fn Bool api_LineTo(Hdc, int, int) @extname("LineTo");
 
 
 

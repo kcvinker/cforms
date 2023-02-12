@@ -178,7 +178,7 @@ private fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 	CheckBox* this = (CheckBox*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(this.handle, &cbWndProc, scID);
+		case WM_DESTROY: api_RemoveWindowSubclass(hw, &cbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);

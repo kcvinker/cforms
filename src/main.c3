@@ -1,6 +1,6 @@
 module cforms;
 import std::io;
-import std::array::list;
+// import std::collections::list;
 import libc;
 
 // import lib::form;
@@ -19,6 +19,12 @@ TextBox tb;
 ComboBox cmb;
 CheckBox cb;
 RadioButton rb;
+RadioButton rb2;
+ListBox lbx;
+DateTimePicker dtp;
+NumberPicker np;
+NumberPicker np2;
+NumberPicker np3;
 
 fn int main(char[][] args)
 {
@@ -76,7 +82,36 @@ fn int main(char[][] args)
 	rb = newRadioButton(&frm, "Radio Button 1", 10, 110);
 	rb.setForeColor(0x2d00f7);
 	rb.createHandle();
+	rb2 = newRadioButton(&frm, "Radio Button 2", 10, 140);
+	rb2.createHandle();
 
+	lbx = newListBox(&frm, 144, 102);
+	// lbx.setForeColor(0x2d00f7);
+	lbx.addItems("Windows", "MacOS", "Linux", "ReactOS");
+	// lbx.setBackColor(0x52b788);
+	// lbx.setForeColor(0xf94144);
+	lbx.createHandle();
+
+	dtp = newDateTimePicker(&frm, 10, 175);
+	dtp.createHandle();
+
+	np = newNumberPicker(&frm, 10, 215);
+	np.setBackColor(0x90be6d);
+	np.createHandle();
+
+	np2 = newNumberPicker(&frm, 10, 247);
+	// np2.setBackColor(0xd4d700);
+	np2.setForeColor(0xe5383b);
+	np2.createHandle();
+
+	np3 = newNumberPicker(&frm, 10, 280);
+	np3.createHandle();
+	// ptf("buddy %s", np2.buddyHandle );
+	Rect rc;
+	api_GetClientRect(np.buddyHandle, &rc);
+	printRect(rc, "first buddy rect");
+	api_GetClientRect(np.handle, &rc);
+	printRect(rc, "first upd rect");
 	frm.show();
 
 	return 0;
@@ -91,7 +126,9 @@ fn void frmMouseDown(Control* c, MouseEventArgs* e) {
 }
 
 fn void btnClick(Control* c, EventArgs* e) {
-	cmb.setInput(true);
+	String x = lbx.selectedItem();
+	ptf("Item %s", x );
+	free(x);
 }
 
 

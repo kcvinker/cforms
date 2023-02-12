@@ -4,13 +4,13 @@
 
 module cforms;
 import std::io;
-import std::array::list;
+
 import libc;
 
 int cmbNumber = 1;
 Uintptr editSubId = 50;
 bool noComboUsed = true;
-define StrList = List<String>;
+
 
 
 // ComboBox control struct
@@ -305,7 +305,7 @@ private fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY:
-			int res = api_RemoveWindowSubclass(this.handle, &cmbWndProc, scID);
+			int res = api_RemoveWindowSubclass(hw, &cmbWndProc, scID);
 			ptf("rem sub class for combo %s", res );
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);

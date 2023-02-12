@@ -6,7 +6,7 @@ import libc;
 import std::io;
 // import private fonts;
 
-long globalCtlID = 100;
+iptr globalCtlID = 100;
 ulong globalSubClsID = 1000;
 
 enum ControlType : int {
@@ -40,7 +40,7 @@ struct Control {
 	int height;
 	int xpos;
 	int ypos;
-	long ctlID;
+	iptr ctlID;
 	Dword _style;
 	Dword _exStyle;
 	uint _drawMode;
@@ -59,6 +59,7 @@ struct Control {
 	EventHandler onRightClick;
 	EventHandler onMouseEnter;
 	EventHandler onMouseLeave;
+
 	MouseEventHandler onMouseDown;
 	MouseEventHandler onMouseUp;
 	MouseEventHandler onRightMouseDown;
@@ -178,6 +179,21 @@ struct Control {
         this.width = ss.cx;
         this.height = ss.cy;
         api_MoveWindow(this.handle, this.xpos, this.ypos, ss.cx, ss.cy, true);
+	}
+
+	// Get the string from this control. Don't remember to free the buffer.
+	private fn String Control.getTextInternal(Control* this, Hwnd hw = null) {
+		Hwnd hwnd = hw ? hw : this.handle;
+		int tLen = api_GetWindowTextLength(hwnd);
+
+		if (tLen) {
+			@pool() {
+				Char16[] buffer = array::talloc(Char16, tLen + 1);
+				int ret = api_GetWindowText(hwnd, buffer.ptr, tLen + 1);
+				return str::utf16to8(buffer)!!;
+			};
+		}
+		return "";
 	}
 
 // End private functions

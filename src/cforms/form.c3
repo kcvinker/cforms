@@ -4,8 +4,8 @@
 
 module cforms;
 import std::io;
-import std::array::list;
-import std::map;
+import std::collections::list;
+import std::collections::map;
 import libc;
 
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
@@ -13,7 +13,7 @@ define ptf = io::printfn;
 define log = io::println;
 define cptf = libc::printf;
 define ControlList = List<Control*>;
-define CmbMap = std::map::HashMap<Hwnd, Hwnd>; //To hold the info about combobox's listbox
+define CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the info about combobox's listbox
 
 // Important static data
 bool frmCreated = false;
@@ -213,6 +213,8 @@ struct Form {
 	const Dword WS_EX_CLIENTEDGE = 512;
 	const Dword WS_EX_LTRREADING = 0x00000000;
 	const Dword WS_EX_LEFT = 0x00000000;
+	const Dword WS_VSCROLL = 2097152;
+	const Dword WS_HSCROLL = 1048576;
 	const int GWLP_USERDATA = -21;
 
 	// Prefixed window styles
@@ -477,7 +479,7 @@ struct Form {
 		this.controls.free();
 		this.name.destroy();
 
-		if (!noComboUsed) this._comboMap.destroy();
+		if (!noComboUsed) this._comboMap.free();
 
 
 	}

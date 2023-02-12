@@ -38,7 +38,7 @@ struct RadioButton {
 		this.className = "Button";
 		this._parent = parent;
 		this.font = parent.font;
-		this._style = WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON ;;
+		this._style = WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON;
 		this._exStyle = WS_EX_LTRREADING | WS_EX_LEFT;
 		this._textStyle = DT_SINGLELINE | DT_VCENTER;
 		this.xpos = x;
@@ -152,7 +152,7 @@ private fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 	RadioButton* this = (RadioButton*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(this.handle, &rbWndProc, scID);
+		case WM_DESTROY: api_RemoveWindowSubclass(hw, &rbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
@@ -190,7 +190,7 @@ private fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 
 // Constants
 
-	const Dword BS_AUTORADIOBUTTON = 3;
+	const Dword BS_AUTORADIOBUTTON = 9;
 
 	// const Dword ES_OEMCONVERT = 0x400;
 	// const Dword ES_PASSWORD = 32;

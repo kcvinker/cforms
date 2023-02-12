@@ -36,9 +36,11 @@ define Colorref = Dword;
 define Word = ushort;
 define Bool = int;
 define Wstring = Char16[];
+const Dword UINT_MAX = 1 << 32;
 
 // Function pointer types
 define Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
+// define Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
 define Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
 
 struct Size {
@@ -152,6 +154,35 @@ struct PaintStruct {
 	ichar[32] rgbReserved;
 }
 
+struct SystemTime {
+	Word wYear;
+	Word wMonth;
+	Word wDayOfWeek;
+	Word wDay;
+	Word wHour;
+	Word wMinute;
+	Word wSecond;
+	Word wMilliseconds;
+}
+
+struct NMDateTimeString {
+	NMHdr      	nmhdr;
+  	Lpcwstr   	pszUserString;
+  	SystemTime 	st;
+  	Dword      	dwFlags;
+}
+
+struct NMDateTimeChange {
+	NMHdr nmhdr;
+	Dword dwFlags;
+	SystemTime st;
+}
+
+struct NMUpdown {
+	NMHdr hdr;
+  	int   iPos;
+  	int   iDelta;
+}
 
 
 

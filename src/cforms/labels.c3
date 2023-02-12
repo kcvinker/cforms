@@ -130,25 +130,25 @@ struct Label {
 
 
 private fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
-	Label* lb = (Label*)((void*)refData);
+	Label* this = (Label*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(lb.handle, &lbWndProc, scID);;
-		case WM_LBUTTONDOWN: lb.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: lb.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: lb.leftClickHandler();
+		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbWndProc, scID);;
+		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK: this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: lb.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: lb.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: lb.rightClickHandler();
+		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK: this.rightClickHandler();
 
-		case WM_MOUSEMOVE: lb.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: lb.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: lb.mouseWheelHandler(msg, wp, lp);
+		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE: this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
 
-		case MM_COLOR_STATIC: return (Lresult) lb.colorMsgHandler(wp);
+		case MM_COLOR_STATIC: return (Lresult) this.colorMsgHandler(wp);
 
-		case MM_RUNDTOR: lb.dtor(); return 0;
+		case MM_RUNDTOR: this.dtor(); return 0;
 
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
