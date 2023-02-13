@@ -3,4 +3,5 @@ A simple GUI library for C3 programming language, based on Win32 API
 
 # Screenshots
 
-![image](https://user-images.githubusercontent.com/8840907/217447498-b0704148-a67b-41ca-bb6f-3f3a61756e2b.png)
+![image](https://user-images.githubusercontent.com/8840907/218549863-4c4a1a5b-e5d1-44eb-89c6-12c5a3cede89.png)
+
