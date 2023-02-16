@@ -1,5 +1,4 @@
 
-
 // numberpicker module - Created on 09-Feb-2023 12:37
 
 module cforms;
@@ -13,7 +12,7 @@ const NPSTYLE = WS_VISIBLE | WS_CHILD | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_AUT
 const NPTXTFLAG = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX ;
 const NPBUDDYSTYLE = WS_CHILD | WS_VISIBLE | ES_NUMBER | WS_TABSTOP| WS_BORDER ;
 const SWPFLAG = SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER;
-
+Char16* def_str;
 
 // NumberPicker control struct
 struct NumberPicker {
@@ -101,6 +100,7 @@ struct NumberPicker {
 	fn void NumberPicker.createHandle(NumberPicker* this) {
 		this.setNPStyle();
 		// this.createInternal();
+		if (!def_str) def_str = str::utf8to16("0.88").ptr!!;
 		this.createUpdown();
 		if (this.handle) {
 			this.setFontInternal();
@@ -197,17 +197,17 @@ struct NumberPicker {
 	}
 
 	private fn void NumberPicker.placeBuddy(NumberPicker* this) {
+		ptf("Name : %s,   Button left: %s", this.name.str(), this.buttonLeft );
 
 		if (this.buttonLeft) {
 			this._linex = this._tbRect.left;
-			api_SetWindowPos(this.buddyHandle, null,
+			api_SetWindowPos(this.buddyHandle, this.handle,
 							(this.xpos + this._udRect.right), this.ypos,
 							this._tbRect.right, this._tbRect.bottom, SWPFLAG);
 		} else {
 			this._linex = this._tbRect.right - 3;
-			api_SetWindowPos(this.buddyHandle, null, this.xpos, this.ypos,
+			api_SetWindowPos(this.buddyHandle, this.handle, this.xpos, this.ypos,
 							(this.width - (this._udRect.right - this._udRect.left)), this._tbRect.bottom, SWPFLAG);
-
 		}
 	}
 
@@ -222,7 +222,7 @@ struct NumberPicker {
 		int num = libc::sprintf(&buffer, this.fmtStr.str(), this.value);
 
 		// ptf("valStr %s", this.valStr.str() );
-		api_SetWindowText(this.buddyHandle, str::utf8to16(buffer[:num-1]).ptr!!);
+		api_SetWindowText(this.buddyHandle, str::utf8to16(buffer[:num-1]).ptr?? def_str);
 
 	}
 
@@ -237,13 +237,34 @@ struct NumberPicker {
 		 * just draw a line with the back color of edit control*/
 
 		Hdc hdc = api_GetDC(this.buddyHandle);
-		api_DrawEdge(hdc, &this._tbRect, BDR_SUNKENOUTER, this._topEdgeFlag);
-		api_DrawEdge(hdc, &this._tbRect, BDR_RAISEDINNER, this._botEdgeFlag);
-		Hpen fpen = api_CreatePen(PS_SOLID, 1, this.backColor.ref);
+		// api_DrawEdge(hdc, &this._tbRect, BDR_SUNKENOUTER, this._topEdgeFlag);
+		// api_DrawEdge(hdc, &this._tbRect, BDR_RAISEDINNER, this._botEdgeFlag);
+		//------------------------------------------------------------------------
+
+		// Picking a suitable color to draw the border. Is there any system color like this ?
+		Color clr = newColor(0xABABAB); //0xABABAB
+		Hpen frp = api_CreatePen(PS_SOLID, 1, clr.ref);
+		defer api_DeleteObject(frp);
+		api_SelectObject(hdc, frp);
+
+		// Drawing border lines around edit control
+		if (this.buttonLeft) {
+			api_MoveToEx(hdc, this._tbRect.left, 0, null);
+			api_LineTo(hdc, this._tbRect.right - 1, 0);
+			api_LineTo(hdc, this._tbRect.right - 1, this._tbRect.bottom - 1);
+			api_LineTo(hdc, this._tbRect.left - 1, this._tbRect.bottom - 1);
+		} else {
+			api_MoveToEx(hdc, this._tbRect.right, 0, null);
+			api_LineTo(hdc, 0, 0);
+			api_LineTo(hdc, 0, this._tbRect.bottom - 1);
+			api_LineTo(hdc, this._tbRect.right, this._tbRect.bottom - 1);
+		}
+
+		Hpen fpen = api_CreatePen(PS_SOLID, 2, this.backColor.ref);
 		defer api_DeleteObject(fpen);
 		api_SelectObject(hdc, fpen);
 		api_MoveToEx(hdc, this._linex, 1, null);
-		api_LineTo(hdc, this._linex, this._tbRect.bottom - 1);
+		api_LineTo(hdc, this._linex, this._tbRect.bottom - 2);
 		api_ReleaseDC(this.buddyHandle, hdc);
 		return 1;
 	}
@@ -285,7 +306,6 @@ struct NumberPicker {
 		Hdc hdc = (Hdc)wpm;
 		api_SetBkMode(hdc, TRANSPARENT);
 		if (this._drawMode & 1) {
-			log("288");
 			api_SetTextColor(hdc, this.foreColor.ref);
 		}
 		api_SetBkColor(hdc, this.backColor.ref);
@@ -328,10 +348,16 @@ private fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 		case WM_CHAR: this.keyPressHandler(wp);
 
 		case MM_NOTIFY_REFLECT: this.wmNotifyHandler(lp);
-
-		// case MM_COLOR_LBOX: return (Lresult) this.colorMsgHandler(wp);
-
-		// case MM_CTL_COMMAND : this.wmCommandHandler(wp);
+		// case WM_PAINT:
+		// 	Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
+		// 	Hdc hdc = api_GetDC(hw);
+		// 	Hpen fpen = api_CreatePen(PS_SOLID, 2, this.backColor.ref);
+		// 	defer api_DeleteObject(fpen);
+		// 	api_SelectObject(hdc, fpen);
+		// 	api_MoveToEx(hdc, this._udRect.left, 1, null);
+		// 	api_LineTo(hdc, this._udRect.left, this._udRect.bottom - 2);
+		// 	api_ReleaseDC(hw, hdc);
+		// 	return ret;
 
 		case MM_RUNDTOR: this.dtor(); return 0;
 
