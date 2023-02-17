@@ -40,6 +40,7 @@ struct GroupBox {
 		this.height = height;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
+		this._textable = true;
 
 		gbNumber += 1;
 		return this;
@@ -91,6 +92,12 @@ struct GroupBox {
 	}
 
 
+	private fn void GroupBox.textSetter(GroupBox* this, String value) {
+		this.getTextBounds();
+		api_SetWindowText(this.handle, str::utf8to16(value).ptr!!);
+		api_InvalidateRect(this.handle, null, false);
+	}
+
 	// Freeing resources used for this GroupBox.
 	private fn void GroupBox.dtor(GroupBox* this) {
 		ptf("%s is destroyed", this.name.str());
@@ -124,13 +131,8 @@ private fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
 
-		// case MM_COLOR_STATIC:
-		// 	Hdc hdc = (Hdc)wp;
-
-
 		case WM_PAINT: return this.drawText(hw, msg, wp, lp);
 		case WM_GETTEXTLENGTH: return 0;
-
 
 		case WM_ERASEBKGND:
 			if (this._drawMode & 2) {
