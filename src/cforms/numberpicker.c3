@@ -50,11 +50,6 @@ struct NumberPicker {
 
 	EventHandler onValueChanged;
 
-
-
-
-
-
 }
 
 
@@ -88,7 +83,7 @@ struct NumberPicker {
 		this._botEdgeFlag = BF_BOTTOM;
 		this.textPos = Alignment.LEFT;
 		this.fmtStr = string::new("%.2f");
-		this.valStr = string::new("0");
+		this.valStr = string::new("0.00");
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		npNumber += 1;
@@ -118,32 +113,6 @@ struct NumberPicker {
 
 		}
 	}
-
-
-
-
-
-
-
-	// Set the cue banner text for this NumberPicker
-
-
-	// Set fore color for NumberPicker
-	// fn void NumberPicker.setForeColor(NumberPicker* this, uint clr) {
-	// 	this.foreColor.updateColor(clr);
-	// 	if (!(this._drawMode & 1)) this._drawMode += 1;
-	// 	if (this._isCreated) api_InvalidateRect(this.handle, null, false);
-	// }
-
-	// //Set back color for NumberPicker
-	// fn void NumberPicker.setBackColor(NumberPicker* this, uint clr) {
-	// 	this.backColor.updateColor(clr);
-	// 	if ((this._drawMode & 2) != 2) this._drawMode += 2;
-	// 	if (this._isCreated) {
-	// 		this._bkBrush = this.backColor.getBrush();
-	// 		api_InvalidateRect(this.handle, null, false);
-	// 	}
-	// }
 
 
 // End of Public functions
@@ -197,8 +166,6 @@ struct NumberPicker {
 	}
 
 	private fn void NumberPicker.placeBuddy(NumberPicker* this) {
-		ptf("Name : %s,   Button left: %s", this.name.str(), this.buttonLeft );
-
 		if (this.buttonLeft) {
 			this._linex = this._tbRect.left;
 			api_SetWindowPos(this.buddyHandle, this.handle,
@@ -218,12 +185,9 @@ struct NumberPicker {
 	}
 
 	private fn void NumberPicker.displayValue(NumberPicker* this) {
-		char[10] buffer;
-		int num = libc::sprintf(&buffer, this.fmtStr.str(), this.value);
-
-		// ptf("valStr %s", this.valStr.str() );
-		api_SetWindowText(this.buddyHandle, str::utf8to16(buffer[:num-1]).ptr?? def_str);
-
+		this.valStr.clear();
+		this.valStr.printf(this.fmtStr.str(), this.value);
+		api_SetWindowText(this.buddyHandle, str::utf8to16(this.valStr.str()).ptr!!);
 	}
 
 
