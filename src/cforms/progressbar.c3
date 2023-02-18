@@ -33,7 +33,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// ProgressBar constructor - Create and returns a New ProgressBar struct
 	fn ProgressBar newProgressBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 25) {
 		ProgressBar this;
-		this.kind = ControlType.NUM_PICKER;
+		this.kind = ControlType.PROGRESS_BAR;
 		this.name = string::new("ProgressBar_");
 		this.name.printf("%d", pbNumber);
 		this.className = "msctls_progress32";
