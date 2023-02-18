@@ -92,6 +92,8 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		TreeNode this;
 		this.text = txt;
 		this.selImgIndex = -1;
+		this.index = -1;
+		this.nodeCount = 0;
 		this.imgIndex = -1;
 		this.foreColor = newColor(0x000000);
 		this.backColor = newColor(0xFFFFFF);
@@ -300,11 +302,9 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 
 
-	private fn void TreeNode.destructor(TreeNode* this) {
-		ptf("Node is destroying, node ptr %p", this);
-		if (this.nodeCount > 0) {
-			foreach (node: this.nodes) { node.destructor();} // Recursive destruction
-		}
+	fn void TreeNode.destroy(TreeNode* this) {
+		// ptf("Node is destroying, node text %s, count : %s", this.text, this.nodeCount);
+		if (this.nodes.len()) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free(); // Finally free the container too.
 	}
 
@@ -313,9 +313,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	private fn void TreeView.dtor(TreeView* this) {
 		ptf("%s is destroyed", this.name.str());
 		this.name.destroy();
-		if (this.nodeCount > 0) {
-			foreach (node: this.nodes) { node.destructor();} // Recursive destruction
-		}
+		if (this.nodeCount > 0) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free();
 	}
 // End of Private functions
