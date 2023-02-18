@@ -192,7 +192,7 @@ struct CmbData {
 		}
 	}
 
-	private fn Point getMousePoints() {
+	private fn Point getComboMousePoints() {
 		Dword value = api_GetMessagePos();
 		int x = (int)((short)loWord(value));
 		int y = (int)((short)hiWord(value));
@@ -202,7 +202,7 @@ struct CmbData {
 	private fn Bool isMouseInCombo(Hwnd hwn) {
 		Rect rc;
 		api_GetWindowRect(hwn, &rc);
-		Point pts = getMousePoints();
+		Point pts = getComboMousePoints();
 		return api_PtInRect(&rc, pts);
 	}
 
