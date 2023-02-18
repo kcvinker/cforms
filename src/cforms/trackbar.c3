@@ -97,7 +97,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.ticLen = 4;
 		this.ticPos = TicPosition.DOWNSIDE;
 		this.lineSize = 1;
-		this.channelStyle = ChannelStyle.CLASSIC;
+		this.channelStyle = ChannelStyle.OUTLINE;
 		this.trackChange = TrackChange.NONE;
 		this.channelColor = newColor(0xc2c2a3);
         this.selColor = newColor(0x99ff33);
