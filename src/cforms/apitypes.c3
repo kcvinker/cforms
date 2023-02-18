@@ -252,6 +252,12 @@ struct LVItem {
 	int    iGroup;
 }
 
+struct HDHitTestInfo {
+	Point pt;
+  	uint  flags;
+  	int   iItem;
+}
+
 
 
 
