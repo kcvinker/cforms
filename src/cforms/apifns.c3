@@ -46,6 +46,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_SetWindowText(Hwnd, Lpcwstr) @extname("SetWindowTextW");
 	extern fn int api_GetWindowTextLength(Hwnd) @extname("GetWindowTextLengthW");
 	extern fn int api_GetWindowText(Hwnd, Char16*, int) @extname("GetWindowTextW");
+	extern fn Dword api_GetSysColor(int) @extname("GetSysColor");
+	extern fn int api_FrameRect(Hdc, Rect*, Hbrush) @extname("FrameRect");
 
 
 // End User32
@@ -79,6 +81,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_SetBkColor(Hdc, Colorref) @extname("SetBkColor");
 	extern fn Bool api_MoveToEx(Hdc, int, int, Point*) @extname("MoveToEx");
 	extern fn Bool api_LineTo(Hdc, int, int) @extname("LineTo");
+	extern fn Bool api_TextOut(Hdc, int, int, Lpcwstr, int) @extname("TextOutW");
+	extern fn Hgdiobj api_GetStockObject(int) @extname("GetStockObject");
 
 
 

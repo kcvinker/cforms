@@ -19,6 +19,7 @@ define Hmodule = Handle;
 define Hpen = Handle;
 define Hwnd = Handle;
 define Hrgn = Handle;
+define Htreeitem = Handle;
 
 define Intptr = iptr;
 define Long = int;
@@ -184,6 +185,72 @@ struct NMUpdown {
   	int   iDelta;
 }
 
+struct NMSelchange {
+	NMHdr      nmhdr;
+  	SystemTime stSelStart;
+  	SystemTime stSelEnd;
+}
+struct NMViewChange {
+	NMHdr nmhdr;
+  	Dword dwOldView;
+  	Dword dwNewView;
+}
+
+struct TVItemEx {
+	uint      mask;
+	Htreeitem hItem;
+	uint      state;
+	uint      stateMask;
+	Lpcwstr    pszText;
+	int       cchTextMax;
+	int       iImage;
+	int       iSelectedImage;
+	int       cChildren;
+	Lparam    lParam;
+	int       iIntegral;
+	uint      uStateEx;
+	Hwnd      hwnd;
+	int       iExpandedImage;
+	int       iReserved;
+}
+
+struct TVInsertStruct {
+	Htreeitem hParent;
+	Htreeitem hInsertAfter;
+	TVItemEx itemex;
+}
+
+struct LVColumn {
+	uint   mask;
+	int    fmt;
+	int    cx;
+	Lpcwstr pszText;
+	int    cchTextMax;
+	int    iSubItem;
+	int    iImage;
+	int    iOrder;
+	int    cxMin;
+	int    cxDefault;
+	int    cxIdeal;
+}
+
+struct LVItem {
+	uint   mask;
+	int    iItem;
+	int    iSubItem;
+	uint   state;
+	uint   stateMask;
+	Lpcwstr pszText;
+	int    cchTextMax;
+	int    iImage;
+	Lparam lParam;
+	int    iIndent;
+	int    iGroupId;
+	uint   cColumns;
+	uint*  puColumns;
+	int*    piColFmt;
+	int    iGroup;
+}
 
 
 
