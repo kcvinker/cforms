@@ -18,6 +18,7 @@ const LVSTYLE = WS_BORDER | WS_CHILD | WS_VISIBLE | LVS_ALIGNLEFT | LVS_EDITLABE
 
 define ColumnList = List<ListViewColumn*>;
 define ItemList = List<ListViewItem*>;
+// define IntList = List<int>;
 
 
 // ListView control struct
@@ -26,6 +27,8 @@ struct ListView {
 	int selectedIndex;
 	int _colIndex;
 	int _itemIndex;
+	Dwordptr _hotHdrIndex;
+	Hwnd _hdrHwnd;
 	ListViewItem selectedItem;
 	bool editLabel;
 	bool hideSelection;
@@ -37,9 +40,11 @@ struct ListView {
 	bool hotTrackSelection;
 	bool noHeader;
 	bool headerClickable;
+	bool checkBoxLast;
 	ListViewStyle viewStyle;
 	Color headerBackColor;
 	Color headerForeColor;
+	Font headerFont;
 	ColumnList columns;
 	ItemList items;
 
@@ -98,6 +103,7 @@ enum ListViewStyle : char {
 		this.className = "SysListView32";
 		this._parent = parent;
 		this.font = parent.font;
+		this.headerFont = this.font;
 		this._style = LVSTYLE;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -111,6 +117,7 @@ enum ListViewStyle : char {
 		this.oneClickActivate = true;
 		this.headerClickable = true;
 		this._itemIndex = -1;
+		this._hotHdrIndex = -1;
 
 		this.backColor = newColor(0xFFFFFF);
 		this.foreColor = newColor(0x000000);
@@ -122,6 +129,7 @@ enum ListViewStyle : char {
 
 	}
 
+	// ListViewCoulmn constructor.
 	fn ListViewColumn newListViewColumn(String txt, int width = 100, int imageIndex = -1) {
 		ListViewColumn this;
 		this.text = txt;
@@ -135,19 +143,24 @@ enum ListViewStyle : char {
 		return this;
 	}
 
+	// ListViewItem constructor
 	fn ListViewItem newListViewItem(String txt, uint bgColor = 0xFFFFFF, uint fgColor = 0x000000, int imgIndex = -1) {
 		ListViewItem this;
 		this.text = txt;
 		this.backColor = newColor(bgColor);
 		this.foreColor = newColor(fgColor);
+		this.index = -1;
 		this.imageIndex = imgIndex;
 		return this;
 
 	}
 
-	// fn ListViewItem newListViewRow(String txt, String... subitems) {
-
-	// }
+	// Another ListViewItem constructor, but appends sub items too. Works for only REPORT_VIEW style.
+	fn ListViewItem newListViewRow(String txt, String... subitems) {
+		ListViewItem item = newListViewItem(txt);
+		foreach (sitem: subitems) {item.subItems.push(sitem);}
+		return item;
+	}
 
 
 
@@ -159,49 +172,61 @@ enum ListViewStyle : char {
 			this.setLVExStyle();
 			this.setSubClass(&lvWndProc);
 			this.setFontInternal();
+			this.setHeaderSubclass();
+			this.postCreationTasks();
 			this._parent.controls.append(this);
 		}
 	}
 
-
+	// Not implemented yet
 	fn void ListView.addColumnsEx(ListView* this, String text, int width = 100, int imgIndx = -1) {
 
 	}
 
+	// Add column to ListView. Use newListViewColumn function to create a column
 	fn void ListView.addColumn(ListView* this, ListViewColumn* lvc) {
 		this.addColumnInternal(lvc);
 	}
 
+	// Add more than one column. Use newListViewColumn function to create a column
 	fn void ListView.addColumns(ListView* this, ListViewColumn*... cols) {
 		foreach (col: cols) {this.addColumnInternal(col);}
 	}
 
+	// Add an item to ListView. Use newListViewItem function to create an item.
 	fn void ListView.addItem(ListView* this, ListViewItem* item) {
 		if (this._itemIndex == -1) this._itemIndex = 0;
 		item.index = this._itemIndex;
 		item.font = this.font;
 		this.addItemInternal(item);
 
+		// We will add sub items too. But only for Report View style.
+		if (item.subItems.len() && this.viewStyle == ListViewStyle.REPORT_VIEW) {
+			foreach (i, sitem: item.subItems) {
+				this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);}
+		}
 	}
 
+	// Add more than one item to ListView. Use newListViewItem function to create an item.
 	fn void ListView.addItems(ListView* this, ListViewItem*... items) {
 		if (this._itemIndex == -1) this._itemIndex = 0;
 		foreach (item: items) {
 			item.index = this._itemIndex;
 			item.font = this.font;
 			this.addItemInternal(item);
+			if (item.subItems.len()) {
+				foreach (i, sitem: item.subItems) {
+					this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);
+				}
+			}
 		}
 	}
 
+	// Add  sub items to a ListViewItem.
 	fn void ListView.addSubItems(ListView* this, ListViewItem* item, String... subitems) {
 		foreach (i, subitem: subitems) {
 			this.addSubItemInternal(item, subitem, (int)i + 1);}
 	}
-
-
-
-
-
 
 // End of Public functions
 
@@ -223,10 +248,10 @@ enum ListViewStyle : char {
 
         // Set some brushes
         this._hdrBkBrush = api_CreateSolidBrush(this.headerBackColor.ref);
-        this._hdrHotBrush = this.headerForeColor.getHotBrush(1.5);
+        this._hdrHotBrush = this.headerBackColor.getHotBrush(0.8);
 	}
 
-
+	// Setting ListView's Ex styles
 	private fn void ListView.setLVExStyle(ListView* this) {
 		Dword lvExStyle = 0x0000;
         if (this.showGrid) lvExStyle |= LVS_EX_GRIDLINES;
@@ -238,6 +263,7 @@ enum ListViewStyle : char {
         this.sendMsg(LVM_SETEXTENDEDLISTVIEWSTYLE, 0 , lvExStyle);
 	}
 
+	// Adding column to ListView.
 	private fn void ListView.addColumnInternal(ListView* this, ListViewColumn* lvcol) {
 		lvcol.index = this._colIndex;
         LVColumn lvc;
@@ -260,6 +286,7 @@ enum ListViewStyle : char {
         this._colIndex += 1;
 	}
 
+	// Adding item to ListView.
 	private fn void ListView.addItemInternal(ListView* this, ListViewItem* item) {
 		LVItem lvi;
         lvi.mask = LVIF_TEXT | LVIF_PARAM | LVIF_STATE;
@@ -277,7 +304,8 @@ enum ListViewStyle : char {
 		this._itemIndex += 1;
 	}
 
-	private fn void ListView.addSubItemInternal(ListView* this, ListViewItem* item, String subitem, int subIndex ) {
+	// Adding subitems to given item.
+	private fn void ListView.addSubItemInternal(ListView* this, ListViewItem* item, String subitem, int subIndex, bool appendSubItem = true ) {
         LVItem lvi;
         // # lvi.mask = con.LVIF_TEXT | con.LVIF_STATE
         // # lvi.iItem = item_index
@@ -285,9 +313,78 @@ enum ListViewStyle : char {
         lvi.pszText = str::utf8to16(subitem).ptr!!;
         lvi.iImage = -1;
         this.sendMsg(LVM_SETITEMTEXTW, item.index, &lvi);
-        item.subItems.append(subitem);
+        if (appendSubItem) item.subItems.append(subitem);
 	}
 
+	// Get the Header handle & subclass it.
+	private fn void ListView.setHeaderSubclass(ListView* this) {
+		this._hdrHwnd = (Hwnd) this.sendMsg(LVM_GETHEADER, 0, 0);
+		api_SetWindowSubclass(this._hdrHwnd, &hdrWndProc, globalSubClsID, (Dwordptr)this);
+		globalSubClsID += 1;
+	}
+
+	// Some post creation tasks for this listview.
+	private fn void ListView.postCreationTasks(ListView* this) {
+		if (this.backColor.value != 0xFFFFFF) this.sendMsg(LVM_SETBKCOLOR, 0, this.backColor.ref);
+		if (this.checkBoxLast) {
+			@pool() {
+				IntList iList;
+				iList.tinit(this.columns.len()); // Ensure we never need realloc
+				foreach (col: this.columns) {if (col.index > 0) iList.push(col.index);}
+				iList.push(0);
+				this.sendMsg(LVM_SETCOLUMNORDERARRAY, iList.len(), &iList[0]);
+			};
+		}
+	}
+
+	// Drawing the header
+	private fn Lresult ListView.drawHeader(ListView* this, NMCustomDraw* nmcd) {
+		/* Drawing header to beautify with colors and font.
+		 * Windows's own header drawing is white bkg color.
+         * But listview itself is white bkg. We can't allow both hdr & listview in white.
+         * So, we need to draw it on our own. */
+        if (nmcd.dwItemSpec != 0) nmcd.rc.left += 1; // Give room for header divider.
+        ListViewColumn* col = this.columns[nmcd.dwItemSpec]; // Get our column struct
+        api_SetBkMode(nmcd.hdc, TRANSPARENT);
+
+        if (nmcd.uItemState & CDIS_SELECTED)
+            {api_FillRect(nmcd.hdc, &nmcd.rc, this._hdrBkBrush);}
+        else {
+            // We will draw with a different color if mouse is over this hdr.
+            if (nmcd.dwItemSpec == this._hotHdrIndex)
+                {api_FillRect(nmcd.hdc, &nmcd.rc, this._hdrHotBrush);}
+            else
+                {api_FillRect(nmcd.hdc, &nmcd.rc, this._hdrBkBrush);}
+		}
+
+        api_SelectObject(nmcd.hdc, this.headerFont.handle);
+        api_SetTextColor(nmcd.hdc, this.headerForeColor.ref);
+        if (this.headerClickable && (nmcd.uItemState & CDIS_SELECTED)) {
+            /* We are mimicing the dotnet listview header's nature here.
+             * They did not resize the overall header item. They just reduce...
+             * it for drawing text. That means, text is drawing in a small rect.
+             * Thus, viewer thinks like header is pressed a little bit. */
+            nmcd.rc.left += 2;
+            nmcd.rc.top += 2;
+		}
+        api_DrawText(nmcd.hdc, str::utf8to16(col.text).ptr!!, -1, &nmcd.rc, col._hdrTxtFlag);
+		return CDRF_SKIPDEFAULT;
+	}
+
+	// Handling the WM_NOTIFY message from header
+	private fn Lresult ListView.headerNotifyHandler(ListView* this, Lparam lpm) {
+		NMHdr* nmh = (NMHdr*) lpm;
+		if (nmh.code == NM_CUSTOMDRAW) {
+			NMCustomDraw* nmcd = (NMCustomDraw*) lpm;
+			switch (nmcd.dwDrawStage) {
+				case CDDS_PREPAINT: return CDRF_NOTIFYITEMDRAW;
+				case CDDS_ITEMPREPAINT: return this.drawHeader(nmcd);
+			}
+		}
+		return CDRF_DODEFAULT;
+	}
+
+	// Destructor for ListViewItem
 	fn void ListViewItem.destroy(ListViewItem* this) {
 		ptf("Item index %s", this.index );
 		this.subItems.free();
@@ -299,9 +396,7 @@ enum ListViewStyle : char {
 		this.name.destroy();
 		if (this._itemIndex > -1) {foreach (item: this.items) {item.destroy();}}
 		this.columns.free();
-
 		this.items.free();
-
 	}
 // End of Private functions
 
@@ -328,10 +423,27 @@ private fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
 
+		case WM_NOTIFY: return this.headerNotifyHandler(lp);
+
 
 
 		case MM_RUNDTOR: log("lv dtor starting"); this.dtor(); return 0;
 
+	}
+	return api_DefSubclassProc(hw, msg, wp, lp);
+}
+
+private fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+	ListView* this = (ListView*)((void*)refData);
+	// io::printfn("message %s", msg);
+	switch (msg) {
+		case WM_DESTROY: api_RemoveWindowSubclass(hw, &hdrWndProc, scID);
+		case WM_MOUSEMOVE:
+			Point mp = getMousePoints(lp);
+			HDHitTestInfo hti; hti.pt = mp;
+			this._hotHdrIndex = (int) api_SendMessage(hw, HDM_HITTEST, 0, (Lparam) &hti);
+
+		case WM_MOUSELEAVE: this._hotHdrIndex = -1;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
@@ -399,7 +511,10 @@ private fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 
 	// LV Messages
 
+		const LVM_SETBKCOLOR = (LVM_FIRST + 1);
+		const LVM_GETHEADER = (LVM_FIRST + 31);
 		const LVM_SETEXTENDEDLISTVIEWSTYLE = (LVM_FIRST + 54);
+		const LVM_SETCOLUMNORDERARRAY = (LVM_FIRST + 58);
 		const LVM_INSERTITEMW = (LVM_FIRST + 77);
 		const LVM_INSERTCOLUMNW = (LVM_FIRST + 97);
 		const LVM_SETITEMTEXTW = (LVM_FIRST + 116);
