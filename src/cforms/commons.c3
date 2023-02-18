@@ -25,13 +25,25 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const uint MM_COLOR_LBOX = 9006;
 	const uint MM_CTL_COMMAND = 9007;
 	const uint MM_BUDDY_RESIZE = 9008;
+	const uint MM_HSCROLL = 9009;
+	const uint MM_VSCROLL = 9010;
+
+	const HDM_FIRST = 4608;
+	const HDM_LAYOUT = (HDM_FIRST + 5);
+	const HDM_HITTEST = (HDM_FIRST + 6);
 
 // End of My own messages
 
 // Common Constants
 	const WM_USER = 0x0400;
+	const NM_FIRST = 0u-0u;
+	const NM_CUSTOMDRAW = (NM_FIRST-12u);
+	const GWL_STYLE = -16;
+	const GWL_EXSTYLE = -20;
 	const Dword BCM_FIRST = 0x1600;
 	const Dword BCN_FIRST = (Dword)-1250;
+	const WS_EX_RIGHTSCROLLBAR = 0;
+
 
 	const int TRANSPARENT = 1;
 	const Dword CDRF_DODEFAULT         = 0;
@@ -56,6 +68,8 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const Dword CDDS_ITEMPREERASE  = CDDS_ITEM | CDDS_PREERASE;
 	const Dword CDDS_ITEMPREPAINT  = CDDS_ITEM | CDDS_PREPAINT;
 
+	const CDIS_SELECTED = 0x0001;
+
 	const Dword SWP_NOZORDER = 0x0004;
 	const Dword SWP_SHOWWINDOW = 0x0040;
 	const Dword SWP_NOACTIVATE = 0x0010;
@@ -63,8 +77,16 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const BF_TOP = 0x0002;
 	const BF_RIGHT = 0x0004;
 	const BF_BOTTOM = 0x0008;
+	const BF_RECT = (BF_LEFT | BF_TOP | BF_RIGHT | BF_BOTTOM);
 	const BF_TOPLEFT = (BF_TOP | BF_LEFT);
 	const BF_BOTTOMRIGHT = (BF_BOTTOM | BF_RIGHT);
+	const BF_ADJUST = 0x2000;
+	const BF_FLAT = 0x4000;
+	const BDR_RAISEDINNER =	4;
+	const BDR_SUNKENOUTER = 0x0002;
+	const EDGE_ETCHED = (BDR_SUNKENOUTER | BDR_RAISEDINNER);
+
+	const GRAY_BRUSH = 0x00000002;
 
 	// DrawText flags
 	const uint DT_BOTTOM = 8;
@@ -96,12 +118,12 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const int PS_SOLID = 0;
 
 
-	const BF_ADJUST = 0x2000;
-	const BDR_RAISEDINNER =	4;
-	const BDR_SUNKENOUTER = 0x0002;
+
+
 
 
 // End of Common Constants
+fn Point getMousePoints(Lparam lpm) {return Point{loWord(lpm), hiWord(lpm)};}
 
 macro isStrLiteral(x) {
 	var $res = false;
@@ -123,10 +145,10 @@ fn void printWchars(Char16* txt, int count) {
 	io::println("");
 }
 
-private fn char[] int_to_string(int i) {
+private fn char[] int_to_string(int i, bool perc = false) {
 	@pool() {
 		VarString v = string::new_with_capacity(16, mem::temp_allocator());
-		v.printf("%d", i);
+		if (perc) {v.printf("%d%%", i);} else {v.printf("%d", i);}
 		return v.copy_str();
 	};
 }
