@@ -17,6 +17,9 @@ struct GroupBox {
 	Hwnd _lbHwnd;
 	Hpen _pen;
 	int _txtWidth;
+	bool _drawDisabled;
+	bool _normalText;
+	Size _txtSize;
 }
 
 
@@ -41,6 +44,7 @@ struct GroupBox {
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this._textable = true;
+		this._normalText = true;
 
 		gbNumber += 1;
 		return this;
@@ -69,14 +73,15 @@ struct GroupBox {
 
 	private fn void GroupBox.getTextBounds(GroupBox* this) {
 		Hdc hdc = api_GetDC(this.handle) ;
-		Size ss;
 		api_SelectObject(hdc, this.font.handle);
-		api_GetTextExtentPoint32(hdc, str::utf8to16(this.text).ptr!!, this.text.len, &ss );
+		api_GetTextExtentPoint32(hdc, str::utf8to16(this.text).ptr!!, this.text.len, &this._txtSize );
 		api_ReleaseDC(this.handle, hdc) ;
-		this._txtWidth = ss.cx + 8;
+		this._txtSize.cx += 8;
+		this._txtWidth = this._txtSize.cx;
 	}
 
 	private fn Lresult GroupBox.drawText(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp,) {
+		// log("paint");
 		Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
 		Hdc hdc = api_GetDC(hw);
 		defer api_ReleaseDC(hw, hdc);
@@ -88,6 +93,37 @@ struct GroupBox {
         api_SelectObject(hdc, this.font.handle);
         api_SetTextColor(hdc, this.foreColor.ref);
 		api_TextOut(hdc, 10, 0, str::utf8to16(this.text).ptr!!, this.text.len );
+		return 1;
+	}
+
+	private fn Lresult GroupBox.drawTextDB(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp,) {
+		Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
+		Rect rc;
+		int yp = 9;
+		Hdc hdc = api_GetDC(hw);
+
+		Hdc dcMem = api_CreateCompatibleDC(hdc);
+		int ndcMem = api_SaveDC(dcMem);
+		Hbitmap hbm = api_CreateCompatibleBitmap(hdc, this._txtSize.cx, this._txtSize.cy);
+		defer {
+			api_RestoreDC(dcMem, ndcMem);
+			api_DeleteObject(hbm);
+			api_DeleteDC(dcMem);
+			api_ReleaseDC(hw, hdc);
+		}
+		api_SelectObject(dcMem, hbm);
+		api_BitBlt(dcMem, 0, 0, this._txtSize.cx, this._txtSize.cy, hdc, 10, 0, SRCCOPY);
+
+		api_SelectObject(dcMem, this._pen);
+		api_MoveToEx(dcMem, 10, yp, null);
+		api_LineTo(dcMem, this._txtSize.cx, yp);
+		api_SetRect(&rc, 10, 0, this._txtSize.cx, this._txtSize.cy);
+		api_SetBkMode(dcMem, TRANSPARENT);
+		api_SelectObject(dcMem, this.font.handle);
+		api_SetTextColor(dcMem, this.foreColor.ref);
+		api_DrawText(dcMem, str::utf8to16(this.text).ptr!!, -1, &rc, DT_CENTER|DT_SINGLELINE );
+		// TextOutW(dcMem, 10, 0, this.mTmpText.toUTF16z, this.mTmpText.length);
+		api_BitBlt(hdc, 10, 0, this._txtSize.cx, this._txtSize.cy, dcMem, 0, 0, SRCCOPY);
 		return 1;
 	}
 
@@ -131,14 +167,23 @@ private fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
 
-		case WM_PAINT: return this.drawText(hw, msg, wp, lp);
-		case WM_GETTEXTLENGTH: return 0;
+		case WM_PAINT: return this.drawTextDB(hw, msg, wp, lp); //this.drawText(hw, msg, wp, lp);
+		case WM_GETTEXTLENGTH:  return 0;
 
 		case WM_ERASEBKGND:
+			if (this._parent._isSizing) return 1;
+			// log("erase");
 			if (this._drawMode & 2) {
 				api_FillRect((Hdc)wp, &&this.clientRect(), this._bkBrush);
 				return 0;
 			}
+		// case MM_COLOR_STATIC:
+		// 	if (this._normalText) {
+		// 		api_SetBkColor((Hdc) wp, this.backColor.ref);
+		// 		return (Lresult) this._bkBrush;
+		// 	}
+
+
 		case MM_RUNDTOR: this.dtor(); return 0;
 
 	}
