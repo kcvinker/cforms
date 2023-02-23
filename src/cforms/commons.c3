@@ -27,6 +27,7 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const uint MM_BUDDY_RESIZE = 9008;
 	const uint MM_HSCROLL = 9009;
 	const uint MM_VSCROLL = 9010;
+	const uint MM_MENU_NOTIFY = 9011;
 
 	const HDM_FIRST = 4608;
 	const HDM_LAYOUT = (HDM_FIRST + 5);
@@ -86,7 +87,22 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const BDR_SUNKENOUTER = 0x0002;
 	const EDGE_ETCHED = (BDR_SUNKENOUTER | BDR_RAISEDINNER);
 
+	// RedrawWindow Constants
+	const RDW_INVALIDATE = 0x0001;
+	const RDW_INTERNALPAINT = 0x0002;
+	const RDW_ERASE = 0x0004;
+	const RDW_VALIDATE = 0x0008;
+	const RDW_NOINTERNALPAINT = 0x0010;
+	const RDW_NOERASE = 0x0020;
+	const RDW_NOCHILDREN = 0x0040;
+	const RDW_ALLCHILDREN = 0x0080;
+	const RDW_UPDATENOW = 0x0100;
+	const RDW_ERASENOW = 0x0200;
+	const RDW_FRAME = 0x0400;
+	const RDW_NOFRAME = 0x0800;
+
 	const GRAY_BRUSH = 0x00000002;
+	const SRCCOPY = 0x00CC0020;
 
 	// DrawText flags
 	const uint DT_BOTTOM = 8;
