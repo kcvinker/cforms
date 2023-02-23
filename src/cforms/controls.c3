@@ -9,10 +9,10 @@ import std::io;
 iptr globalCtlID = 100;
 ulong globalSubClsID = 1000;
 
-enum ControlType : int {
+enum ControlType : char {
 	NONE,
     BUTTON,
-    CALENDAR_BOX,
+    CALENDAR,
     CHECK_BOX,
     COMBO_BOX,
     DATE_TIME_PICKER,
@@ -48,6 +48,7 @@ struct Control {
 	bool _lbDown;
 	bool _rbDown;
 	bool _isMouseEntered;
+	bool _textable;
 	Hbrush _bkBrush;
 	Font font;
 	Form* _parent;
@@ -69,6 +70,12 @@ struct Control {
 	KeyEventHandler onKeyDown;
 	KeyEventHandler onKeyUp;
 	KeyEventHandler onKeyPress;
+
+}
+
+fault StringFault {
+	NOT_CREATED,
+	NOT_TEXTABLE,
 
 }
 
@@ -104,6 +111,31 @@ struct Control {
 			api_InvalidateRect(this.handle, null, false);
 		}
 	}
+
+	// Set the control's text.
+	fn void Control.setText(Control* this, String value) {
+		this.text = value;
+		if (this._isCreated && this._textable) {
+			if (this.kind == ControlType.GROUP_BOX) {
+				((GroupBox*)this).textSetter(value);
+			} else {
+				api_SetWindowText(this.handle, str::utf8to16(value).ptr!!);
+			}
+		}
+	}
+
+	// Get this control's text. The caller must free the string buffer.
+	fn String! Control.getText(Control* this) {
+		if (this._isCreated && this._textable) {
+			return this.getTextInternal();
+		}
+
+		if (!this._isCreated && this._textable) return StringFault.NOT_CREATED!;
+		return StringFault.NOT_TEXTABLE!;
+
+	}
+
+
 // End Public Functions
 
 // fn Control newControl(ControlType ctp) {
