@@ -13,6 +13,7 @@ define ptf = io::printfn;
 define log = io::println;
 define cptf = libc::printf;
 define ControlList = List<Control*>;
+// define MenuItemList = List<MenuItem*>;
 define CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the info about combobox's listbox
 
 // Important static data
@@ -65,6 +66,8 @@ int frmNumber = 1;
 		GRADIENT
 	}
 
+	enum MenuEvents : char {MENU_CLICK, }
+
 // End Helper types & Enums
 
 struct Form {
@@ -79,11 +82,14 @@ struct Form {
 	bool _isLoaded;
 	bool _isMainWindow;
 	bool _isMouseTracking;
+	bool _isSizing;
 	CmbMap _comboMap;
+	MenuItemList menuList;
 	Hinstance hinst;
 	Hwnd bhw;
 	Hbrush _bkBrush;
 	ControlList controls;
+	MenuBar* menubar;
 
 	EventHandler onLoad;
 	EventHandler onActivate;
@@ -99,8 +105,12 @@ struct Form {
 	// MouseEventHandler onMouseHover;
 	SizeEventHandler onSizing;
 	SizeEventHandler onSized;
+}
 
-
+// Managing menu events;
+struct MenuEventData {
+	MenuEvents event;
+	MenuItem* menu;
 
 }
 
@@ -216,6 +226,8 @@ struct Form {
 	const Dword WS_VSCROLL = 2097152;
 	const Dword WS_HSCROLL = 1048576;
 	const int GWLP_USERDATA = -21;
+	// const WS_EX_CLIPCHILDREN =
+	// const WS_EX_CLIPSIBLINGS =
 
 	// Prefixed window styles
 	const Dword FIXED3DEXSTYLE = 328448;
@@ -298,7 +310,7 @@ struct Form {
 
 			case FormStyle.NORMAL_WINDOW :
 				f._exStyle = NORMALWINEXSTYLE ;
-				f._style = NORMALWINSTYLE ;
+				f._style = NORMALWINSTYLE | WS_CLIPCHILDREN ;
 				if (!f.maximizeBox) f._style = f._style ^ WS_MAXIMIZEBOX ;
 				if (!f.minimizeBox) f._style = f._style ^ WS_MINIMIZEBOX ;
 
@@ -406,6 +418,7 @@ struct Form {
 	}
 
 	private fn Lresult Form.formSizingHandler(Form* f, uint msg, Wparam wp, Lparam lp) {
+		f._isSizing = true;
 		SizeEventArgs sea = newSizeEventArgs(msg, wp, lp);
 		f.width = sea.formRect.right - sea.formRect.left;
 		f.height = sea.formRect.bottom - sea.formRect.top;
@@ -418,6 +431,7 @@ struct Form {
 
 	private fn Lresult Form.formSizedHandler(Form* f, uint msg, Wparam wp, Lparam lp) {
 		// f.mSizingStarted = false;
+		f._isSizing = false;
 		if (f.onSized) {
 			SizeEventArgs sea = newSizeEventArgs(msg, wp, lp);
 			f.onSized(f, &sea);
@@ -463,6 +477,25 @@ struct Form {
 		if (this._isMainWindow) api_PostQuitMessage(0);
 	}
 
+	// private fn void Form.setMenuEvent(Form* this, MenuItem* menu, MenuEvents event, MenuEventHandler pFunc) {
+	// 	MenuEventData med;
+	// 	med.menu = menu;
+	// 	med.event = event;
+	// 	med.handler = pFunc;
+	// 	this.menuList.push(med);
+	// }
+
+	fault MenuEventError {MED_NOT_FOUND}
+
+	private fn MenuItem* Form.getMenuItem(Form* this, uint id, uint evt) {
+		if (this.menuList.len()) {
+			foreach (menu: this.menuList) {
+				if (menu.idNum == id && menu._evtFlag & evt) return menu;
+			}
+		}
+		return null;
+	}
+
 	private fn void Form.dtor(Form* this) {
 		// This will called when a Form destroyed
 		if (this._bkBrush) {
@@ -471,14 +504,15 @@ struct Form {
 
 		if (this.controls.len()) {
 			foreach (ctl: this.controls) {
-				api_SendMessage(ctl.handle, MM_RUNDTOR, 0, 0);
+				Lresult ret = api_SendMessage(ctl.handle, MM_RUNDTOR, 0, 0);
 			}
 
 			io::println("Form destroyed");
 		}
 		this.controls.free();
+		if (this.menubar) this.menubar.destroy();
 		this.name.destroy();
-
+		this.menuList.free();
 		if (!noComboUsed) this._comboMap.free();
 
 
@@ -486,7 +520,7 @@ struct Form {
 
 
 // End Private Functions
-// int cnt = 1;
+int cnt = 1;
 
 private fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) {
 
@@ -494,7 +528,7 @@ private fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) {
 	Form* this = (Form*)(api_GetWindowLongPtr(hw, GWLP_USERDATA));
 	// f.print(msg, "Message");
 	// ptf("[%s] Form Message %s", cnt, msg  );
-
+	// cnt += 1;
 	switch (msg) {
 	// Common msgs
 		case WM_SHOWWINDOW: this.formShownHandler();
@@ -522,6 +556,9 @@ private fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) {
 		case WM_SYSCOMMAND : this.formSysCommandHandler(wp);
 		case WM_CLOSE : this.formCloseHandler();
 		case WM_DESTROY: this.formDestroyHandler();
+
+		case WM_HSCROLL: return api_SendMessage((Hwnd) lp, MM_HSCROLL, wp, lp);
+        case WM_VSCROLL: return api_SendMessage((Hwnd) lp, MM_VSCROLL, wp, lp);
 
 		case WM_ERASEBKGND :
 			if (this._fDrawMode != FormDrawMode.DEFAULT) {
@@ -552,14 +589,56 @@ private fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) {
 				return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);
 			}
 
+		case MM_MENU_NOTIFY:
+			// MenuItem* menu =
+			this.menuList.append((MenuItem*)(void*)lp);
+
+
 		case WM_COMMAND:
             switch (hiWord(wp)) {
-				case 0: return 0; // # menu commands
+				case 0:  // menu click commands
+					MenuItem* menu = this.getMenuItem((uint)loWord(wp), 1);
+					if (menu) {
+						menu.onClick(menu, &&EventArgs{});
+					}
+
+
                 case 1: return 0; // # accelerator key commands
                 default:
                     Hwnd ctlHwnd = (Hwnd)lp;
                     return api_SendMessage(ctlHwnd, MM_CTL_COMMAND, wp, lp);
 			}
+		// case WM_MENUCOMMAND: ptf("hmenu %s", lp );
+
+		// case WM_NCMOUSEMOVE: // Same as WM_NCMOUSELEAVE if wp == 5 it's on a menu
+
+		// case WM_INITMENU: // wp - hmenu, lp - not used
+
+		// case WM_MENUSELECT: // wp - [low - menu index, hiw - menu's uFlags], lp - hemnu
+		// 	ptf("[%s]  loword %s, hiword %s", cnt, loWord(wp), hiWord(wp));
+		// 	cnt += 1;
+		// case WM_INITMENUPOPUP: // just before popup menu appear. wp -hmenu, lp - [low - 0 based pos of menu], [hiw - true/false(true if window menu)]
+		// 	ptf("[%s]  loword %s, hiword %s", cnt, loWord(lp), hiWord(lp));
+		// 	cnt += 1;
+
+		// case WM_ENTERIDLE: // wp - MSGF_MENU(2), lp - form hwnd
+		// 	ptf("[%s]  wp %s, lp %s", cnt, wp, lp);
+		// 	cnt += 1;
+		// case WM_NCMOUSELEAVE: // wp - hit test values - (look here - https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest), lp - point struct
+		// case WM_UNINITMENUPOPUP: // A popup menu destroyed wpm - hmenu, hiw lp - menu id
+
+			// MenuItem* menu = this.menubar.getMenuItem((Hmenu)wp);
+			// if (menu) {
+			// 	ptf("[%s]  menu %s", cnt, menu.text);
+			// 	cnt += 1;
+			// } else {
+			// 	log("menu not found");
+			// }
+
+		// case WM_EXITMENULOOP: // wp - true if shortcut menu. lp - not used
+		// 	ptf("[%s]  wp %s, lp %s", cnt, wp);
+		// 	cnt += 1;
+
 
 
 
