@@ -37,9 +37,9 @@ macro clip(x) {
 		RgbColor rc = c.makeRgbColor();
 		// rc.printRGB();
 		bool x = rc.isDark();
-		uint r = (uint)((double)rc.red + (32 * adj));
-		uint g = (uint)((double)rc.green + (32 * adj));
-		uint b = (uint)((double)rc.blue + (32 * adj));
+		uint r = (uint)((double)rc.red * adj);
+		uint g = (uint)((double)rc.green * adj);
+		uint b = (uint)((double)rc.blue * adj);
 		// cptf("Changed Red: %d, Green: %d, Blue: %d\n", r, g, b);
 		return (Colorref)(((math::clamp(b, 0, 255) << 16) | (math::clamp(g, 0, 255) << 8)) | (math::clamp(r, 0, 255)));
 	}
