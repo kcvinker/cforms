@@ -48,6 +48,10 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn int api_GetWindowText(Hwnd, Char16*, int) @extname("GetWindowTextW");
 	extern fn Dword api_GetSysColor(int) @extname("GetSysColor");
 	extern fn int api_FrameRect(Hdc, Rect*, Hbrush) @extname("FrameRect");
+	extern fn Bool api_RedrawWindow(Hwnd, Rect*, Hrgn, uint) @extname("RedrawWindow");
+	extern fn Hmenu api_CreateMenu() @extname("CreateMenu");
+	extern fn Bool api_AppendMenu(Hmenu, uint, Uintptr, Lpcwstr) @extname("AppendMenuW");
+	extern fn Bool api_SetMenu(Hwnd, Hmenu) @extname("SetMenu");
 
 
 // End User32
@@ -83,6 +87,9 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_LineTo(Hdc, int, int) @extname("LineTo");
 	extern fn Bool api_TextOut(Hdc, int, int, Lpcwstr, int) @extname("TextOutW");
 	extern fn Hgdiobj api_GetStockObject(int) @extname("GetStockObject");
+	extern fn int api_SaveDC(Hdc) @extname("SaveDC");
+	extern fn Bool api_RestoreDC(Hdc, int) @extname("RestoreDC");
+	extern fn Bool api_BitBlt(Hdc, int, int, int, int, Hdc, int, int, Dword) @extname("BitBlt");
 
 
 
