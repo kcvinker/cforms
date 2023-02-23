@@ -1,6 +1,4 @@
 
-
-
 // listbox module - Created on 08-Feb-2023 11:32
 
 module cforms;
@@ -27,11 +25,9 @@ struct ListBox {
 	int _dummyIndex;
 	int selectedIndex;
 
-
 	EventHandler onSelectionChanged;
 	EventHandler onSelectionCancelled;
 	EventHandler onDoubleClick;
-
 }
 
 
@@ -39,7 +35,7 @@ struct ListBox {
 
 // Public functions
 	// ListBox constructor
-	fn ListBox newListBox(Form* parent, int x = 10, int y = 10, int width = 150, int height = 200) {
+	fn ListBox newListBox(Form* parent, int x = 10, int y = 10, int width = 150, int height = 150) {
 		ListBox this;
 		this.kind = ControlType.LIST_BOX;
 		this.name = string::new("ListBox_");
@@ -78,6 +74,7 @@ struct ListBox {
 		}
 	}
 
+	// Add an item to list box.
 	fn void ListBox.addItem(ListBox* this, String item) {
 		this.items.append(item);
 		if (this._isCreated) {
@@ -85,6 +82,7 @@ struct ListBox {
 		}
 	}
 
+	// Add multiple items to listbox
 	fn void ListBox.addItems(ListBox* this, String... items) {
 		foreach (item: items) {
 			if (this._isCreated) {
@@ -94,6 +92,7 @@ struct ListBox {
 		}
 	}
 
+	// Insert an item at given index
 	fn void ListBox.insertItem(ListBox* this, String item, int index) {
 		this.items.insert_at(index, item);
 		if (this._isCreated) {
@@ -102,6 +101,7 @@ struct ListBox {
 	}
 
 
+	// Remove an item with given index
 	fn void ListBox.removeItem(ListBox* this, int index) {
 		if (this.items.len()) {
 			this.clearAllInternal();
@@ -111,6 +111,7 @@ struct ListBox {
 
 	}
 
+	// Delete all items from listbox
 	fn void ListBox.clearItems(ListBox* this) {
 		if (this.items.len()) {
 			this.clearAllInternal();
@@ -149,10 +150,12 @@ struct ListBox {
 		return sItems;
 	}
 
+	// Select all items
 	fn void ListBox.selectAll(ListBox* this) {
 		if (this._isCreated && this.multiSelection) this.sendMsg(LB_SETSEL, true, -1);
 	}
 
+	// Clear the selection from listbox
 	fn void ListBox.clearSelection(ListBox* this) {
 		if (this._isCreated) {
 			uint msg = this.multiSelection ? LB_SETSEL : LB_SETCURSEL;
@@ -161,17 +164,19 @@ struct ListBox {
 		}
 	}
 
+	// Returns the index of given item
 	fn int ListBox.indexOf(ListBox* this, String item) {
 		Char16[] witem = str::utf8to16(item)!!;
 		return (int) this.sendMsg(LB_FINDSTRINGEXACT, -1, witem.ptr);
 	}
 
+	// Returns the index of the item which is under mouse pointer
 	fn int ListBox.hotIndex(ListBox* this) {
 		if (this.multiSelection) return (int) this.sendMsg(LB_GETCARETINDEX, 0, 0);
 		return -1;
 	}
 
-	// Returns hot item. Don't forget to free the string
+	// Returns item which is under mouse. Don't forget to free the string
 	fn String ListBox.hotItem(ListBox* this) {
 		if (this.multiSelection) {
 			int hindex =  (int) this.sendMsg(LB_GETCARETINDEX, 0, 0);
@@ -179,33 +184,6 @@ struct ListBox {
 		}
 		return "";
 	}
-
-
-
-
-
-
-
-
-	// Set the cue banner text for this ListBox
-
-
-	// Set fore color for ListBox
-	// fn void ListBox.setForeColor(ListBox* this, uint clr) {
-	// 	this.foreColor.updateColor(clr);
-	// 	if (!(this._drawMode & 1)) this._drawMode += 1;
-	// 	if (this._isCreated) api_InvalidateRect(this.handle, null, false);
-	// }
-
-	// //Set back color for ListBox
-	// fn void ListBox.setBackColor(ListBox* this, uint clr) {
-	// 	this.backColor.updateColor(clr);
-	// 	if ((this._drawMode & 2) != 2) this._drawMode += 2;
-	// 	if (this._isCreated) {
-	// 		this._bkBrush = this.backColor.getBrush();
-	// 		api_InvalidateRect(this.handle, null, false);
-	// 	}
-	// }
 
 
 // End of Public functions
@@ -231,6 +209,7 @@ struct ListBox {
         }
 	}
 
+	// Internal function to clear all items
 	private fn void ListBox.clearAllInternal(ListBox* this) @inline {
 		this.sendMsg(LB_RESETCONTENT, 0, 0);
 		api_UpdateWindow(this.handle);
@@ -238,6 +217,7 @@ struct ListBox {
 
 	fault ArrayResult {EMPTY_ARRAY}
 
+	// Internal function to get an item
 	private fn String! ListBox.getItemInternal(ListBox* this, int index) {
 		int sLen = (int)this.sendMsg(LB_GETTEXTLEN, index, 0);
 		if (sLen) {
@@ -252,6 +232,7 @@ struct ListBox {
 		return ArrayResult.EMPTY_ARRAY! ;
 	}
 
+	// Internal function for handling wm_command message
 	private fn void ListBox.wmCommandHandler(ListBox* this, Wparam wpm) {
 		Word ncode = hiWord(wpm);
 		switch (ncode) {
@@ -358,7 +339,5 @@ private fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 	const Dword LB_FINDSTRINGEXACT = 418;
 	const Dword LB_GETCARETINDEX = 415;
 
-	// const Dword ECM_FIRST = 0x1500;
-	// const Dword EM_SETCUEBANNER = (ECM_FIRST + 1);
 
 // End Constants
