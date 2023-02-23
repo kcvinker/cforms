@@ -82,23 +82,6 @@ fn void MenuBar.create(MenuBar* this) {
 	// this._parent.menubar = this; // Connect ourself to the form.
 }
 
-// Get the menu item with given menu id
-// fn MenuItem* MenuBar.getMenuItem(MenuBar* this, uint mid) {
-// 	if (this.menus.len()) {
-// 		foreach (menu: this.menus) {
-// 			MenuItem* m = menu.findMenuItem(mid);
-// 			if (m) return m;
-// 		}
-// 	}
-// 	return null;
-// }
-
-// Recursive search for finding menu item with given menu id.
-// fn MenuItem* MenuItem.findMenuItem(MenuItem* this, uint mid) {
-// 	if (this.menus.len()) foreach (menu: this.menus) {return menu.findMenuItem(mid);}
-// 	if (this.idNum == mid) return this;
-// 	return null;
-// }
 
 // Create menu item and append the handle in parent menu.
 fn void MenuItem.create(MenuItem* this) {
