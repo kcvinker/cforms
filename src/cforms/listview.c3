@@ -452,6 +452,15 @@ private fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 			this._hotHdrIndex = (int) api_SendMessage(hw, HDM_HITTEST, 0, (Lparam) &hti);
 
 		case WM_MOUSELEAVE: this._hotHdrIndex = -1;
+		case WM_PAINT: // Drawing the last part of header.
+			api_DefSubclassProc(hw, msg, wp, lp);
+			Rect hrc;
+			api_SendMessage(hw, HDM_GETITEMRECT, (Wparam)this.columns.len() - 1, (Lparam)&hrc);
+			Rect rc = {hrc.right + 1, hrc.top, this.width, hrc.bottom};
+			Hdc hdc = api_GetDC(hw);
+			defer api_ReleaseDC(hw, hdc);
+			api_FillRect(hdc, &rc, this._hdrBkBrush);
+			return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
@@ -461,6 +470,8 @@ private fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 // Constants
 	const LVM_FIRST = 4096;
 	const LVN_FIRST = -100u;
+
+
 	// LV Styles
 		const LVS_ICON = 0;
 		const LVS_REPORT = 1;
@@ -526,6 +537,7 @@ private fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 		const LVM_INSERTITEMW = (LVM_FIRST + 77);
 		const LVM_INSERTCOLUMNW = (LVM_FIRST + 97);
 		const LVM_SETITEMTEXTW = (LVM_FIRST + 116);
+
 	// LV Messages
 
 
