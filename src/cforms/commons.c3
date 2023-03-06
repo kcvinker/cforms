@@ -32,6 +32,7 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const HDM_FIRST = 4608;
 	const HDM_LAYOUT = (HDM_FIRST + 5);
 	const HDM_HITTEST = (HDM_FIRST + 6);
+	const HDM_GETITEMRECT = (HDM_FIRST + 7);
 
 // End of My own messages
 
