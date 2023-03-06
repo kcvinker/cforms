@@ -263,4 +263,14 @@ enum Alignment : char {LEFT, RIGHT, CENTER} // For ListView, TextBox
 fn void printRect(Rect rc, String msg = "Rect") {
 	ptf("%s - Left: %s, Top: %s, Right: %s, Bottom: %s", msg, rc.left, rc.top, rc.right, rc.bottom  );
 }
+const CP_UTF8 = 65001;
+const MB_ERR_INVALID_CHARS = 0x00000008;
+
+fn Char16* toChar16p(String str, Allocator* allocator = mem::current_allocator()) {
+	long size = api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, null, 0);
+	Char16* buffer = allocator.alloc((size + 1) * Char16.sizeof)!!;
+	api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, buffer, (int)size + 1);
+	buffer[size] = 0;
+	return buffer[:size];
+}
 

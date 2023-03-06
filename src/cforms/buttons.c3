@@ -187,7 +187,9 @@ private fn void GradDraw.dtor(GradDraw* g) {
 		int ret = api_SetBkMode(ncd.hdc, TRANSPARENT);
 		api_SetTextColor(ncd.hdc, b.foreColor.ref);
 		api_SelectObject(ncd.hdc, b.font.handle);
-        api_DrawText(ncd.hdc, str::utf8to16(b.text).ptr!!, -1, &ncd.rc, TXTFLAG);
+		Char16* btext = str::utf8to16(b.text).ptr!!;
+		defer free(btext);
+        api_DrawText(ncd.hdc, btext, -1, &ncd.rc, TXTFLAG);
         return CDRF_NOTIFYPOSTPAINT;
 	}
 

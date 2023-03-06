@@ -64,7 +64,11 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		if (this.handle) {
 			this.setSubClass(&tbWndProc);
 			this.setFontInternal();
-			if (this._cueReady) api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam) str::utf8to16(this.cueStr.str()).ptr!!);
+			if (this._cueReady) {
+				Char16* cuetext = str::utf8to16(this.cueStr.str()).ptr!!;
+				defer free(cuetext);
+				api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
+			}
 			this._parent.controls.append(this);
 		}
 	}
@@ -73,7 +77,9 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	fn void TextBox.setCue(TextBox* this, String s) {
 		this.cueStr = string::new(s);
 		if (this._isCreated) {
-			api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam) str::utf8to16(this.cueStr.str()).ptr!!);
+			Char16* cuetext = str::utf8to16(this.cueStr.str()).ptr!!;
+			defer free(cuetext);
+			api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 		} else {
 			this._cueReady = true;
 		}

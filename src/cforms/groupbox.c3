@@ -72,9 +72,11 @@ struct GroupBox {
 // Private functions
 
 	private fn void GroupBox.getTextBounds(GroupBox* this) {
+		Char16* gbtext = str::utf8to16(this.text).ptr!!;
+		defer free(gbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
 		api_SelectObject(hdc, this.font.handle);
-		api_GetTextExtentPoint32(hdc, str::utf8to16(this.text).ptr!!, this.text.len, &this._txtSize );
+		api_GetTextExtentPoint32(hdc, gbtext, this.text.len, &this._txtSize );
 		api_ReleaseDC(this.handle, hdc) ;
 		this._txtSize.cx += 8;
 		this._txtWidth = this._txtSize.cx;
@@ -82,6 +84,8 @@ struct GroupBox {
 
 	private fn Lresult GroupBox.drawText(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp,) {
 		// log("paint");
+		Char16* gbtext = str::utf8to16(this.text).ptr!!;
+		defer free(gbtext);
 		Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
 		Hdc hdc = api_GetDC(hw);
 		defer api_ReleaseDC(hw, hdc);
@@ -92,7 +96,7 @@ struct GroupBox {
 		api_SetBkMode(hdc, TRANSPARENT);
         api_SelectObject(hdc, this.font.handle);
         api_SetTextColor(hdc, this.foreColor.ref);
-		api_TextOut(hdc, 10, 0, str::utf8to16(this.text).ptr!!, this.text.len );
+		api_TextOut(hdc, 10, 0, gbtext, this.text.len );
 		return 1;
 	}
 
@@ -101,6 +105,8 @@ struct GroupBox {
 		Rect rc;
 		int yp = 9;
 		Hdc hdc = api_GetDC(hw);
+		Char16* gbtext = str::utf8to16(this.text).ptr!!;
+		defer free(gbtext);
 
 		Hdc dcMem = api_CreateCompatibleDC(hdc);
 		int ndcMem = api_SaveDC(dcMem);
@@ -121,7 +127,7 @@ struct GroupBox {
 		api_SetBkMode(dcMem, TRANSPARENT);
 		api_SelectObject(dcMem, this.font.handle);
 		api_SetTextColor(dcMem, this.foreColor.ref);
-		api_DrawText(dcMem, str::utf8to16(this.text).ptr!!, -1, &rc, DT_CENTER|DT_SINGLELINE );
+		api_DrawText(dcMem, gbtext, -1, &rc, DT_CENTER|DT_SINGLELINE );
 		// TextOutW(dcMem, 10, 0, this.mTmpText.toUTF16z, this.mTmpText.length);
 		api_BitBlt(hdc, 10, 0, this._txtSize.cx, this._txtSize.cy, dcMem, 0, 0, SRCCOPY);
 		return 1;
@@ -130,7 +136,9 @@ struct GroupBox {
 
 	private fn void GroupBox.textSetter(GroupBox* this, String value) {
 		this.getTextBounds();
-		api_SetWindowText(this.handle, str::utf8to16(value).ptr!!);
+		Char16* gbtext = str::utf8to16(value).ptr!!;
+		defer free(gbtext);
+		api_SetWindowText(this.handle, gbtext);
 		api_InvalidateRect(this.handle, null, false);
 	}
 

@@ -31,6 +31,7 @@ enum ControlType : char {
 struct Control {
 	ControlType kind;
 	VarString name;
+	// VarString sText;
 	String text;
 	String className;
 	Hwnd handle;
@@ -119,7 +120,9 @@ fault StringFault {
 			if (this.kind == ControlType.GROUP_BOX) {
 				((GroupBox*)this).textSetter(value);
 			} else {
-				api_SetWindowText(this.handle, str::utf8to16(value).ptr!!);
+				Char16* sTxt = str::utf8to16(value).ptr!!;
+				defer free(sTxt);
+				api_SetWindowText(this.handle, sTxt);
 			}
 		}
 	}
@@ -147,9 +150,14 @@ fault StringFault {
 // Private functions
 	private fn void Control.createInternal(Control* ctl, bool special = false) {
 		if (!special) ctl.setCtlID();
-		ctl.handle = api_CreateWindowEx(ctl._exStyle,
-										str::utf8to16(ctl.className).ptr!!,
-										str::utf8to16(ctl.text).ptr!!,
+		Char16* text = str::utf8to16(ctl.text).ptr!!;
+		Char16* clsN = str::utf8to16(ctl.className).ptr!!;
+		defer {
+			free(text);
+			free(clsN);
+		}
+
+		ctl.handle = api_CreateWindowEx(ctl._exStyle, clsN, text,
 										ctl._style,
 										ctl.xpos, ctl.ypos,
 										ctl.width, ctl.height,
@@ -229,11 +237,11 @@ fault StringFault {
 	}
 
 // End private functions
-int counter = 1;
-macro void Control.print(Control* c, obj, msg = "") {
-	ptf("[%s] %s -- %s  %s", counter, c.name, msg, obj);
-	counter += 1;
-}
+// int counter = 1;
+// macro void Control.print(Control* c, obj, msg = "") {
+// 	ptf("[%s] %s -- %s  %s", counter, c.name, msg, obj);
+// 	counter += 1;
+// }
 
 
 

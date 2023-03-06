@@ -78,7 +78,9 @@ struct ListBox {
 	fn void ListBox.addItem(ListBox* this, String item) {
 		this.items.append(item);
 		if (this._isCreated) {
-			this.sendMsg(LB_ADDSTRING, 0, str::utf8to16(item).ptr!!);
+			Char16* lbtext = str::utf8to16(item).ptr!!;
+			defer free(lbtext);
+			this.sendMsg(LB_ADDSTRING, 0, lbtext);
 		}
 	}
 
@@ -86,7 +88,9 @@ struct ListBox {
 	fn void ListBox.addItems(ListBox* this, String... items) {
 		foreach (item: items) {
 			if (this._isCreated) {
-				this.sendMsg(LB_ADDSTRING, 0, str::utf8to16(item).ptr!!);
+				Char16* sitem = str::utf8to16(item).ptr!!;
+				defer free(sitem);
+				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
 			this.items.append(item);
 		}
@@ -96,7 +100,9 @@ struct ListBox {
 	fn void ListBox.insertItem(ListBox* this, String item, int index) {
 		this.items.insert_at(index, item);
 		if (this._isCreated) {
-			this.sendMsg(LB_INSERTSTRING, index, str::utf8to16(item).ptr!!);
+			Char16* sitem = str::utf8to16(item).ptr!!;
+			defer free(sitem);
+			this.sendMsg(LB_INSERTSTRING, index, sitem);
 		}
 	}
 
@@ -167,6 +173,7 @@ struct ListBox {
 	// Returns the index of given item
 	fn int ListBox.indexOf(ListBox* this, String item) {
 		Char16[] witem = str::utf8to16(item)!!;
+		defer free(witem);
 		return (int) this.sendMsg(LB_FINDSTRINGEXACT, -1, witem.ptr);
 	}
 
@@ -204,7 +211,11 @@ struct ListBox {
 
 	private fn void ListBox.manageItems(ListBox* this) { // Private
 		if (this.items.len() > 0) { // We need to add those items to list box
-            foreach (item: this.items) this.sendMsg(LB_ADDSTRING, 0, str::utf8to16(item).ptr!!);
+            foreach (item: this.items) {
+				Char16* sitem = str::utf8to16(item).ptr!!;
+				defer free(sitem);
+				this.sendMsg(LB_ADDSTRING, 0, sitem);
+			}
             if (this._dummyIndex > -1) this.sendMsg(LB_SETCURSEL, this._dummyIndex, 0);
         }
 	}

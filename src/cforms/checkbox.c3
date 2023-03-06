@@ -131,7 +131,9 @@ struct CheckBox {
 					// Adjusing rect. Otherwise, text will be drawn upon the check area
 					if (!this.rightAlign) {nmc.rc.left += 18;} else {nmc.rc.right -= 18;}
 					if (this._drawMode & 1) api_SetTextColor(nmc.hdc, this.foreColor.ref);
-					api_DrawText(nmc.hdc, str::utf8to16(this.text).ptr!! , -1, &nmc.rc, this._textStyle);
+					Char16* cbtext = str::utf8to16(this.text).ptr!!;
+					defer free(cbtext);
+					api_DrawText(nmc.hdc, cbtext, -1, &nmc.rc, this._textStyle);
 					return CDRF_SKIPDEFAULT;
 			}
 		return CDRF_DODEFAULT;

@@ -26,6 +26,7 @@ define Long = int;
 define Longptr = iptr;
 define Lparam = Longptr;
 define Lpcwstr = Char16*;
+define Lpwstr = Char16*;
 define Lresult = Longptr;
 define Puint = uint*;
 define Uintptr = uptr;

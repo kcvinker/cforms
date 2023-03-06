@@ -104,4 +104,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 
 // End CommCtrl
 
+// Miscs
+	extern fn int api_MultiByteToWideChar(uint, Dword, char*, int, Lpwstr, int) @extname("MultiByteToWideChar");
+//
+
 

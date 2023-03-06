@@ -12,7 +12,7 @@ const NPSTYLE = WS_VISIBLE | WS_CHILD | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_AUT
 const NPTXTFLAG = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX ;
 const NPBUDDYSTYLE = WS_CHILD | WS_VISIBLE | ES_NUMBER | WS_TABSTOP| WS_BORDER ;
 const SWPFLAG = SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER;
-Char16* def_str;
+
 
 // NumberPicker control struct
 struct NumberPicker {
@@ -48,6 +48,7 @@ struct NumberPicker {
 	Rect _tbRect;
 	Rect _myRect;
 
+
 	EventHandler onValueChanged;
 
 }
@@ -63,10 +64,11 @@ struct NumberPicker {
 		NumberPicker this;
 		this.kind = ControlType.NUM_PICKER;
 		this.name = string::new("NumberPicker_");
-		this.name.printf("%d", npNumber);
+		// this.name.printf("%d", npNumber);
 		this.className = "msctls_updown32";
 		this._parent = parent;
 		this.font = parent.font;
+
 		this._style = NPSTYLE;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -95,7 +97,7 @@ struct NumberPicker {
 	fn void NumberPicker.createHandle(NumberPicker* this) {
 		this.setNPStyle();
 		// this.createInternal();
-		if (!def_str) def_str = str::utf8to16("0.88").ptr!!;
+
 		this.createUpdown();
 		if (this.handle) {
 			this.setFontInternal();
@@ -142,8 +144,10 @@ struct NumberPicker {
 	private fn void NumberPicker.createUpdown(NumberPicker* this) {
 		this.ctlID = globalCtlID;
 		globalCtlID += 1;
+		Char16* updClass = str::utf8to16(this.className).ptr!!;
+		defer free(updClass);
 		this.handle = api_CreateWindowEx( this._exStyle,
-                                                str::utf8to16(this.className).ptr!!,
+                                                updClass,
                                                 null, this._style,
                                                 0, 0, 0, 0,
                                                 this._parent.handle, (Hmenu)this.ctlID,
@@ -155,8 +159,10 @@ struct NumberPicker {
 		// Let's create the buddy control.
 		this._buddyCid = globalCtlID;
 		globalCtlID += 1;
+		Char16* buddyClass = str::utf8to16("Edit").ptr!!;
+		defer free(buddyClass);
 		this.buddyHandle = api_CreateWindowEx( this._buddyExStyle,
-                                                str::utf8to16("Edit").ptr!!,
+                                                buddyClass,
                                                 null, this._buddyStyle,
                                                 this.xpos, this.ypos,
                                                 this.width, this.height,
@@ -187,7 +193,9 @@ struct NumberPicker {
 	private fn void NumberPicker.displayValue(NumberPicker* this) {
 		this.valStr.clear();
 		this.valStr.printf(this.fmtStr.str(), this.value);
-		api_SetWindowText(this.buddyHandle, str::utf8to16(this.valStr.str()).ptr!!);
+		Char16* wvalue = str::utf8to16(this.valStr.str()).ptr!!;
+		defer free(wvalue);
+		api_SetWindowText(this.buddyHandle, wvalue);
 	}
 
 
@@ -283,6 +291,8 @@ struct NumberPicker {
 		this.name.destroy();
 		this.fmtStr.destroy();
 		this.valStr.destroy();
+
+		api_DeleteObject(this.font.handle);
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 
 	}

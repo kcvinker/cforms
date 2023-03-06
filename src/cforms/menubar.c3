@@ -46,13 +46,13 @@ struct MenuItem {
 }
 
 // Menubar Constructor
-fn MenuBar newMenuBar(Form* parent) {
+fn MenuBar newMenuBar() {
 	MenuBar this;
-	this._parent = parent;
-	this.font = parent.font;
-	this._formHwnd = parent.handle;
+	// this._parent = parent;
+	// this.font = parent.font;
+	// this._formHwnd = parent.handle;
 	this.handle = api_CreateMenu();
-	parent.menubar = &this;
+	// parent.menubar = &this;
 
 	return this;
 }
@@ -61,7 +61,7 @@ fn MenuBar newMenuBar(Form* parent) {
 fn void MenuBar.addMenu(MenuBar* this, MenuItem* menu) {
 	menu.parentHandle = this.handle;
 	menu._formHwnd = this._formHwnd;
-	this.menus.push(menu);
+	this.menus.append(menu);
 }
 
 // Add more than one menu item to menu bar.
@@ -69,7 +69,7 @@ fn void MenuBar.addMenus(MenuBar* this, MenuItem*... menuItems) {
 	foreach (menu: menuItems) {
 		menu.parentHandle = this.handle;
 		menu._formHwnd = this._formHwnd;
-		this.menus.push(menu);
+		this.menus.append(menu);
 	}
 }
 
@@ -90,14 +90,21 @@ fn void MenuItem.create(MenuItem* this) {
 		case POPUP:
 			if (this.menus.len()) {
 				foreach (menu: this.menus) { menu.create();}
-				api_AppendMenu(this.parentHandle, this.uFlag, (Uintptr)this.handle, str::utf8to16(this.text).ptr!!);
+				Char16* mnutext = str::utf8to16(this.text).ptr!!;
+				defer free(mnutext);
+				api_AppendMenu(this.parentHandle, this.uFlag, (Uintptr)this.handle, mnutext);
 			} else {
 				// If we don't have sub menus, we are supposed to act like a normal string menu.
 				this.uFlag ^= MF_POPUP;
 				this.uFlag |= MF_STRING;
-				api_AppendMenu(this.parentHandle, this.uFlag, this.idNum, str::utf8to16(this.text).ptr!!);
+				Char16* mnutext = str::utf8to16(this.text).ptr!!;
+				defer free(mnutext);
+				api_AppendMenu(this.parentHandle, this.uFlag, this.idNum, mnutext);
 			}
-		case MENU_ITEM: api_AppendMenu(this.parentHandle, this.uFlag, this.idNum, str::utf8to16(this.text).ptr!!);
+		case MENU_ITEM:
+			Char16* mnutext = str::utf8to16(this.text).ptr!!;
+			defer free(mnutext);
+			api_AppendMenu(this.parentHandle, this.uFlag, this.idNum, mnutext);
 		case SEPRATOR: api_AppendMenu(this.parentHandle, this.uFlag, 0, null);
 	}
 }
@@ -106,7 +113,7 @@ fn void MenuItem.create(MenuItem* this) {
 fn void MenuItem.addMenu(MenuItem* this, MenuItem* menu) {
 	menu.parentHandle = this.handle;
 	menu._formHwnd = this._formHwnd;
-	this.menus.push(menu);
+	this.menus.append(menu);
 
 }
 
@@ -115,7 +122,7 @@ fn void MenuItem.addMenus(MenuItem* this, MenuItem*... menuItems ) {
 	foreach (menu: menuItems) {
 		menu.parentHandle = this.handle;
 		menu._formHwnd = this._formHwnd;
-		this.menus.push(menu);
+		this.menus.append(menu);
 	}
 }
 
@@ -151,8 +158,7 @@ fn void MenuItem.addClickHandler(MenuItem* this, MenuEventHandler pFunc) {
 }
 
 // Freeing resources for a menu item
-private fn void MenuItem.destroy(MenuItem* this) {
-	ptf("Destroying menu %s", this.text );
+fn void MenuItem.destroy(MenuItem* this) {
 	if (this.menus.len()) {
 		foreach (menu: this.menus) {menu.destroy();}
 	}
@@ -160,10 +166,9 @@ private fn void MenuItem.destroy(MenuItem* this) {
 }
 
 // Freeing resources for a menu bar
-private fn void MenuBar.destroy(MenuBar* this) {
-	log("menubar is destroying");
+fn void MenuBar.destroy(MenuBar* this) {
 	if (this.menus.len()) {
-		foreach (menu: this.menus) {menu.destroy();}
+		foreach (menu: this.menus) {menu.destroy();	}
 	}
 	this.menus.free();
 }

@@ -220,7 +220,9 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	private fn TVItemEx newTVItem(TreeNode* node) {
 		TVItemEx tvi;
 		tvi.mask = TVIF_TEXT | TVIF_PARAM;
-		tvi.pszText = str::utf8to16(node.text).ptr!!;
+		Char16* nodtext = str::utf8to16(node.text).ptr!!;
+		defer free(nodtext);
+		tvi.pszText = nodtext;
 		tvi.cchTextMax = node.text.len;
 		tvi.iImage = node.imgIndex;
 		tvi.iSelectedImage = node.selImgIndex;

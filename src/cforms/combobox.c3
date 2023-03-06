@@ -188,7 +188,11 @@ struct CmbData {
 	private fn void ComboBox.insertItems(ComboBox* this) {
 		if (this.items.len() > 0 ) {
 			// log("items are ready");
-			foreach (item: this.items) {this.sendMsg(CB_ADDSTRING, 0, str::utf8to16(item).ptr!!);}
+			foreach (item: this.items) {
+				Char16* cmbtext = str::utf8to16(item).ptr!!;
+				defer free(cmbtext);
+				this.sendMsg(CB_ADDSTRING, 0, cmbtext);
+			}
 		}
 	}
 

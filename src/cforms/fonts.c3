@@ -63,6 +63,10 @@ fn Font newFont(String fontName, int fontSize,
 	return f;
 }
 
+fn void Font.destroy(Font* this) {
+
+}
+
 fn void Font.createHandle(Font* f, Hwnd hwnd) {
 	Hdc hdc = api_GetDC(hwnd);
 	int iHeight = -api_MulDiv(f.size, api_GetDeviceCaps(hdc, LOGPIXELSY), 72);
@@ -70,6 +74,7 @@ fn void Font.createHandle(Font* f, Hwnd hwnd) {
 
 	LogFont lf;
 	Char16[] s = str::utf8to16(f.name)!!;
+	defer free(s);
 	lf.lfFaceName[:s.len + 1] = s[:s.len + 1]; // Copying wchar array to lfFaceName
 
 	lf.lfHeight = iHeight;
@@ -81,6 +86,7 @@ fn void Font.createHandle(Font* f, Hwnd hwnd) {
 	lf.lfPitchAndFamily = DEFAULT_PITCH;
 	f.handle = api_CreateFontIndirect(&lf);
 	if (f.handle) f._isCreated = true;
+
 }
 
 // fn void Font.createFontHandle(Font* f, Hwnd hwnd) {

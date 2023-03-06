@@ -14,7 +14,7 @@ define log = io::println;
 define cptf = libc::printf;
 define ControlList = List<Control*>;
 // define MenuItemList = List<MenuItem*>;
-define CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the info about combobox's listbox
+define CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the handle of combobox's listbox
 
 // Important static data
 bool frmCreated = false;
@@ -120,7 +120,9 @@ struct MenuEventData {
 			frmCreated = true;
 			dwc = colorFromRgb(230, 230, 230);
 			hins = api_GetModuleHandle((Lpcwstr) 0);
-			registerClass(hins, str::utf8to16(className).ptr);
+			Char16* clsN = str::utf8to16(className).ptr!!;
+			defer free(clsN);
+			registerClass(hins, clsN);
 			screenWidth = api_GetSystemMetrics(0);
 			screenHeight = api_GetSystemMetrics(1);
 			InitCommonControls icc;
@@ -135,6 +137,7 @@ struct MenuEventData {
 		f.name = string::new("Form_");
 		f.name.printf("%d", frmNumber);
 		f.text = title;
+		// f.sText = string::new(title);
 		f.width = width;
 		f.height = height;
 		f.xpos = 100;
@@ -156,15 +159,21 @@ struct MenuEventData {
 	fn void Form.createHandle(Form* f) {
 		f.setStyle();
 		f.setPosition();
+		Char16* title = str::utf8to16(f.text).ptr!!;
+		Char16* clsN = str::utf8to16(className).ptr!!;
+		defer {
+			free(title);
+			free(clsN);
+		}
 		f.handle = api_CreateWindowEx(	f._exStyle,
-										str::utf8to16(className),
-										str::utf8to16(f.text),
+										clsN,
+										title,
 										f._style,
 										f.xpos, f.ypos,
 										f.width, f.height,
 										(Hwnd)0,
 										(Hmenu)0,
-										hins, null)!!;
+										hins, null);
 		if (f.handle) {
 			f._isCreated = true;
 			api_SetWindowLongPtr(f.handle, GWLP_USERDATA, (Longptr)((void*)f));
@@ -184,6 +193,7 @@ struct MenuEventData {
 				api_DispatchMessage(&pMsg);
 			}
 		}
+		log("Form ended successfully....");
 	}
 
 	fn void Form.setBackColor(Form* f, uint clr) {
@@ -193,8 +203,17 @@ struct MenuEventData {
 		if (f._isCreated) api_InvalidateRect(f.handle, null, false);
 	}
 
+	// A handy function to help find the points where we can place new controls.
 	fn void Form.printPoint(Form* f, MouseEventArgs* m) {
 		cptf("X : %d,  Y : %d\n", m.x, m.y);
+	}
+
+	// Set menu bar to this form. Call right after a menu bar instance is created
+	fn void Form.setMenuBar(Form* this, MenuBar* menu) {
+		this.menubar = menu;
+		menu._parent = this;
+		menu.font = this.font;
+		menu._formHwnd = this.handle;
 	}
 
 // End Public Functions
@@ -474,7 +493,6 @@ struct MenuEventData {
 	private fn void Form.formDestroyHandler(Form* this) {
 		if (this.onClosed) this.onClosed(this, &&EventArgs{});
 		this.dtor();
-		if (this._isMainWindow) api_PostQuitMessage(0);
 	}
 
 	// private fn void Form.setMenuEvent(Form* this, MenuItem* menu, MenuEvents event, MenuEventHandler pFunc) {
@@ -497,25 +515,30 @@ struct MenuEventData {
 	}
 
 	private fn void Form.dtor(Form* this) {
-		// This will called when a Form destroyed
+		// This will executed when a Form destroyed
+
 		if (this._bkBrush) {
 			api_DeleteObject((Hgdiobj)this._bkBrush);
 		}
+		api_DeleteObject((Hgdiobj)this.font.handle);
 
 		if (this.controls.len()) {
 			foreach (ctl: this.controls) {
 				Lresult ret = api_SendMessage(ctl.handle, MM_RUNDTOR, 0, 0);
 			}
-
 			io::println("Form destroyed");
 		}
+
 		this.controls.free();
-		if (this.menubar) this.menubar.destroy();
+
 		this.name.destroy();
+		// this.sText.destroy();
+
+
+		if (this.menubar) this.menubar.destroy();
 		this.menuList.free();
 		if (!noComboUsed) this._comboMap.free();
-
-
+		if (this._isMainWindow) api_PostQuitMessage(0);
 	}
 
 

@@ -101,10 +101,12 @@ struct Label {
 	}
 
 	private fn void Label.calculateAutoSize(Label* this) { // private
+		Char16* lbtext = str::utf8to16(this.text).ptr!!;
+		defer free(lbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
 		Size ss;
 		api_SelectObject(hdc, this.font.handle);
-		api_GetTextExtentPoint32(hdc, str::utf8to16(this.text).ptr!!, this.text.len, &ss );
+		api_GetTextExtentPoint32(hdc, lbtext, this.text.len, &ss );
 		api_ReleaseDC(this.handle, hdc) ;
 		this.width = ss.cx + 3 ;
 		this.height = ss.cy  ;
