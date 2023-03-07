@@ -27,6 +27,8 @@ struct ListView {
 	int selectedIndex;
 	int _colIndex;
 	int _itemIndex;
+	int _layoutCount; // To count the number of times HDM_LAYOUT message handled
+	int headerHeight;
 	Dwordptr _hotHdrIndex;
 	Hwnd _hdrHwnd;
 	ListViewItem selectedItem;
@@ -50,6 +52,7 @@ struct ListView {
 
 	Hbrush _hdrHotBrush;
 	Hbrush _hdrBkBrush;
+	// bool _changeHdrHeight;
 
 }
 
@@ -118,6 +121,7 @@ enum ListViewStyle : char {
 		this.headerClickable = true;
 		this._itemIndex = -1;
 		this._hotHdrIndex = -1;
+		this.headerHeight = 35;
 
 		this.backColor = newColor(0xFFFFFF);
 		this.foreColor = newColor(0x000000);
@@ -461,6 +465,19 @@ private fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 			defer api_ReleaseDC(hw, hdc);
 			api_FillRect(hdc, &rc, this._hdrBkBrush);
 			return 0;
+
+		case HDM_LAYOUT:
+			HdLayout* phl = (HdLayout*)lp;
+			WindowPos* wps = phl.pwpos;
+			wps.flags = SWP_FRAMECHANGED;
+			wps.hwnd = hw;
+			wps.y = 0;
+			wps.x = phl.prc.left;
+			wps.cx = phl.prc.right - phl.prc.left;
+			wps.cy = lv.headerHeight;
+			phl.prc.top = lv.headerHeight;
+			return -1;
+
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
