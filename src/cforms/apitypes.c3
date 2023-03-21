@@ -2,60 +2,60 @@
 // api_types - Created on 24-Jan-2023 22:00
 module cforms;
 
-define Pvoid = distinct void*;
+typedef Pvoid = distinct void*;
 
-define Handle = distinct Pvoid;
+typedef Handle = distinct Pvoid;
 
-define Hbitmap = Handle;
-define Hbrush = Handle;
-define Hcursor = Handle;
-define Hdc = Handle;
-define Hfont = Handle;
-define Hgdiobj = Handle;
-define Hicon = Handle;
-define Hinstance = Handle;
-define Hmenu = Handle;
-define Hmodule = Handle;
-define Hpen = Handle;
-define Hwnd = Handle;
-define Hrgn = Handle;
-define Htreeitem = Handle;
+typedef Hbitmap = Handle;
+typedef Hbrush = Handle;
+typedef Hcursor = Handle;
+typedef Hdc = Handle;
+typedef Hfont = Handle;
+typedef Hgdiobj = Handle;
+typedef Hicon = Handle;
+typedef Hinstance = Handle;
+typedef Hmenu = Handle;
+typedef Hmodule = Handle;
+typedef Hpen = Handle;
+typedef Hwnd = Handle;
+typedef Hrgn = Handle;
+typedef Htreeitem = Handle;
 
-define Intptr = iptr;
-define Long = int;
-define Longptr = iptr;
-define Lparam = Longptr;
-define Lpcwstr = Char16*;
-define Lpwstr = Char16*;
-define Lresult = Longptr;
-define Puint = uint*;
-define Uintptr = uptr;
-define Ulongptr = uptr;
-define Wparam = Uintptr;
-define Dword = uint;
-define Dwordptr = Ulongptr;
-define Colorref = Dword;
-define Word = ushort;
-define Bool = int;
-define Wstring = Char16[];
+typedef Intptr = iptr;
+typedef Long = int;
+typedef Longptr = iptr;
+typedef Lparam = Longptr;
+typedef Lpcwstr = Char16*;
+typedef Lpwstr = Char16*;
+typedef Lresult = Longptr;
+typedef Puint = uint*;
+typedef Uintptr = uptr;
+typedef Ulongptr = uptr;
+typedef Wparam = Uintptr;
+typedef Dword = uint;
+typedef Dwordptr = Ulongptr;
+typedef Colorref = Dword;
+typedef Word = ushort;
+typedef Bool = int;
+typedef Wstring = Char16[];
 const Dword UINT_MAX = 1 << 32;
 
 // Function pointer types
-define Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
+typedef Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
 // define Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
-define Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
+typedef Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
 
 struct Size {
 	Long cx;
 	Long cy;
 }
-define LpSize = Size*;
+typedef LpSize = Size*;
 
 struct Point {
 	Long x;
 	Long y;
 }
-define LpPoint = Point*;
+typedef LpPoint = Point*;
 
 struct Rect {
 	Long left;
@@ -63,7 +63,7 @@ struct Rect {
 	Long right;
 	Long bottom;
 }
-define LpRect = Rect*;
+typedef LpRect = Rect*;
 
 struct WndClassEx {
 	CUInt cbSize;
@@ -89,7 +89,7 @@ struct Msg {
 	Point pt;
 	Dword lPrivate;
 }
-define LpMsg = Msg*;
+typedef LpMsg = Msg*;
 
 const int LF_FACESIZE = 32;
 struct LogFont {
@@ -258,22 +258,3 @@ struct HDHitTestInfo {
   	uint  flags;
   	int   iItem;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
