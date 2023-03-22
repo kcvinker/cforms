@@ -38,7 +38,7 @@ struct FlatDraw {
 }
 
 // Setting the required info needed to draw a flat color button.
-private fn void FlatDraw.setData(FlatDraw* f, Color c) {
+fn void FlatDraw.setData(FlatDraw* f, Color c) @private {
 	RgbColor hotRc = c.makeRgbColor();
 	RgbColor frmRc = c.makeRgbColor();
 	double hotAdj = hotRc.isDark() ? 1.5 : 1.2;
@@ -52,7 +52,7 @@ private fn void FlatDraw.setData(FlatDraw* f, Color c) {
 }
 
 // This struct holds the info for drawing gradient bkg on button.
-private struct GradDraw {
+struct GradDraw @private {
 	GradColor defClr;
 	GradColor hotClr;
 	bool rtl;
@@ -61,13 +61,13 @@ private struct GradDraw {
 }
 
 // Helper struct to hold all colors
-private struct GradColor {
+struct GradColor @private {
 	RgbColor c1;
 	RgbColor c2;
 }
 
 // Setting data for required for creating a gradient brush and other stuff.
-private fn void GradDraw.setData(GradDraw* g, uint clr1, uint clr2) {
+fn void GradDraw.setData(GradDraw* g, uint clr1, uint clr2) @private {
 	g.defClr.c1 = rgbFromUint(clr1);
 	g.defClr.c2 = rgbFromUint(clr2);
 	double hotAdj1 = g.defClr.c1.isDark() ? 1.5 : 1.2;
@@ -81,7 +81,7 @@ private fn void GradDraw.setData(GradDraw* g, uint clr1, uint clr2) {
 
 
 // Destroying resources used for flat color drawing
-private fn void FlatDraw.dtor(FlatDraw* f) {
+fn void FlatDraw.dtor(FlatDraw* f) @private {
 	if (f.defBrush) api_DeleteObject((Hgdiobj) f.defBrush);
 	if (f.hotBrush) api_DeleteObject((Hgdiobj) f.hotBrush);
 	if (f.defPen) api_DeleteObject((Hgdiobj) f.defPen);
@@ -89,7 +89,7 @@ private fn void FlatDraw.dtor(FlatDraw* f) {
 }
 
 // Destroying resources used for gradient drawing
-private fn void GradDraw.dtor(GradDraw* g) {
+fn void GradDraw.dtor(GradDraw* g) @private {
 	if (g.defPen) api_DeleteObject((Hgdiobj) g.defPen);
 	if (g.hotPen) api_DeleteObject((Hgdiobj) g.hotPen);
 }
@@ -163,7 +163,7 @@ private fn void GradDraw.dtor(GradDraw* g) {
 // Private functions
 
 	// Handling WM_NOTIFY message in order to change fore color & back color.
-	private fn Lresult Button.wmNotifyHandler(Button* b, Lparam lpm) {
+	fn Lresult Button.wmNotifyHandler(Button* b, Lparam lpm) @private {
 		Lresult ret = CDRF_DODEFAULT;
 		if (b._drawMode) {
 			NMCustomDraw* nmcd = (NMCustomDraw*)lpm;
@@ -183,7 +183,7 @@ private fn void GradDraw.dtor(GradDraw* g) {
 	}
 
 	// Drawing button's text with our foreColor.
-	private fn Lresult Button.drawTextColor(Button* b, NMCustomDraw* ncd) {
+	fn Lresult Button.drawTextColor(Button* b, NMCustomDraw* ncd) @private {
 		int ret = api_SetBkMode(ncd.hdc, TRANSPARENT);
 		api_SetTextColor(ncd.hdc, b.foreColor.ref);
 		api_SelectObject(ncd.hdc, b.font.handle);
@@ -194,7 +194,7 @@ private fn void GradDraw.dtor(GradDraw* g) {
 	}
 
 	// Drawing flat color bkg on a button.
-	private fn Lresult Button.drawBackColor(Button* b, NMCustomDraw* nmcd ) {
+	fn Lresult Button.drawBackColor(Button* b, NMCustomDraw* nmcd) @private {
 		switch (nmcd.dwDrawStage) {
 			case CDDS_PREERASE:	// Note: This return value is critical. Otherwise we don't get below notifications.
 				return  CDRF_NOTIFYPOSTERASE;
@@ -211,7 +211,7 @@ private fn void GradDraw.dtor(GradDraw* g) {
 	}
 
 	// Drawing gradient bkg on a button.
-	private fn Lresult Button.drawGradientBackColor(Button* b, NMCustomDraw* nmcd ) {
+	fn Lresult Button.drawGradientBackColor(Button* b, NMCustomDraw* nmcd) @private {
 		switch (nmcd.dwDrawStage) {
 			case CDDS_PREERASE:	// Note: This return value is critical. Otherwise we don't get below notifications.
 				return  CDRF_NOTIFYPOSTERASE;
@@ -228,14 +228,14 @@ private fn void GradDraw.dtor(GradDraw* g) {
 	}
 
 	// Helper function for flat color button.
-	private fn void Button.paintFlatColor(Button* b, NMCustomDraw* nmcd, Hbrush hbr, Hpen pen) {
+	fn void Button.paintFlatColor(Button* b, NMCustomDraw* nmcd, Hbrush hbr, Hpen pen) @private {
 		api_SelectObject(nmcd.hdc, hbr);
 		api_SelectObject(nmcd.hdc, pen);
 		api_RoundRect(nmcd.hdc, nmcd.rc.left, nmcd.rc.top, nmcd.rc.right, nmcd.rc.bottom, 5, 5);
 		api_FillPath(nmcd.hdc);
 	}
 
-	// private fn void Button.paintGradientColor(Button* b, NMCustomDraw* nmcd, GradColor gc, int rcSize ) {
+	// fn void Button.paintGradientColor(Button* b, NMCustomDraw* nmcd, GradColor gc, int rcSize ) @private {
 	// 	if (rcSize != 0) api_InflateRect(&nmcd.rc, rcSize, rcSize);
 	// 	Hbrush gBrush = createGradientBrush(nmcd.hdc, nmcd.rc, gc.c1, gc.c2) ;
 	// 	defer api_DeleteObject(gBrush);
@@ -244,7 +244,7 @@ private fn void GradDraw.dtor(GradDraw* g) {
 	// }
 
 	// Helper function for gradient color button.
-	private fn void Button.paintGradientRound(Button* b, Hdc dc, Rect rc, GradColor gc, Hpen pen ) {
+	fn void Button.paintGradientRound(Button* b, Hdc dc, Rect rc, GradColor gc, Hpen pen) @private {
 		Hbrush gBrush = createGradientBrush(dc, rc, gc.c1, gc.c2);
 		defer api_DeleteObject(gBrush);
 		api_SelectObject(dc, pen);
@@ -255,14 +255,14 @@ private fn void GradDraw.dtor(GradDraw* g) {
 
 
 
-	// private fn void Button.drawFrame(Button* b, NMCustomDraw* nmcd, Hpen pen, int rcAdj = 0 ) {
+	// fn void Button.drawFrame(Button* b, NMCustomDraw* nmcd, Hpen pen, int rcAdj = 0) @private {
 	// 	if (rcAdj != 0) api_InflateRect(&nmcd.rc, rcAdj, rcAdj);
 	// 	api_SelectObject(nmcd.hdc, pen);
 	// 	api_Rectangle(nmcd.hdc, nmcd.rc.left, nmcd.rc.top, nmcd.rc.right, nmcd.rc.bottom);
 	// }
 
 	// Freeing resources used for this button.
-	private fn void Button.dtor(Button* b) {
+	fn void Button.dtor(Button* b) @private {
 		switch (b._drawMode) {
 			case 2..3: b._fdraw.dtor();
 			case 4..5: b._gdraw.dtor();
@@ -272,7 +272,7 @@ private fn void GradDraw.dtor(GradDraw* g) {
 // End of Private functions
 
 
-private fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	Button* this = (Button*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
