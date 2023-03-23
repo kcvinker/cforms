@@ -143,7 +143,7 @@ macro clip(x) {
 
 
 	fn void RgbColor.printRGB(RgbColor* rc) {
-		cptf("Red: %d, Green: %d, Blue: %d\n", rc.red, rc.green, rc.blue);
+		ptf("Red: %d, Green: %d, Blue: %d\n", rc.red, rc.green, rc.blue);
 	}
 
 // End RgbColor-------------------------------------------------------------

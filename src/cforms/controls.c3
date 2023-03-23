@@ -84,11 +84,11 @@ fault StringFault {
 	 * Control.setFont(String fontName, int fontSize)
 	 * Control.setFont(String fontName, int fontSize, FontWight fweight)*/
 	macro void Control.setFont(Control* c, ...) {
-		$switch ($vacount):
+		$switch ($vacount)
 			$case 1: c.setFont1($vaarg(0));
 			$case 2: c.setFont2($vaarg(0), $vaarg(1));
 			$case 3: c.setFont3($vaarg(0), $vaarg(1), $vaarg(2));
-		$endswitch;
+		$endswitch
 	}
 
 	//Set fore color for Control

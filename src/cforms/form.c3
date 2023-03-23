@@ -9,9 +9,9 @@ import std::collections::map;
 import libc;
 
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
-typedef ptf = io::printfn;
-typedef log = io::printn;
-typedef cptf = libc::printf;
+define ptf = io::printfn;
+define log = io::printn;
+define cptf = libc::printf;
 typedef ControlList = List<Control*>;
 // typedef MenuItemList = List<MenuItem*>;
 typedef CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the handle of combobox's listbox

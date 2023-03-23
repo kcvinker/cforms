@@ -42,7 +42,6 @@ const Dword UINT_MAX = 1 << 32;
 
 // Function pointer types
 typedef Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
-// define Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
 typedef Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
 
 struct Size {
@@ -258,7 +257,6 @@ struct HDHitTestInfo {
   	uint  flags;
   	int   iItem;
 }
-<<<<<<< HEAD
 
 struct WindowPos {
 	Hwnd hwnd;
@@ -292,5 +290,3 @@ struct HdLayout {
 
 
 
-=======
->>>>>>> origin/master

@@ -147,12 +147,12 @@ fn Point getMousePoints(Lparam lpm) {return Point{loWord(lpm), hiWord(lpm)};}
 macro isStrLiteral(x) {
 	var $res = false;
 	var $typ = $typeof(x).typeid;
-	$if ($typ.kindof == TypeKind.POINTER):
+	$if ($typ.kindof == TypeKind.POINTER)
 		var $inner = $typ.inner;
-		$if (($inner.kindof == TypeKind.ARRAY) && ($inner.inner == char.typeid)):
+		$if (($inner.kindof == TypeKind.ARRAY) && ($inner.inner == char.typeid))
 			$res = true;
-		$endif;
-	$endif;
+		$endif
+	$endif
 	return $res;
 }
 
@@ -187,7 +187,7 @@ fn double strToDouble(String s) @private {
 
 macro String toStr(x) {
 	var $Type = $typeof(x);
-	$switch ($Type):
+	$switch ($Type)
 		$case int: return int_to_string(x);
 		$case double: return dbl_to_string(x);
 		$default:
@@ -196,7 +196,7 @@ macro String toStr(x) {
 				v.printf("%d", i);
 				return v.copy_str();
 			};
-	$endswitch;
+	$endswitch
 }
 
 fn void printStr(String ca) { io::printn((char*)&ca);}

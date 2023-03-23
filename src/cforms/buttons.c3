@@ -112,7 +112,7 @@ fn void GradDraw.dtor(GradDraw* g) @private {
 		this.createInternal();
 		if (this.handle) {
 			// this._parent.bhw = this.handle;
-			this.setSubClass(&thisWndProc);
+			this.setSubClass(&btnWndProc);
 			this.setFontInternal();
 			this._parent.controls.append(this);
 		}

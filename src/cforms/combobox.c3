@@ -87,54 +87,31 @@ struct CmbData {
 				this.createHandle();
 			}
 		}
-
 	}
 
-
 	macro void ComboBox.addItem(ComboBox* this, item) {
-		// var $Type = $typeof(item);
 		var $tp = $typeof(item).typeid;
-		$if ($tp == String.typeid):
+		$if ($tp == String.typeid)
 			this.items.append(item);
-		$else:
-			$if (isStrLiteral(item)):
+		$else
+			$if (isStrLiteral(item))
 				this.items.append(item);
-			$endif;
-		$endif;
+			$endif
+		$endif
 	}
 
 	macro void ComboBox.test(ComboBox* cmb, x) {
 		var $Type = $typeof(x);
-		$switch ($Type):
+		$switch ($Type)
 		$case String: log("TEST: it's a string");
 		$case ZString: log("TEST: it's an Zstring");
 
 		$default:
-			$if (@convertible(x, String)): log("TEST: it's convertible");
-			$else: log("TEST: its hopeless");
-			$endif;
-		$endswitch;
+			$if (@convertible(x, String)) log("TEST: it's convertible");
+			$else log("TEST: its hopeless");
+			$endif
+		$endswitch
 	}
-
-
-
-	// Set fore color for ComboBox
-	// fn void ComboBox.setForeColor(ComboBox* this, uint clr) {
-	// 	this.foreColor.updateColor(clr);
-	// 	if (!(this._drawMode & 1)) this._drawMode += 1;
-	// 	if (this._isCreated) api_InvalidateRect(this.handle, null, false);
-	// }
-
-	// //Set back color for ComboBox
-	// fn void ComboBox.setBackColor(ComboBox* this, uint clr) {
-	// 	this.backColor.updateColor(clr);
-	// 	if ((this._drawMode & 2) != 2) this._drawMode += 2;
-	// 	if (this._isCreated) {
-	// 		this._bkBrush = this.backColor.getBrush();
-	// 		api_InvalidateRect(this.handle, null, false);
-	// 	}
-	// }
-
 
 // End of Public functions
 
