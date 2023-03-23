@@ -259,6 +259,20 @@ struct HDHitTestInfo {
   	int   iItem;
 }
 
+struct WindowPos {
+	Hwnd hwnd;
+	Hwnd hwndInsertAfter;
+	int  x;
+	int  y;
+	int  cx;
+	int  cy;
+	uint flags;
+}
+
+struct HdLayout {
+	Rect*      prc;
+	WindowPos* pwpos;
+}
 
 
 

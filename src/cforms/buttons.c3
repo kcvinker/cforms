@@ -102,7 +102,7 @@ private fn void GradDraw.dtor(GradDraw* g) {
 		Button b;
 		b.kind = ControlType.BUTTON;
 		b.className = "Button";
-		b.name = string::new("Button_");
+		b.name = dstring::new("Button_");
 		b.name.printf("%d", btnNumber);
 		b._parent = parent;
 		b.font = parent.font;
@@ -267,7 +267,7 @@ private fn void GradDraw.dtor(GradDraw* g) {
 			case 2..3: b._fdraw.dtor();
 			case 4..5: b._gdraw.dtor();
 		}
-		b.name.destroy();
+		b.name.free();
 	}
 // End of Private functions
 
