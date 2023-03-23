@@ -9,12 +9,12 @@ import std::collections::map;
 import libc;
 
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
-define ptf = io::printfn;
-define log = io::println;
-define cptf = libc::printf;
-define ControlList = List<Control*>;
-// define MenuItemList = List<MenuItem*>;
-define CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the handle of combobox's listbox
+typedef ptf = io::printfn;
+typedef log = io::printn;
+typedef cptf = libc::printf;
+typedef ControlList = List<Control*>;
+// typedef MenuItemList = List<MenuItem*>;
+typedef CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the handle of combobox's listbox
 
 // Important static data
 bool frmCreated = false;
@@ -134,7 +134,7 @@ struct MenuEventData {
 
 		Form f;
 		f.kind = ControlType.NONE;
-		f.name = string::new("Form_");
+		f.name = dstring::new("Form_");
 		f.name.printf("%d", frmNumber);
 		f.text = title;
 		// f.sText = string::new(title);
@@ -290,7 +290,7 @@ struct MenuEventData {
 // End Constants
 
 // Private Functions
-	private fn void registerClass(Hinstance hinst, Char16* clsName) {
+	fn void registerClass(Hinstance hinst, Char16* clsName) @private {
 		WndClassEx wc;
 		wc.cbSize = WndClassEx.sizeof;
 		wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -307,7 +307,7 @@ struct MenuEventData {
 		api_RegisterClassEx(&wc);
 	}
 
-	private fn void Form.setStyle(Form* f) {
+	fn void Form.setStyle(Form* f) @private {
 		switch (f.formStyle) {
 			case FormStyle.FIXED_3D:
 				f._exStyle = FIXED3DEXSTYLE ;
@@ -349,7 +349,7 @@ struct MenuEventData {
         if (f.formState == FormState.MAXIMIZED) f._style = f._style | WS_MAXIMIZE;
 	}
 
-	private fn void Form.setPosition(Form* f) {
+	fn void Form.setPosition(Form* f) @private {
 		switch (f.formPos) {
 			case CENTER:
 				f.xpos = (screenWidth - f.width) / 2  ;
@@ -370,7 +370,7 @@ struct MenuEventData {
 		}
 	}
 
-	private fn void Form.setBackColorInternal(Form* f, Hdc hdc) {
+	fn void Form.setBackColorInternal(Form* f, Hdc hdc) @private {
 		Rect rc = f.clientRect();
 		// defer(api_DeleteObject((Hgdiobj)hbr));
 		// if (f._fDrawMode == FormDrawMode.FLAT_COLOR) {
@@ -381,7 +381,7 @@ struct MenuEventData {
 		api_FillRect(hdc, &rc, f._bkBrush);
 	}
 
-	private fn void trackMouseMove(Hwnd hw) {
+	fn void trackMouseMove(Hwnd hw) @private {
 		TrackMOUSEEVENT tme;
 		tme.cbSize = TrackMOUSEEVENT.sizeof;
 		tme.dwFlags = TME_HOVER|TME_LEAVE;
@@ -390,14 +390,14 @@ struct MenuEventData {
 		api_TrackMouseEvent(&tme);
 	}
 
-	private fn void Form.formShownHandler(Form* f) {
+	fn void Form.formShownHandler(Form* f) @private {
 		if (!f._isLoaded) {
 			f._isLoaded = true;
 			if (f.onLoad) f.onLoad(f, &&EventArgs{});
 		}
 	}
 
-	private fn void Form.formActivateHandler(Form* f, Wparam wp) {
+	fn void Form.formActivateHandler(Form* f, Wparam wp) @private {
 		if (f.onActivate || f.onDeActivate) {
 			bool flag = (bool) wp;
 			if (!flag) {
@@ -408,7 +408,7 @@ struct MenuEventData {
 		}
 	}
 
-	private fn void Form.formMouseMoveHandler(Form* f, uint msg, Wparam wp, Lparam lp) {
+	fn void Form.formMouseMoveHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private {
 		// if (!f._isMouseTracking) {
 		// 	f._isMouseTracking = true;
 		// 	trackMouseMove(f.handle);
@@ -431,12 +431,12 @@ struct MenuEventData {
 	// 	}
 	// }
 
-	private fn void Form.formMouseLeaveHandler(Form* f) {
+	fn void Form.formMouseLeaveHandler(Form* f) @private {
 		if (f._isMouseEntered) f._isMouseEntered = false;
 		if (f.onMouseLeave) f.onMouseLeave(f, &&EventArgs{});
 	}
 
-	private fn Lresult Form.formSizingHandler(Form* f, uint msg, Wparam wp, Lparam lp) {
+	fn Lresult Form.formSizingHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private {
 		f._isSizing = true;
 		SizeEventArgs sea = newSizeEventArgs(msg, wp, lp);
 		f.width = sea.formRect.right - sea.formRect.left;
@@ -448,7 +448,7 @@ struct MenuEventData {
 		return 0;
 	}
 
-	private fn Lresult Form.formSizedHandler(Form* f, uint msg, Wparam wp, Lparam lp) {
+	fn Lresult Form.formSizedHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private {
 		// f.mSizingStarted = false;
 		f._isSizing = false;
 		if (f.onSized) {
@@ -459,7 +459,7 @@ struct MenuEventData {
    		return 0;
 	}
 
-	private fn Lresult Form.formMovingHandler(Form* f, Lparam lp) {
+	fn Lresult Form.formMovingHandler(Form* f, Lparam lp) @private {
 		Rect rct = *(Rect*)lp;
 		f.xpos = rct.left;
 		f.ypos = rct.top;
@@ -470,14 +470,14 @@ struct MenuEventData {
    		return 0;
 	}
 
-	private fn Lresult Form.formMovedHandler(Form* f, Lparam lp) {
+	fn Lresult Form.formMovedHandler(Form* f, Lparam lp) @private {
 		f.xpos = xFromLparam(lp);
 		f.ypos = yFromLparam(lp);
 		if (f.onMoved) f.onMoved(f, &&EventArgs{});
    		return 0;
 	}
 
-	private fn void Form.formSysCommandHandler(Form* f, Wparam wp) {
+	fn void Form.formSysCommandHandler(Form* f, Wparam wp) @private {
 		uint uMsg = (uint) (wp & 0xFFF0);
 		switch (uMsg) {
 			case SC_MINIMIZE: if (f.onMinimized) f.onMinimized(f, &&EventArgs{});
@@ -486,11 +486,11 @@ struct MenuEventData {
 		}
 	}
 
-	private fn void Form.formCloseHandler(Form* this) {
+	fn void Form.formCloseHandler(Form* this) @private {
 		if (this.onClosing) this.onClosing(this, &&EventArgs{});
 	}
 
-	private fn void Form.formDestroyHandler(Form* this) {
+	fn void Form.formDestroyHandler(Form* this) @private {
 		if (this.onClosed) this.onClosed(this, &&EventArgs{});
 		this.dtor();
 	}
@@ -505,7 +505,7 @@ struct MenuEventData {
 
 	fault MenuEventError {MED_NOT_FOUND}
 
-	private fn MenuItem* Form.getMenuItem(Form* this, uint id, uint evt) {
+	fn MenuItem* Form.getMenuItem(Form* this, uint id, uint evt) @private {
 		if (this.menuList.len()) {
 			foreach (menu: this.menuList) {
 				if (menu.idNum == id && menu._evtFlag & evt) return menu;
@@ -514,7 +514,7 @@ struct MenuEventData {
 		return null;
 	}
 
-	private fn void Form.dtor(Form* this) {
+	fn void Form.dtor(Form* this) @private {
 		// This will executed when a Form destroyed
 
 		if (this._bkBrush) {
@@ -526,12 +526,12 @@ struct MenuEventData {
 			foreach (ctl: this.controls) {
 				Lresult ret = api_SendMessage(ctl.handle, MM_RUNDTOR, 0, 0);
 			}
-			io::println("Form destroyed");
+			io::printn("Form destroyed");
 		}
 
 		this.controls.free();
 
-		this.name.destroy();
+		this.name.free();
 		// this.sText.destroy();
 
 
@@ -545,7 +545,7 @@ struct MenuEventData {
 // End Private Functions
 int cnt = 1;
 
-private fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) {
+fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 
 	// ptf("WIn Message %s", msg);
 	Form* this = (Form*)(api_GetWindowLongPtr(hw, GWLP_USERDATA));
@@ -662,45 +662,6 @@ private fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) {
 		// 	ptf("[%s]  wp %s, lp %s", cnt, wp);
 		// 	cnt += 1;
 
-
-
-
-
-
-
-
-
-
-
 	}
 	return api_DefWindowProc(hw, msg, wp, lp);
 }
-
-
-// fn void test() {
-// 	io::println("I am from form module...");
-// 	String clsname = "Cforms_Window";
-// 	String title = "വിനോദ്";
-
-// 	Hinstance hins = api_GetModuleHandle((Lpcwstr) 0);
-// 	registerClass(hins, str::utf8to16(clsname).ptr);
-// 	Char16* pp = str::utf8to16(clsname).ptr!!;
-// 	Hwnd! h = api_CreateWindowEx(0, pp, str::utf8to16(title),
-// 								WS_OVERLAPPEDWINDOW,
-// 								100, 50,
-// 								500, 400,
-// 								(Hwnd)0,
-// 								(Hmenu)0,
-// 								hins, null);
-// 	// ptf("last error %d\n", api_GetLastError());
-// 	// ptf("win handle %d\n", h);
-
-// 	api_ShowWindow(h, 5);
-// 	api_UpdateWindow(h);
-// 	Msg pMsg;
-// 	while (api_GetMessage(&pMsg, null, 0, 0) > 0) {
-// 		api_TranslateMessage(&pMsg);
-// 		api_DispatchMessage(&pMsg);
-// 	}
-
-// }

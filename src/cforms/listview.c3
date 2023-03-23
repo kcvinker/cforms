@@ -1,25 +1,15 @@
 
-
-
-
 // listview module - Created on 14-Feb-2023 01:13
 
 module cforms;
 import std::io;
 import std::collections::list;
 
-
-
-// define TreeNodeList = List<TreeNode*>;
-// define NodeDisposeHandler = fn void(TreeNode* this);
-
 int lvNumber = 1;
 const LVSTYLE = WS_BORDER | WS_CHILD | WS_VISIBLE | LVS_ALIGNLEFT | LVS_EDITLABELS;
 
-define ColumnList = List<ListViewColumn*>;
-define ItemList = List<ListViewItem*>;
-// define IntList = List<int>;
-
+typedef ColumnList = List<ListViewColumn*>;
+typedef ItemList = List<ListViewItem*>;
 
 // ListView control struct
 struct ListView {
@@ -49,11 +39,8 @@ struct ListView {
 	Font headerFont;
 	ColumnList columns;
 	ItemList items;
-
 	Hbrush _hdrHotBrush;
 	Hbrush _hdrBkBrush;
-	// bool _changeHdrHeight;
-
 }
 
 struct ColAndIndex {int index; LVColumn lvc;}
@@ -94,14 +81,12 @@ enum ListViewStyle : char {
     TILE_VIEW,
 }
 
-
-
 // Public functions
 	// ListView constructor - Create and returns a New ListView struct
 	fn ListView newListView(Form* parent, int x = 10, int y = 10, int width = 300, int height = 200) {
 		ListView this;
 		this.kind = ControlType.LIST_VIEW;
-		this.name = string::new("ListView_");
+		this.name = dstring::new("ListView_");
 		this.name.printf("%d", lvNumber);
 		this.className = "SysListView32";
 		this._parent = parent;
@@ -122,15 +107,12 @@ enum ListViewStyle : char {
 		this._itemIndex = -1;
 		this._hotHdrIndex = -1;
 		this.headerHeight = 35;
-
 		this.backColor = newColor(0xFFFFFF);
 		this.foreColor = newColor(0x000000);
 		this.headerBackColor = newColor(0xb3cccc);
 		this.headerForeColor = newColor(0x000000);
-
 		lvNumber += 1;
 		return this;
-
 	}
 
 	// ListViewCoulmn constructor.
@@ -156,7 +138,6 @@ enum ListViewStyle : char {
 		this.index = -1;
 		this.imageIndex = imgIndex;
 		return this;
-
 	}
 
 	// Another ListViewItem constructor, but appends sub items too. Works for only REPORT_VIEW style.
@@ -237,7 +218,7 @@ enum ListViewStyle : char {
 // Private functions
 
 	// Setting control's style bits.
-	private fn void ListView.setLVStyle(ListView* this) { // Private
+	fn void ListView.setLVStyle(ListView* this) @private { // Private
 		switch (this.viewStyle) {
             case ListViewStyle.LARGE_ICON: this._style |= LVS_ICON;
             case ListViewStyle.REPORT_VIEW: this._style |= LVS_REPORT;
@@ -256,7 +237,7 @@ enum ListViewStyle : char {
 	}
 
 	// Setting ListView's Ex styles
-	private fn void ListView.setLVExStyle(ListView* this) {
+	fn void ListView.setLVExStyle(ListView* this) @private {
 		Dword lvExStyle = 0x0000;
         if (this.showGrid) lvExStyle |= LVS_EX_GRIDLINES;
         if (this.hasCheckBox) lvExStyle |= LVS_EX_CHECKBOXES;
@@ -268,7 +249,7 @@ enum ListViewStyle : char {
 	}
 
 	// Adding column to ListView.
-	private fn void ListView.addColumnInternal(ListView* this, ListViewColumn* lvcol) {
+	fn void ListView.addColumnInternal(ListView* this, ListViewColumn* lvcol) @private {
 		Char16* coltxt = str::utf8to16(lvcol.text).ptr!!;
 		defer free(coltxt);
 		lvcol.index = this._colIndex;
@@ -293,7 +274,7 @@ enum ListViewStyle : char {
 	}
 
 	// Adding item to ListView.
-	private fn void ListView.addItemInternal(ListView* this, ListViewItem* item) {
+	fn void ListView.addItemInternal(ListView* this, ListViewItem* item) @private {
 		LVItem lvi;
         lvi.mask = LVIF_TEXT | LVIF_PARAM | LVIF_STATE;
         if (item.imageIndex != -1) lvi.mask |= LVIF_IMAGE;
@@ -313,7 +294,7 @@ enum ListViewStyle : char {
 	}
 
 	// Adding subitems to given item.
-	private fn void ListView.addSubItemInternal(ListView* this, ListViewItem* item, String subitem, int subIndex, bool appendSubItem = true ) {
+	fn void ListView.addSubItemInternal(ListView* this, ListViewItem* item, String subitem, int subIndex, bool appendSubItem = true ) @private {
         LVItem lvi;
         // # lvi.mask = con.LVIF_TEXT | con.LVIF_STATE
         // # lvi.iItem = item_index
@@ -327,14 +308,14 @@ enum ListViewStyle : char {
 	}
 
 	// Get the Header handle & subclass it.
-	private fn void ListView.setHeaderSubclass(ListView* this) {
+	fn void ListView.setHeaderSubclass(ListView* this) @private {
 		this._hdrHwnd = (Hwnd) this.sendMsg(LVM_GETHEADER, 0, 0);
 		api_SetWindowSubclass(this._hdrHwnd, &hdrWndProc, globalSubClsID, (Dwordptr)this);
 		globalSubClsID += 1;
 	}
 
 	// Some post creation tasks for this listview.
-	private fn void ListView.postCreationTasks(ListView* this) {
+	fn void ListView.postCreationTasks(ListView* this) @private {
 		if (this.backColor.value != 0xFFFFFF) this.sendMsg(LVM_SETBKCOLOR, 0, this.backColor.ref);
 		if (this.checkBoxLast) {
 			@pool() {
@@ -348,7 +329,7 @@ enum ListViewStyle : char {
 	}
 
 	// Drawing the header
-	private fn Lresult ListView.drawHeader(ListView* this, NMCustomDraw* nmcd) {
+	fn Lresult ListView.drawHeader(ListView* this, NMCustomDraw* nmcd) @private {
 		/* Drawing header to beautify with colors and font.
 		 * Windows's own header drawing is white bkg color.
          * But listview itself is white bkg. We can't allow both hdr & listview in white.
@@ -384,7 +365,7 @@ enum ListViewStyle : char {
 	}
 
 	// Handling the WM_NOTIFY message from header
-	private fn Lresult ListView.headerNotifyHandler(ListView* this, Lparam lpm) {
+	fn Lresult ListView.headerNotifyHandler(ListView* this, Lparam lpm) @private {
 		NMHdr* nmh = (NMHdr*) lpm;
 		if (nmh.code == NM_CUSTOMDRAW) {
 			NMCustomDraw* nmcd = (NMCustomDraw*) lpm;
@@ -397,15 +378,15 @@ enum ListViewStyle : char {
 	}
 
 	// Destructor for ListViewItem
-	fn void ListViewItem.destroy(ListViewItem* this) {
+	fn void ListViewItem.destroy(ListViewItem* this) @private {
 		ptf("Item index %s", this.index );
 		this.subItems.free();
 	}
 
 	// Freeing resources used for this ListView.
-	private fn void ListView.dtor(ListView* this) {
+	fn void ListView.dtor(ListView* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 		if (this._itemIndex > -1) {foreach (item: this.items) {item.destroy();}}
 		this.columns.free();
 		this.items.free();
@@ -413,7 +394,7 @@ enum ListViewStyle : char {
 // End of Private functions
 
 
-private fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	ListView* this = (ListView*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -445,7 +426,7 @@ private fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
-private fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	ListView* this = (ListView*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -477,17 +458,13 @@ private fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 			wps.cy = lv.headerHeight;
 			phl.prc.top = lv.headerHeight;
 			return -1;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
-
-
 // Constants
 	const LVM_FIRST = 4096;
 	const LVN_FIRST = -100u;
-
 
 	// LV Styles
 		const LVS_ICON = 0;
@@ -556,10 +533,5 @@ private fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 		const LVM_SETITEMTEXTW = (LVM_FIRST + 116);
 
 	// LV Messages
-
-
-
-
-
 // End Constants
 

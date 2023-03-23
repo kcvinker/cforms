@@ -4,10 +4,7 @@
 module cforms;
 import std::io;
 
-
 int dtpNumber = 1;
-
-
 
 // DateTimePicker control struct
 struct DateTimePicker {
@@ -30,11 +27,6 @@ struct DateTimePicker {
 	EventHandler onCalendarOpened;
 	EventHandler onValueChanged;
 	EventHandler onCalendarClosed;
-
-
-
-
-
 }
 
 enum DTPFormat : int(String descrption, int value ) {
@@ -53,18 +45,14 @@ struct DateTime {
 	int second;
 	int milliSeconds;
 	WeekDays dayOfWeek;
-
 }
-
-
-
 
 // Public functions
 	// DateTimePicker constructor
 	fn DateTimePicker newDateTimePicker(Form* parent, int x = 10, int y = 10) {
 		DateTimePicker this;
 		this.kind = ControlType.DATE_TIME_PICKER;
-		this.name = string::new("DateTimePicker_");
+		this.name = dstring::new("DateTimePicker_");
 		this.name.printf("%d", dtpNumber);
 		this.className = "SysDateTimePick32";
 		this._parent = parent;
@@ -77,12 +65,10 @@ struct DateTime {
 		this.height = 0;
 		this.format = DTPFormat.CUSTOM;
 		this.formatStr = " dd-MM-yyyy";
-
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		dtpNumber += 1;
 		return this;
-
 	}
 
 	// Create the handle of DateTimePicker
@@ -97,39 +83,12 @@ struct DateTime {
 		}
 	}
 
-
-
-
-
-
-
-	// Set the cue banner text for this DateTimePicker
-
-
-	// Set fore color for DateTimePicker
-	// fn void DateTimePicker.setForeColor(DateTimePicker* this, uint clr) {
-	// 	this.foreColor.updateColor(clr);
-	// 	if (!(this._drawMode & 1)) this._drawMode += 1;
-	// 	if (this._isCreated) api_InvalidateRect(this.handle, null, false);
-	// }
-
-	// //Set back color for DateTimePicker
-	// fn void DateTimePicker.setBackColor(DateTimePicker* this, uint clr) {
-	// 	this.backColor.updateColor(clr);
-	// 	if ((this._drawMode & 2) != 2) this._drawMode += 2;
-	// 	if (this._isCreated) {
-	// 		this._bkBrush = this.backColor.getBrush();
-	// 		api_InvalidateRect(this.handle, null, false);
-	// 	}
-	// }
-
-
 // End of Public functions
 
 // Private functions
 
 	// Setting control's style bits.
-	private fn void DateTimePicker.seDTPStyle(DateTimePicker* this) { // Private
+	fn void DateTimePicker.seDTPStyle(DateTimePicker* this) @private { // Private
 		switch (this.format) {
 			case DTPFormat.CUSTOM: this._style |= DTS_LONGDATEFORMAT | DTS_APPCANPARSE;
 			case DTPFormat.LONG_DATE: this._style |= DTS_LONGDATEFORMAT;
@@ -148,7 +107,7 @@ struct DateTime {
 		this._bkBrush = this.backColor.getBrush();
 	}
 
-	private fn void DateTimePicker.postCreationTasks(DateTimePicker* this) {
+	fn void DateTimePicker.postCreationTasks(DateTimePicker* this) @private {
 		if (this.format == DTPFormat.CUSTOM) {
 			/*  Here, we have a strange situation. Since, we are working with unicode string, we need...
 				to use the W version functions & messages. So, here DTM_SETFORMATW is the candidate.
@@ -165,7 +124,7 @@ struct DateTime {
 		api_SetWindowPos(this.handle, null, this.xpos, this.ypos, this.width, this.height, SWP_NOZORDER);
 	}
 
-	private fn void DateTimePicker.wmNotifyHandler(DateTimePicker* this, Lparam lpm) {
+	fn void DateTimePicker.wmNotifyHandler(DateTimePicker* this, Lparam lpm) @private {
 		NMHdr* nm = (NMHdr*)lpm;
 		switch (nm.code) {
 			case DTN_USERSTRING:
@@ -189,40 +148,17 @@ struct DateTime {
 		}
 	}
 
-	// privatefn void DateTimePicker.wmCommandHandler(DateTimePicker* this, Wparam wpm) {
-	// 	Word ncode = hiWord(wpm);
-	// 	switch (ncode) {
-	// 		case LBN_DBLCLK:
-	// 		case LBN_KILLFOCUS:
-	// 		case LBN_SELCHANGE:
-	// 		case LBN_SETFOCUS:
-	// 		case LBN_SELCANCEL:
-	// 	}
-	// }
-
-
-	// Handling back & fore color changing in WndProc function
-	// private fn Hbrush DateTimePicker.colorMsgHandler(DateTimePicker* this, Wparam wpm) {
-	// 	Hdc hdc = (Hdc)wpm;
-	// 	api_SetBkMode(hdc, TRANSPARENT);
-	// 	if (this._drawMode & 1) api_SetTextColor(hdc, this.foreColor.ref);
-	// 	api_SetBkColor(hdc, this.backColor.ref);
-	// 	return this._bkBrush;
-	// }
-
-
 	// Freeing resources used for this DateTimePicker.
-	private fn void DateTimePicker.dtor(DateTimePicker* this) {
+	fn void DateTimePicker.dtor(DateTimePicker* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
-
 	}
 // End of Private functions
 
 
-private fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	DateTimePicker* this = (DateTimePicker*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -249,7 +185,6 @@ private fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 		// case MM_CTL_COMMAND : this.wmCommandHandler(wp);
 
 		case MM_RUNDTOR: this.dtor(); return 0;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
@@ -283,13 +218,7 @@ private fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 	const DTN_FORMATW = DTN_FIRST - 3u; // 4294966533; //(DTN_FIRST-3);
 	const DTN_FORMATQUERYW = DTN_FIRST - 2u; //  4294966534; // (DTN_FIRST-2);
 	const DTN_DATETIMECHANGE = DTN_FIRST - 1u; //4294966535; // (DTN_FIRST-1);
-
 	const DTN_USERSTRING = DTN_USERSTRINGW;
-	// const Dword ES_WANTRETURN = 4096;
-
-	// const Dword ECM_FIRST = 0x1500;
-	// const Dword EM_SETCUEBANNER = (ECM_FIRST + 1);
-
 // End Constants
 
 enum WeekDays: int {SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY}

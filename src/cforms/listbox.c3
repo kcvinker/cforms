@@ -4,15 +4,11 @@
 module cforms;
 import std::io;
 
-
 int lbxNumber = 1;
-
-
 
 // ListBox control struct
 struct ListBox {
 	inline Control control;
-
 	bool hasSort;
 	bool noSelection ;
 	bool multiColumn;
@@ -30,36 +26,28 @@ struct ListBox {
 	EventHandler onDoubleClick;
 }
 
-
-
-
 // Public functions
 	// ListBox constructor
 	fn ListBox newListBox(Form* parent, int x = 10, int y = 10, int width = 150, int height = 150) {
 		ListBox this;
 		this.kind = ControlType.LIST_BOX;
-		this.name = string::new("ListBox_");
+		this.name = dstring::new("ListBox_");
 		this.name.printf("%d", lbxNumber);
 		this.className = "Listbox";
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_BORDER  | LBS_NOTIFY | LBS_HASSTRINGS;
 		this._exStyle = 0;
-		// this._textStyle = DT_SINGLELINE | DT_VCENTER;
 		this.xpos = x;
 		this.ypos = y;
 		this.width = width;
 		this.height = height;
-
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
-
 		this._dummyIndex = -1;
 		this.selectedIndex = -1;
-
 		lbxNumber += 1;
 		return this;
-
 	}
 
 	// Create the handle of ListBox
@@ -106,7 +94,6 @@ struct ListBox {
 		}
 	}
 
-
 	// Remove an item with given index
 	fn void ListBox.removeItem(ListBox* this, int index) {
 		if (this.items.len()) {
@@ -147,7 +134,7 @@ struct ListBox {
 			int selCount = (int)this.sendMsg(LB_GETSELCOUNT, 0, 0);
 			if (selCount != LB_ERR) {
 				@pool() {
-					int[] buffer = array::talloc(int, selCount);
+					int[] buffer = tmalloc(int, selCount);
 					this.sendMsg(LB_GETSELITEMS, selCount, &buffer[0]);
 					foreach (indx: buffer) { sItems.append(this.getItemInternal(indx));}
 				};
@@ -192,13 +179,12 @@ struct ListBox {
 		return "";
 	}
 
-
 // End of Public functions
 
 // Private functions
 
 	// Setting control's style bits.
-	private fn void ListBox.setLbxStyle(ListBox* this) { // Private
+	fn void ListBox.setLbxStyle(ListBox* this) @private { // Private
 		if (this.hasSort) this._style |= LBS_SORT;
             if (this.multiSelection) this._style |= LBS_EXTENDEDSEL | LBS_MULTIPLESEL;
             if (this.multiColumn) this._style |= LBS_MULTICOLUMN;
@@ -209,7 +195,7 @@ struct ListBox {
 		this._bkBrush = this.backColor.getBrush();
 	}
 
-	private fn void ListBox.manageItems(ListBox* this) { // Private
+	fn void ListBox.manageItems(ListBox* this) @private { // Private
 		if (this.items.len() > 0) { // We need to add those items to list box
             foreach (item: this.items) {
 				Char16* sitem = str::utf8to16(item).ptr!!;
@@ -221,7 +207,7 @@ struct ListBox {
 	}
 
 	// Internal function to clear all items
-	private fn void ListBox.clearAllInternal(ListBox* this) @inline {
+	fn void ListBox.clearAllInternal(ListBox* this) @private @inline {
 		this.sendMsg(LB_RESETCONTENT, 0, 0);
 		api_UpdateWindow(this.handle);
 	}
@@ -229,12 +215,12 @@ struct ListBox {
 	fault ArrayResult {EMPTY_ARRAY}
 
 	// Internal function to get an item
-	private fn String! ListBox.getItemInternal(ListBox* this, int index) {
+	fn String! ListBox.getItemInternal(ListBox* this, int index) @private {
 		int sLen = (int)this.sendMsg(LB_GETTEXTLEN, index, 0);
 		if (sLen) {
 			@pool()
 			{
-				Char16[] buffer = array::talloc(Char16, sLen);
+				Char16[] buffer = tmalloc(Char16, sLen);
 				Lresult res =this.sendMsg(LB_GETTEXT, index, &buffer[0]);
 				String x = str::utf16to8(buffer)!!;
 				return x;
@@ -244,7 +230,7 @@ struct ListBox {
 	}
 
 	// Internal function for handling wm_command message
-	private fn void ListBox.wmCommandHandler(ListBox* this, Wparam wpm) {
+	fn void ListBox.wmCommandHandler(ListBox* this, Wparam wpm) @private {
 		Word ncode = hiWord(wpm);
 		switch (ncode) {
 			case LBN_DBLCLK: if (this.onDoubleClick) this.onDoubleClick(this, &&EventArgs{});
@@ -257,7 +243,7 @@ struct ListBox {
 
 
 	// Handling back & fore color changing in WndProc function
-	private fn Hbrush ListBox.colorMsgHandler(ListBox* this, Wparam wpm) {
+	fn Hbrush ListBox.colorMsgHandler(ListBox* this, Wparam wpm) @private {
 		Hdc hdc = (Hdc)wpm;
 		api_SetBkMode(hdc, TRANSPARENT);
 		if (this._drawMode & 1) api_SetTextColor(hdc, this.foreColor.ref);
@@ -267,18 +253,17 @@ struct ListBox {
 
 
 	// Freeing resources used for this ListBox.
-	private fn void ListBox.dtor(ListBox* this) {
+	fn void ListBox.dtor(ListBox* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 		this.selectedIndices.free();
 		this.items.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
-
 	}
 // End of Private functions
 
 
-private fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	ListBox* this = (ListBox*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -301,11 +286,8 @@ private fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 		case WM_CHAR: this.keyPressHandler(wp);
 
 		case MM_COLOR_LBOX: return (Lresult) this.colorMsgHandler(wp);
-
 		case MM_CTL_COMMAND : this.wmCommandHandler(wp);
-
 		case MM_RUNDTOR: this.dtor(); return 0;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
@@ -349,6 +331,4 @@ private fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr s
 	const Dword LB_SETCURSEL = 390;
 	const Dword LB_FINDSTRINGEXACT = 418;
 	const Dword LB_GETCARETINDEX = 415;
-
-
 // End Constants

@@ -1,39 +1,28 @@
 
-
-
 // radiobutton module - Created on 08-Feb-2023 08:13
 
 module cforms;
 import std::io;
 
-
 int rbNumber = 1;
-
-
 
 // RadioButton control struct
 struct RadioButton {
 	inline Control control;
-
 	bool autoSize;
 	bool checked;
 	bool rightAlign;
 	bool checkOnClick;
 	uint _textStyle;
-
 	EventHandler onCheckedChanged;
-
 }
-
-
-
 
 // Public functions
 	// RadioButton constructor
 	fn RadioButton newRadioButton(Form* parent, String text, int x = 10, int y = 10, int width = 0, int height = 0) {
 		RadioButton this;
 		this.kind = ControlType.RADIO_BUTTON;
-		this.name = string::new("RadioButton_");
+		this.name = dstring::new("RadioButton_");
 		this.name.printf("%d", rbNumber);
 		this.className = "Button";
 		this._parent = parent;
@@ -49,10 +38,8 @@ struct RadioButton {
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
-
 		rbNumber += 1;
 		return this;
-
 	}
 
 	// Create the handle of RadioButton
@@ -71,36 +58,14 @@ struct RadioButton {
 	fn void RadioButton.setState(RadioButton* this, bool value) {
 		this.checked = value;
 		if (this._isCreated) this.sendMsg(BM_SETCHECK, (int)value, 0);
-
 	}
-
-	// Set the cue banner text for this RadioButton
-
-
-	// Set fore color for RadioButton
-	// fn void RadioButton.setForeColor(RadioButton* this, uint clr) {
-	// 	this.foreColor.updateColor(clr);
-	// 	if (!(this._drawMode & 1)) this._drawMode += 1;
-	// 	if (this._isCreated) api_InvalidateRect(this.handle, null, false);
-	// }
-
-	// //Set back color for RadioButton
-	// fn void RadioButton.setBackColor(RadioButton* this, uint clr) {
-	// 	this.backColor.updateColor(clr);
-	// 	if ((this._drawMode & 2) != 2) this._drawMode += 2;
-	// 	if (this._isCreated) {
-	// 		this._bkBrush = this.backColor.getBrush();
-	// 		api_InvalidateRect(this.handle, null, false);
-	// 	}
-	// }
-
 
 // End of Public functions
 
 // Private functions
 
 	// Setting control's style bits.
-	private fn void RadioButton.setRBStyle(RadioButton* this) { // Private
+	fn void RadioButton.setRBStyle(RadioButton* this) @private { // Private
 		if (this.rightAlign) {
 			this._style |= BS_RIGHTBUTTON ;
 			this._textStyle |= DT_RIGHT ;
@@ -109,7 +74,7 @@ struct RadioButton {
 		this._bkBrush = this.backColor.getBrush();
 	}
 
-	private fn void RadioButton.wmCommandHandler(RadioButton* this, Wparam wpm) {
+	fn void RadioButton.wmCommandHandler(RadioButton* this, Wparam wpm) @private {
 		if (hiWord(wpm) == 0) {
 			this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);
             if (this.onCheckedChanged) this.onCheckedChanged(this, &&EventArgs{});
@@ -118,13 +83,13 @@ struct RadioButton {
 
 
 	// Handling back & fore color changing in WndProc function
-	private fn Hbrush RadioButton.colorMsgHandler(RadioButton* this, Wparam wpm) {
+	fn Hbrush RadioButton.colorMsgHandler(RadioButton* this, Wparam wpm) @private {
 		Hdc hdc = (Hdc)wpm;
 		api_SetBkColor(hdc, this.backColor.ref);
 		return this._bkBrush;
 	}
 
-	private fn Lresult RadioButton.wmNotifyHandler(RadioButton* this, Lparam lp) {
+	fn Lresult RadioButton.wmNotifyHandler(RadioButton* this, Lparam lp) @private {
 			NMCustomDraw* nmc = (NMCustomDraw*)lp;
 			switch (nmc.dwDrawStage) {
 				case CDDS_PREERASE:	return CDRF_NOTIFYPOSTERASE;
@@ -141,16 +106,16 @@ struct RadioButton {
 	}
 
 	// Freeing resources used for this RadioButton.
-	private fn void RadioButton.dtor(RadioButton* this) {
+	fn void RadioButton.dtor(RadioButton* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 
 	}
 // End of Private functions
 
 
-private fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	RadioButton* this = (RadioButton*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -178,30 +143,13 @@ private fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 		// case WM_PAINT: return this.paintHandler(msg, wp, lp);
 
 		case MM_CTL_COMMAND : this.wmCommandHandler(wp);
-
-
-
-
-
 		case MM_RUNDTOR: this.dtor(); return 0;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
 
 // Constants
-
 	const Dword BS_AUTORADIOBUTTON = 9;
-
-	// const Dword ES_OEMCONVERT = 0x400;
-	// const Dword ES_PASSWORD = 32;
-	// const Dword ES_READONLY = 0x800;
-	// const Dword ES_RIGHT = 2;
-	// const Dword ES_UPPERCASE = 8;
-	// const Dword ES_WANTRETURN = 4096;
-
-	// const Dword ECM_FIRST = 0x1500;
-	// const Dword EM_SETCUEBANNER = (ECM_FIRST + 1);
 
 // End Constants

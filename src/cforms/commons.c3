@@ -6,8 +6,8 @@ import std::io;
 import libc;
 import std::collections::list;
 
-define StrList = List<String>;
-define IntList = List<int>;
+typedef StrList = List<String>;
+typedef IntList = List<int>;
 
 const uint WHITE = 0xffffff;
 macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
@@ -75,6 +75,8 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const Dword SWP_NOZORDER = 0x0004;
 	const Dword SWP_SHOWWINDOW = 0x0040;
 	const Dword SWP_NOACTIVATE = 0x0010;
+	const Dword SWP_FRAMECHANGED = 0x0020;
+
 	const BF_LEFT = 0x0001;
 	const BF_TOP = 0x0002;
 	const BF_RIGHT = 0x0004;
@@ -159,26 +161,26 @@ fn void printWchars(Char16* txt, int count) {
 	for (int i = 0; i < count + 1; i++ ) {
 		cptf(" %d, ", txt[i]);
 	}
-	io::println("");
+	io::printn("");
 }
 
-private fn char[] int_to_string(int i, bool perc = false) {
+fn String int_to_string(int i, bool perc = false) @private {
 	@pool() {
-		VarString v = string::new_with_capacity(16, mem::temp_allocator());
-		if (perc) {v.printf("%d%%", i);} else {v.printf("%d", i);}
-		return v.copy_str();
+		DString ds = dstring::tnew_with_capacity(16);
+		if (perc) {ds.printf("%d%%", i);} else {ds.printf("%d", i);}
+		return ds.copy_str();
 	};
 }
 
-private fn char[] dbl_to_string(double i) {
+fn char[] dbl_to_string(double i) @private {
 	@pool() {
-		VarString v = string::new_with_capacity(16, mem::temp_allocator());
+		DString v = dstring::new_with_capacity(16, mem::temp_allocator());
 		v.printf("%f", i);
 		return v.copy_str();
 	};
 }
 
-private fn double strToDouble(String s) {
+fn double strToDouble(String s) @private {
 	char* cp;
 	return libc::strtod(&s[0], &cp);
 }
@@ -190,14 +192,14 @@ macro String toStr(x) {
 		$case double: return dbl_to_string(x);
 		$default:
 			@pool() {
-				VarString v = string::new_with_capacity(16, mem::temp_allocator());
+				DString v = dstring::new_with_capacity(16, mem::temp_allocator());
 				v.printf("%d", i);
 				return v.copy_str();
 			};
 	$endswitch;
 }
 
-fn void printStr(String ca) { io::println((char*)&ca);}
+fn void printStr(String ca) { io::printn((char*)&ca);}
 fn void printStr2(String ca, variant x) {
 	char[] fmt;
 	switch (x) {
@@ -267,7 +269,7 @@ fn void printRect(Rect rc, String msg = "Rect") {
 const CP_UTF8 = 65001;
 const MB_ERR_INVALID_CHARS = 0x00000008;
 
-fn Char16* toChar16p(String str, Allocator* allocator = mem::current_allocator()) {
+fn Char16* toChar16p(String str, Allocator* allocator = mem::temp_allocator()) {
 	long size = api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, null, 0);
 	Char16* buffer = allocator.alloc((size + 1) * Char16.sizeof)!!;
 	api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, buffer, (int)size + 1);

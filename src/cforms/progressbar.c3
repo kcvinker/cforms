@@ -1,12 +1,8 @@
 
-
 // progressbar module - Created on 12-Feb-2023 08:51
 
 module cforms;
 import std::io;
-
-
-
 
 int pbNumber = 1;
 
@@ -22,7 +18,6 @@ struct ProgressBar {
 	int step;
 	int value;
 	int marqueeSpeed;
-
 	EventHandler onValueChanged;
 }
 
@@ -34,7 +29,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	fn ProgressBar newProgressBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 25) {
 		ProgressBar this;
 		this.kind = ControlType.PROGRESS_BAR;
-		this.name = string::new("ProgressBar_");
+		this.name = dstring::new("ProgressBar_");
 		this.name.printf("%d", pbNumber);
 		this.className = "msctls_progress32";
 		this._parent = parent;
@@ -54,7 +49,6 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		this.marqueeSpeed = 30; // Animation updated in each 30 milliseconds.
 		pbNumber += 1;
 		return this;
-
 	}
 
 	// Create the handle of ProgressBar
@@ -78,7 +72,6 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		} else {
 			log("ivalue is not in between minValue & maxValue");
 		}
-
 	}
 
 	// Increment the value of this progress bar as per step value. Default step = 1
@@ -137,16 +130,16 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 // Private functions
 
 	// Setting control's style bits.
-	private fn void ProgressBar.setPbStyle(ProgressBar* this) { // Private
+	fn void ProgressBar.setPbStyle(ProgressBar* this) @private { // Private
 		if (this.barStyle == ProgressBarStyle.MARQUEE_STYLE) this._style |= PBS_MARQUEE;
         if (this.vertical) this._style |= PBS_VERTICAL;
 	}
 
 	// Drawing the percentage digits upon progressbar.
-	private fn Lresult ProgressBar.paintHandler(ProgressBar* this) {
+	fn Lresult ProgressBar.paintHandler(ProgressBar* this) @private {
 		Size ss;
 		// int value = (int)this.sendMsg(PBM_GETPOS, 0, 0);
-		char[] vtext = int_to_string(this.value, true);
+		String vtext = int_to_string(this.value, true);
 		Char16* wtext = str::utf8to16(vtext).ptr!!;
 		defer free(vtext);
 
@@ -161,21 +154,19 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
         api_SetBkMode(hdc, TRANSPARENT);
         api_SetTextColor(hdc, this.foreColor.ref);
         api_TextOut(hdc, x, y, wtext, vtext.len );
-
 		return 0;
 	}
 
-
 	// Freeing resources used for this ProgressBar.
-	private fn void ProgressBar.dtor(ProgressBar* this) {
+	fn void ProgressBar.dtor(ProgressBar* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 
 	}
 // End of Private functions
 
 
-private fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	ProgressBar* this = (ProgressBar*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -228,8 +219,5 @@ private fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 	const PBM_GETPOS = (WM_USER+8);
 	const PBM_SETMARQUEE = (WM_USER+10);
 	const PBM_SETSTATE  = (WM_USER+16);
-
-
-
 // End Constants
 

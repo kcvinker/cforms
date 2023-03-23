@@ -6,18 +6,15 @@ import std::io;
 import std::math;
 import libc;
 
-
 int npNumber = 1;
 const NPSTYLE = WS_VISIBLE | WS_CHILD | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_AUTOBUDDY | UDS_HOTTRACK;
 const NPTXTFLAG = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX ;
 const NPBUDDYSTYLE = WS_CHILD | WS_VISIBLE | ES_NUMBER | WS_TABSTOP| WS_BORDER ;
 const SWPFLAG = SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER;
 
-
 // NumberPicker control struct
 struct NumberPicker {
 	inline Control control;
-
 	bool hideSelection;
 	bool hideCaret;
 	bool trackMouseLeave;
@@ -29,9 +26,8 @@ struct NumberPicker {
 	double maxRange;
 	double value;
 	double step ;
-
-	VarString fmtStr;
-	VarString valStr;
+	DString fmtStr;
+	DString valStr;
 	int deciPrec;
 	int _linex; // The x coordinate for drawing line over the border.
 	Dword _buddyStyle;
@@ -41,34 +37,22 @@ struct NumberPicker {
 	Hwnd buddyHandle;
 	uint _buddySubClsID;
 	iptr _buddyCid;
-
 	Alignment textPos;
-
 	Rect _udRect;
 	Rect _tbRect;
 	Rect _myRect;
-
-
 	EventHandler onValueChanged;
-
 }
-
-
-
-
-
 
 // Public functions
 	// NumberPicker constructor
 	fn NumberPicker newNumberPicker(Form* parent, int x = 10, int y = 10, int width = 85, int height = 25) {
 		NumberPicker this;
 		this.kind = ControlType.NUM_PICKER;
-		this.name = string::new("NumberPicker_");
-		// this.name.printf("%d", npNumber);
+		this.name = dstring::new("NumberPicker_");
 		this.className = "msctls_updown32";
 		this._parent = parent;
 		this.font = parent.font;
-
 		this._style = NPSTYLE;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -84,20 +68,17 @@ struct NumberPicker {
 		this._topEdgeFlag = BF_TOPLEFT;
 		this._botEdgeFlag = BF_BOTTOM;
 		this.textPos = Alignment.LEFT;
-		this.fmtStr = string::new("%.2f");
-		this.valStr = string::new("0.00");
+		this.fmtStr = dstring::new("%.2f");
+		this.valStr = dstring::new("0.00");
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		npNumber += 1;
 		return this;
-
 	}
 
 	// Create the handle of NumberPicker
 	fn void NumberPicker.createHandle(NumberPicker* this) {
 		this.setNPStyle();
-		// this.createInternal();
-
 		this.createUpdown();
 		if (this.handle) {
 			this.setFontInternal();
@@ -112,17 +93,15 @@ struct NumberPicker {
 			if (oldBuddy) api_SendMessage(oldBuddy, MM_BUDDY_RESIZE, 0, 0);
 			this.displayValue();
 			this._parent.controls.append(this);
-
 		}
 	}
-
 
 // End of Public functions
 
 // Private functions
 
 	// Setting control's style bits.
-	private fn void NumberPicker.setNPStyle(NumberPicker* this) { // Private
+	fn void NumberPicker.setNPStyle(NumberPicker* this) @private { // Private
 		if (this.buttonLeft) {
 			this._style ^= UDS_ALIGNRIGHT;
 			this._style |= UDS_ALIGNLEFT;
@@ -141,13 +120,12 @@ struct NumberPicker {
 		this._bkBrush = this.backColor.getBrush();
 	}
 
-	private fn void NumberPicker.createUpdown(NumberPicker* this) {
+	fn void NumberPicker.createUpdown(NumberPicker* this) @private {
 		this.ctlID = globalCtlID;
 		globalCtlID += 1;
-		Char16* updClass = str::utf8to16(this.className).ptr!!;
-		defer free(updClass);
+		static Char16[*] updClassName = {'m', 's', 'c', 't', 'l', 's', '_', 'u', 'p', 'd', 'o', 'w', 'n', '3', '2', 0};
 		this.handle = api_CreateWindowEx( this._exStyle,
-                                                updClass,
+                                                &updClassName[0],
                                                 null, this._style,
                                                 0, 0, 0, 0,
                                                 this._parent.handle, (Hmenu)this.ctlID,
@@ -155,14 +133,13 @@ struct NumberPicker {
 		if (this.handle) this._isCreated = true;
 	}
 
-	private fn void NumberPicker.createBuddyControl(NumberPicker* this) {
+	fn void NumberPicker.createBuddyControl(NumberPicker* this) @private {
 		// Let's create the buddy control.
 		this._buddyCid = globalCtlID;
 		globalCtlID += 1;
-		Char16* buddyClass = str::utf8to16("Edit").ptr!!;
-		defer free(buddyClass);
+		static Char16[*] budduClassName = {'E', 'd', 'i', 't', 0};
 		this.buddyHandle = api_CreateWindowEx( this._buddyExStyle,
-                                                buddyClass,
+                                                &budduClassName[0],
                                                 null, this._buddyStyle,
                                                 this.xpos, this.ypos,
                                                 this.width, this.height,
@@ -171,7 +148,7 @@ struct NumberPicker {
 		api_SendMessage(this.buddyHandle, WM_SETFONT, (Wparam)this.font.handle, (Lparam)true);
 	}
 
-	private fn void NumberPicker.placeBuddy(NumberPicker* this) {
+	fn void NumberPicker.placeBuddy(NumberPicker* this) @private {
 		if (this.buttonLeft) {
 			this._linex = this._tbRect.left;
 			api_SetWindowPos(this.buddyHandle, this.handle,
@@ -184,13 +161,13 @@ struct NumberPicker {
 		}
 	}
 
-	private fn void NumberPicker.setBuddySubclass(NumberPicker* this) {
+	fn void NumberPicker.setBuddySubclass(NumberPicker* this) @private {
 		// this.setSubClass(&npWndProc);
 		api_SetWindowSubclass(this.buddyHandle, &buddyWndProc, globalSubClsID, (Dwordptr)this);
 		globalSubClsID += 1;
 	}
 
-	private fn void NumberPicker.displayValue(NumberPicker* this) {
+	fn void NumberPicker.displayValue(NumberPicker* this) @private {
 		this.valStr.clear();
 		this.valStr.printf(this.fmtStr.str(), this.value);
 		Char16* wvalue = str::utf8to16(this.valStr.str()).ptr!!;
@@ -200,7 +177,7 @@ struct NumberPicker {
 
 
 
-	private fn Lresult NumberPicker.buddyPaintHandler(NumberPicker* this) {
+	fn Lresult NumberPicker.buddyPaintHandler(NumberPicker* this) @private {
 		/* Edit control needs WS_BORDER style to place the text properly aligned.
 		 * But if we use that style, it will draw a border on 4 sides of the edit.
 		 * That will separate our updown control and edit control into two parts.
@@ -241,7 +218,7 @@ struct NumberPicker {
 		return 1;
 	}
 
-	private fn void NumberPicker.setValueInternal(NumberPicker* this, int delta) {
+	fn void NumberPicker.setValueInternal(NumberPicker* this, int delta) @private {
 		double tvalue = this.value + (delta * this.step);
         if (this.autoRotate) {
             if (tvalue > this.maxRange) {
@@ -258,7 +235,7 @@ struct NumberPicker {
 		this.displayValue();
 	}
 
-	private fn void NumberPicker.wmNotifyHandler(NumberPicker* this, Lparam lpm) {
+	fn void NumberPicker.wmNotifyHandler(NumberPicker* this, Lparam lpm) @private {
 		NMUpdown* nm = (NMUpdown*) lpm;
 		// ptf("code %s, UDN_DELTAPOS %s", nm.hdr.code, UDN_DELTAPOS);
 		if (nm.hdr.code == UDN_DELTAPOS) {
@@ -274,7 +251,7 @@ struct NumberPicker {
 
 
 	// Handling back & fore color changing in WndProc function
-	private fn Hbrush NumberPicker.colorMsgHandler(NumberPicker* this, Wparam wpm) {
+	fn Hbrush NumberPicker.colorMsgHandler(NumberPicker* this, Wparam wpm) @private {
 		Hdc hdc = (Hdc)wpm;
 		api_SetBkMode(hdc, TRANSPARENT);
 		if (this._drawMode & 1) {
@@ -286,11 +263,11 @@ struct NumberPicker {
 
 
 	// Freeing resources used for this NumberPicker.
-	private fn void NumberPicker.dtor(NumberPicker* this) {
+	fn void NumberPicker.dtor(NumberPicker* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
-		this.fmtStr.destroy();
-		this.valStr.destroy();
+		this.name.free();
+		this.fmtStr.free();
+		this.valStr.free();
 
 		api_DeleteObject(this.font.handle);
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
@@ -299,7 +276,7 @@ struct NumberPicker {
 // End of Private functions
 
 
-private fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	NumberPicker* this = (NumberPicker*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -340,7 +317,7 @@ private fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 }
 
 
-private fn Lresult buddyWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult buddyWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	NumberPicker* this = (NumberPicker*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {

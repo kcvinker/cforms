@@ -2,11 +2,11 @@
 // cforms.events - Created on 27-Jan-2023 01:56
 module cforms;
 
-define EventHandler = fn void(Control* c, EventArgs* e);
-define MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
-define SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
-define KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
-define DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
+typedef EventHandler = fn void(Control* c, EventArgs* e);
+typedef MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
+typedef SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
+typedef KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
+typedef DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
 
 struct Area {
 	int width;
@@ -32,7 +32,6 @@ struct SizeEventArgs {
 	Rect formRect;
 	SizedPosition sizedOn;
 	Area clientArea;
-
 }
 
 struct KeyEventArgs {

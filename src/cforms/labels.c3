@@ -1,5 +1,4 @@
 
-
 // label module - Created on 04-Feb-2023 01:15
 
 module cforms;
@@ -11,26 +10,21 @@ const Dword LBSTYLE = WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS 
 const uint LBTXTFLAG = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX;
 int lbNumber = 1;
 
-
-
 // Label control struct
 struct Label {
 	inline Control control;
-
 	bool autoSize;
 	bool multiLine;
 	bool hasBorder;
 	TextAlignment textAlign;
-	// Hbrush _bkBrush;
 }
-
 
 // Public functions
 	// Label constructor
 	fn Label newLabel(Form* parent, String text, int x = 10, int y = 10, int width = 0, int height = 0) {
 		Label this;
 		this.kind = ControlType.LABEL;
-		this.name = string::new("Label_");
+		this.name = dstring::new("Label_");
 		this.name.printf("%d", lbNumber);
 		this.className = "Static";
 		this._parent = parent;
@@ -63,35 +57,10 @@ struct Label {
 		// ptf("bk brush %s, bk clr %s, parent clr %x", lb._bkBrush, lb.backColor.ref, lb._parent.backColor.ref);
 	}
 
-	// Set fore color for Label
-	// fn void Label.setForeColor(Label* this, uint clr) {
-	// 	this.foreColor.updateColor(clr);
-	// 	if (!(this._drawMode & 1)) this._drawMode += 1;
-	// 	if (this._isCreated) api_InvalidateRect(this.handle, null, false);
-	// }
-
-	// //Set back color for Label
-	// fn void Label.setBackColor(Label* this, uint clr) {
-	// 	this.backColor.updateColor(clr);
-	// 	if ((this._drawMode & 2) != 2) this._drawMode += 2;
-	// 	if (this._isCreated) {
-	// 		this._bkBrush = this.backColor.getBrush();
-	// 		api_InvalidateRect(this.handle, null, false);
-	// 	}
-	// }
-
-
-
-
-
-
-
-
-
 // End of Public functions
 
 // Private functions
-	private fn void Label.checkForAutoSize(Label* lb) { // Private
+	fn void Label.checkForAutoSize(Label* lb) @private { // Private
 		if (lb.multiLine || (lb.width != 0) || (lb.height != 0 )) lb.autoSize = false ;
 		if (!lb.autoSize) {
 			if (lb.width == 0) lb.width = 100;
@@ -100,7 +69,7 @@ struct Label {
 		lb._bkBrush = lb.backColor.getBrush();
 	}
 
-	private fn void Label.calculateAutoSize(Label* this) { // private
+	fn void Label.calculateAutoSize(Label* this) @private { // private
 		Char16* lbtext = str::utf8to16(this.text).ptr!!;
 		defer free(lbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
@@ -114,7 +83,7 @@ struct Label {
 	}
 
 
-	private fn Hbrush Label.colorMsgHandler(Label* this, Wparam wpm) {
+	fn Hbrush Label.colorMsgHandler(Label* this, Wparam wpm) @private {
 		Hdc hdc = (Hdc)wpm;
 		if (this._drawMode & 1) api_SetTextColor(hdc, this.foreColor.ref);
 		api_SetBkColor(hdc, this.backColor.ref);
@@ -122,8 +91,8 @@ struct Label {
 	}
 
 	// Freeing resources used for this Label.
-	private fn void Label.dtor(Label* this) {
-		this.name.destroy();
+	fn void Label.dtor(Label* this) @private {
+		this.name.free();
 		api_DeleteObject(this._bkBrush);
 		print("lbl destroyed");
 		ptf("lb width  %s", this.text);
@@ -131,7 +100,7 @@ struct Label {
 // End of Private functions
 
 
-private fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	Label* this = (Label*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -151,7 +120,6 @@ private fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 		case MM_COLOR_STATIC: return (Lresult) this.colorMsgHandler(wp);
 
 		case MM_RUNDTOR: this.dtor(); return 0;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

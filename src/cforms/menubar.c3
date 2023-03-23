@@ -1,29 +1,24 @@
 
 // menubar module - Created on 19-Feb-2023 07:58
 
-
 module cforms;
 import std::io;
 import std::core::mem;
 import std::collections::list;
 import std::collections::map;
 
-define MenuItemList = List<MenuItem*>;
-// define MenuDict = map::HashMap<uint, MenuItem*>;
-
+typedef MenuItemList = List<MenuItem*>;
 enum MenuType : char {BASE_MENU, MENU_ITEM, POPUP, SEPRATOR }
-define MenuEventHandler = fn void(MenuItem*, EventArgs*);
+typedef MenuEventHandler = fn void(MenuItem*, EventArgs*);
 uint menuNumber = 101;
 
 // MenuBar structure
 struct MenuBar {
 	Hmenu handle;
 	MenuItemList menus;
-	// MenuDict menus;
 	Font font;
 	Hwnd _formHwnd;
 	Form* _parent;
-
 }
 
 // MenuItem structure
@@ -38,7 +33,6 @@ struct MenuItem {
 	String text;
 	MenuType kind;
 	MenuItemList menus;
-	// MenuDict menus;
 	MenuItem* _parent;
 	uint uFlag;
 	MenuEventHandler onClick;
@@ -48,12 +42,7 @@ struct MenuItem {
 // Menubar Constructor
 fn MenuBar newMenuBar() {
 	MenuBar this;
-	// this._parent = parent;
-	// this.font = parent.font;
-	// this._formHwnd = parent.handle;
 	this.handle = api_CreateMenu();
-	// parent.menubar = &this;
-
 	return this;
 }
 
@@ -172,8 +161,6 @@ fn void MenuBar.destroy(MenuBar* this) {
 	}
 	this.menus.free();
 }
-
-
 
 // Constants
 	const MF_POPUP = 0x00000010;

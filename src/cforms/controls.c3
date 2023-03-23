@@ -30,7 +30,7 @@ enum ControlType : char {
 
 struct Control {
 	ControlType kind;
-	VarString name;
+	DString name;
 	// VarString sText;
 	String text;
 	String className;
@@ -54,14 +54,12 @@ struct Control {
 	Font font;
 	Form* _parent;
 
-
 	EventHandler onGotFocus;
 	EventHandler onLostFocus;
 	EventHandler onMouseClick;
 	EventHandler onRightClick;
 	EventHandler onMouseEnter;
 	EventHandler onMouseLeave;
-
 	MouseEventHandler onMouseDown;
 	MouseEventHandler onMouseUp;
 	MouseEventHandler onRightMouseDown;
@@ -71,13 +69,11 @@ struct Control {
 	KeyEventHandler onKeyDown;
 	KeyEventHandler onKeyUp;
 	KeyEventHandler onKeyPress;
-
 }
 
 fault StringFault {
 	NOT_CREATED,
 	NOT_TEXTABLE,
-
 }
 
 // Public functions
@@ -94,7 +90,6 @@ fault StringFault {
 			$case 3: c.setFont3($vaarg(0), $vaarg(1), $vaarg(2));
 		$endswitch;
 	}
-
 
 	//Set fore color for Control
 	fn void Control.setForeColor(Control* this, uint clr) {
@@ -137,18 +132,11 @@ fault StringFault {
 		return StringFault.NOT_TEXTABLE!;
 
 	}
-
-
 // End Public Functions
 
-// fn Control newControl(ControlType ctp) {
-// 	Control ct;
-// 	ct.ctlType = ctp;
-
-// }
 
 // Private functions
-	private fn void Control.createInternal(Control* ctl, bool special = false) {
+	fn void Control.createInternal(Control* ctl, bool special = false) @private {
 		if (!special) ctl.setCtlID();
 		Char16* text = str::utf8to16(ctl.text).ptr!!;
 		Char16* clsN = str::utf8to16(ctl.className).ptr!!;
@@ -170,50 +158,50 @@ fault StringFault {
 		}
 	}
 
-	private fn void Control.setCtlID(Control* ctl) {
+	fn void Control.setCtlID(Control* ctl) @private {
 		ctl.ctlID = globalCtlID;
 		globalCtlID += 1;
 	}
 
-	private fn void Control.setSubClass(Control* ctl, Subclassproc pFunc) {
+	fn void Control.setSubClass(Control* ctl, Subclassproc pFunc) @private {
 		api_SetWindowSubclass(ctl.handle, pFunc, globalSubClsID, (Dwordptr)ctl);
 		globalSubClsID += 1;
 	}
 
-	private macro Lresult Control.sendMsg(Control* ctl, uint msg, wpm, lpm) {
+	macro Lresult Control.sendMsg(Control* ctl, uint msg, wpm, lpm) @private {
 		return api_SendMessage(ctl.handle, msg, (Wparam)wpm, (Lparam)lpm);
 	}
 
-	private fn void Control.setFontInternal(Control* ctl) {
+	fn void Control.setFontInternal(Control* ctl) @private {
 		// if (!ctl.font._isCreated) ctl.font.createFontHandle(ctl.handle);
 		if (!ctl.font._isCreated) ctl.font.createHandle(ctl.handle); //Not working properly.
 		ctl.sendMsg(WM_SETFONT, (Wparam)ctl.font.handle, (Lparam)true);
 	}
 
-	private fn Rect Control.clientRect(Control* c) {
+	fn Rect Control.clientRect(Control* c) @private {
 		Rect rct;
 		api_GetClientRect(c.handle, &rct);
 		return rct;
 	}
 
-	private fn void Control.setFont1(Control* c, Font* font) {
+	fn void Control.setFont1(Control* c, Font* font) @private {
 		c.font = *font;
 		if (c._isCreated) c.setFontInternal();
 	}
 
-	private fn void Control.setFont2(Control* c, String fname, int fsize) {
+	fn void Control.setFont2(Control* c, String fname, int fsize) @private {
 		Font f = newFont(fname, fsize);
 		c.font = f;
 		if (c._isCreated) c.setFontInternal();
 	}
 
-	private fn void Control.setFont3(Control* c, String fname, int fsize, FontWeight fweight) {
+	fn void Control.setFont3(Control* c, String fname, int fsize, FontWeight fweight) @private {
 		Font f = newFont(fname, fsize, fweight);
 		c.font = f;
 		if (c._isCreated) c.setFontInternal();
 	}
 
-	private fn void Control.setIdealSize(Control* this) { // Only used CheckBox & RadioButton
+	fn void Control.setIdealSize(Control* this) @private { // Only used CheckBox & RadioButton
 		Size ss ;
         this.sendMsg(BCM_GETIDEALSIZE, 0, &ss);
         this.width = ss.cx;
@@ -222,13 +210,13 @@ fault StringFault {
 	}
 
 	// Get the string from this control. Don't remember to free the buffer.
-	private fn String Control.getTextInternal(Control* this, Hwnd hw = null) {
+	fn String Control.getTextInternal(Control* this, Hwnd hw = null) @private {
 		Hwnd hwnd = hw ? hw : this.handle;
 		int tLen = api_GetWindowTextLength(hwnd);
 
 		if (tLen) {
 			@pool() {
-				Char16[] buffer = array::talloc(Char16, tLen + 1);
+				Char16[] buffer = tmalloc(Char16, tLen + 1);
 				int ret = api_GetWindowText(hwnd, buffer.ptr, tLen + 1);
 				return str::utf16to8(buffer)!!;
 			};
@@ -237,18 +225,8 @@ fault StringFault {
 	}
 
 // End private functions
-// int counter = 1;
-// macro void Control.print(Control* c, obj, msg = "") {
-// 	ptf("[%s] %s -- %s  %s", counter, c.name, msg, obj);
-// 	counter += 1;
-// }
-
-
-
-
 
 // Control Event Handlers
-
 	fn void Control.setFocusHandler(Control* c) {if (c.onGotFocus) c.onGotFocus(c, &&EventArgs{});}
 	fn void Control.killFocusHandler(Control* c) {if (c.onLostFocus) c.onLostFocus(c, &&EventArgs{});}
 	fn void Control.leftClickHandler(Control* c) {if (c.onMouseClick) c.onMouseClick(c, &&EventArgs{});}

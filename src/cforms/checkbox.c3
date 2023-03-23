@@ -5,33 +5,24 @@
 module cforms;
 import std::io;
 
-
 int cbNumber = 1;
-
-
 
 // CheckBox control struct
 struct CheckBox {
 	inline Control control;
-
 	bool autoSize;
 	bool checked;
 	bool rightAlign;
 	uint _textStyle;
-
 	EventHandler onCheckedChanged;
-
 }
-
-
-
 
 // Public functions
 	// CheckBox constructor
 	fn CheckBox newCheckBox(Form* parent, String text, int x = 10, int y = 10, int width = 140, int height = 27) {
 		CheckBox this;
 		this.kind = ControlType.CHECK_BOX;
-		this.name = string::new("CheckBox_");
+		this.name = dstring::new("CheckBox_");
 		this.name.printf("%d", cbNumber);
 		this.className = "Button";
 		this._parent = parent;
@@ -47,10 +38,8 @@ struct CheckBox {
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
-
 		cbNumber += 1;
 		return this;
-
 	}
 
 	// Create the handle of CheckBox
@@ -72,33 +61,12 @@ struct CheckBox {
 
 	}
 
-	// Set the cue banner text for this CheckBox
-
-
-	// Set fore color for CheckBox
-	// fn void CheckBox.setForeColor(CheckBox* this, uint clr) {
-	// 	this.foreColor.updateColor(clr);
-	// 	if (!(this._drawMode & 1)) this._drawMode += 1;
-	// 	if (this._isCreated) api_InvalidateRect(this.handle, null, false);
-	// }
-
-	// //Set back color for CheckBox
-	// fn void CheckBox.setBackColor(CheckBox* this, uint clr) {
-	// 	this.backColor.updateColor(clr);
-	// 	if ((this._drawMode & 2) != 2) this._drawMode += 2;
-	// 	if (this._isCreated) {
-	// 		this._bkBrush = this.backColor.getBrush();
-	// 		api_InvalidateRect(this.handle, null, false);
-	// 	}
-	// }
-
-
 // End of Public functions
 
 // Private functions
 
 	// Setting control's style bits.
-	private fn void CheckBox.setCbStyle(CheckBox* this) { // Private
+	fn void CheckBox.setCbStyle(CheckBox* this) @private { // Private
 		if (this.rightAlign) {
 			this._style |= BS_RIGHTBUTTON ;
 			this._textStyle |= DT_RIGHT ;
@@ -106,24 +74,14 @@ struct CheckBox {
 		this._bkBrush = this.backColor.getBrush();
 	}
 
-	// private fn void CheckBox.setCbSize(CheckBox* this) { // Private
-	// 	// We need to find the width & hight to provide the auto size feature.
-	// 	Size ss ;
-	// 	this.sendMsg(BCM_GETIDEALSIZE, 0, &ss);
-	// 	this.width = ss.cx;
-	// 	this.height = ss.cy;
-	// 	api_MoveWindow(this.handle, this.xpos, this.ypos, ss.cx, ss.cy, true);
-	// }
-
-
 	// Handling back & fore color changing in WndProc function
-	private fn Hbrush CheckBox.colorMsgHandler(CheckBox* this, Wparam wpm) {
+	fn Hbrush CheckBox.colorMsgHandler(CheckBox* this, Wparam wpm) @private {
 		Hdc hdc = (Hdc)wpm;
 		api_SetBkColor(hdc, this.backColor.ref);
 		return this._bkBrush;
 	}
 
-	private fn Lresult CheckBox.wmNotifyHandler(CheckBox* this, Lparam lp) {
+	fn Lresult CheckBox.wmNotifyHandler(CheckBox* this, Lparam lp) @private {
 			NMCustomDraw* nmc = (NMCustomDraw*)lp;
 			switch (nmc.dwDrawStage) {
 				case CDDS_PREERASE:	return CDRF_NOTIFYPOSTERASE;
@@ -139,44 +97,17 @@ struct CheckBox {
 		return CDRF_DODEFAULT;
 	}
 
-	// private fn Lresult CheckBox.paintHandler(CheckBox* this, uint msg, Wparam wp, Lparam lp) {
-	// 	/* I wrote same gui library in Odin, D and Python. But I didn't...
-	// 	 * faced this type of a problem in any of them. The proper way to...
-	// 	 * draw the text is using WM_NOTIFY message and NMCUSTOMDRAW notification.
-	// 	 * But if I draw the text in that way, The control will overwrite...
-	// 	 * it's black text over my text. That is strange.
-	// 	 * So I found a work around here. Handle the paint message first,...
-	// 	 * Let control draw it's necessary stuff. Then we will erase the...
-	// 	 * area where the text resides and draw the text again. */
-	// 	api_DefSubclassProc(this.handle, msg, wp, lp);
-	// 	Hdc hdc = api_GetDC(this.handle);
-	// 	Rect rc = this.clientRect();
-	// 	if (!this.rightAlign) { // Adjusing rect. Otherwise, text will be drawn upon the check area
-	// 		rc.left += 17;
-	// 	} else {
-	// 		rc.right -= 17;
-	// 	}
-
-	// 	api_FillRect(hdc, &rc, this._bkBrush);
-	// 	api_SetBkMode(hdc, TRANSPARENT);
-	// 	api_SelectObject(hdc, this.font.handle);
-	// 	api_SetTextColor(hdc, this.foreColor.ref) ;
-	// 	api_DrawText(hdc, str::utf8to16(this.text).ptr!! , -1, &rc, this._textStyle);
-	// 	api_ReleaseDC(this.handle, hdc);
-	// 	return 1;
-	// }
-
 	// Freeing resources used for this CheckBox.
-	private fn void CheckBox.dtor(CheckBox* this) {
+	fn void CheckBox.dtor(CheckBox* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 
 	}
 // End of Private functions
 
 
-private fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	CheckBox* this = (CheckBox*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -207,12 +138,7 @@ private fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 			this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);
 			if (this.onCheckedChanged) this.onCheckedChanged(this, &&EventArgs{});
 
-
-
-
-
 		case MM_RUNDTOR: this.dtor(); return 0;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
@@ -225,14 +151,5 @@ private fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 	const Dword BS_AUTOCHECKBOX = 3;
 	const Dword BM_GETCHECK = 0x00F0;
 	const Dword BM_SETCHECK = 0x00F1;
-	// const Dword ES_OEMCONVERT = 0x400;
-	// const Dword ES_PASSWORD = 32;
-	// const Dword ES_READONLY = 0x800;
-	// const Dword ES_RIGHT = 2;
-	// const Dword ES_UPPERCASE = 8;
-	// const Dword ES_WANTRETURN = 4096;
-
-	// const Dword ECM_FIRST = 0x1500;
-	// const Dword EM_SETCUEBANNER = (ECM_FIRST + 1);
 
 // End Constants

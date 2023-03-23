@@ -4,15 +4,11 @@
 module cforms;
 import std::io;
 
-
 int tbNumber = 1;
-
-
 
 // TextBox control struct
 struct TextBox {
 	inline Control control;
-
 	bool autoSize;
 	bool multiLine;
 	bool hasBorder;
@@ -21,21 +17,19 @@ struct TextBox {
 	TextType textType;
 	TextCase textCase;
 	Alignment textAlign;
-	VarString cueStr;
-	// Hbrush _bkBrush;
+	DString cueStr;
 	bool _cueReady;
 }
 
 enum TextType : char {NORMAL, NUMBERONLY, PASSWORDCHAR}
 enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 
-
 // Public functions
 	// TextBox constructor
 	fn TextBox newTextBox(Form* parent, String text, int x = 10, int y = 10, int width = 140, int height = 27) {
 		TextBox this;
 		this.kind = ControlType.TEXT_BOX;
-		this.name = string::new("TextBox_");
+		this.name = dstring::new("TextBox_");
 		this.name.printf("%d", tbNumber);
 		this.className = "Edit";
 		this._parent = parent;
@@ -54,7 +48,6 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.textAlign = Alignment.CENTER;
 		tbNumber += 1;
 		return this;
-
 	}
 
 	// Create the handle of TextBox
@@ -75,7 +68,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 
 	// Set the cue banner text for this textbox
 	fn void TextBox.setCue(TextBox* this, String s) {
-		this.cueStr = string::new(s);
+		this.cueStr = dstring::new(s);
 		if (this._isCreated) {
 			Char16* cuetext = str::utf8to16(this.cueStr.str()).ptr!!;
 			defer free(cuetext);
@@ -83,33 +76,13 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		} else {
 			this._cueReady = true;
 		}
-
 	}
-
-	// Set fore color for TextBox
-	// fn void TextBox.setForeColor(TextBox* this, uint clr) {
-	// 	this.foreColor.updateColor(clr);
-	// 	if (!(this._drawMode & 1)) this._drawMode += 1;
-	// 	if (this._isCreated) api_InvalidateRect(this.handle, null, false);
-	// }
-
-	// //Set back color for TextBox
-	// fn void TextBox.setBackColor(TextBox* this, uint clr) {
-	// 	this.backColor.updateColor(clr);
-	// 	if ((this._drawMode & 2) != 2) this._drawMode += 2;
-	// 	if (this._isCreated) {
-	// 		this._bkBrush = this.backColor.getBrush();
-	// 		api_InvalidateRect(this.handle, null, false);
-	// 	}
-	// }
-
-
 // End of Public functions
 
 // Private functions
 
 	// Setting control's style bits.
-	private fn void TextBox.setTbStyle(TextBox* this) { // Private
+	fn void TextBox.setTbStyle(TextBox* this) @private { // Private
 		if (this.multiLine) this._style |= ES_MULTILINE | ES_WANTRETURN;
 		if (this.hideSelection) this._style |= ES_NOHIDESEL;
 		if (this.readOnly) this._style |= ES_READONLY;
@@ -135,7 +108,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	}
 
 	// Handling back & fore color changing in WndProc function
-	private fn Hbrush TextBox.colorMsgHandler(TextBox* this, Wparam wpm) {
+	fn Hbrush TextBox.colorMsgHandler(TextBox* this, Wparam wpm) @private {
 		if (this._drawMode) {
 			Hdc hdc = (Hdc)wpm;
 			if (this._drawMode & 1) api_SetTextColor(hdc, this.foreColor.ref);
@@ -145,17 +118,17 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	}
 
 	// Freeing resources used for this TextBox.
-	private fn void TextBox.dtor(TextBox* this) {
+	fn void TextBox.dtor(TextBox* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
-		this.cueStr.destroy();
+		this.name.free();
+		this.cueStr.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 
 	}
 // End of Private functions
 
 
-private fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	TextBox* this = (TextBox*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -178,13 +151,10 @@ private fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 		case WM_CHAR: this.keyPressHandler(wp);
 
 		case MM_COLOR_EDIT: return (Lresult) this.colorMsgHandler(wp);
-
 		case MM_RUNDTOR: this.dtor(); return 0;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
-
 
 // Constants
 	const Dword ES_CENTER = 1;
@@ -199,7 +169,6 @@ private fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 	const Dword ES_RIGHT = 2;
 	const Dword ES_UPPERCASE = 8;
 	const Dword ES_WANTRETURN = 4096;
-
 	const Dword ECM_FIRST = 0x1500;
 	const Dword EM_SETCUEBANNER = (ECM_FIRST + 1);
 

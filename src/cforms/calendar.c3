@@ -36,7 +36,7 @@ enum ViewMode : int {
 	fn Calendar newCalendar(Form* parent, int x = 10, int y = 10) {
 		Calendar this;
 		this.kind = ControlType.CALENDAR;
-		this.name = string::new("Calendar_");
+		this.name = dstring::new("Calendar_");
 		this.name.printf("%d", calNumber);
 		this.className = "SysMonthCal32";
 		this._parent = parent;
@@ -84,7 +84,7 @@ enum ViewMode : int {
 // Private functions
 
 	// Setting control's style bits.
-	private fn void Calendar.setCalStyle(Calendar* this) { // Private
+	fn void Calendar.setCalStyle(Calendar* this) @private { // Private
 		if (this.showWeekNum) this._style |= MCS_WEEKNUMBERS;
         if (this.noTodayCircle) this._style |= MCS_NOTODAYCIRCLE;
         if (this.noToday) this._style  |= MCS_NOTODAY;
@@ -92,23 +92,22 @@ enum ViewMode : int {
         if (this.shortDateNames) this._style |= MCS_SHORTDAYSOFWEEK;
 	}
 
-	private fn void Calendar.postCreationTasks(Calendar* this) {
+	fn void Calendar.postCreationTasks(Calendar* this) @private {
 		Rect rc;
 		this.sendMsg(MCM_GETMINREQRECT, 0, &rc);
 		api_SetWindowPos(this.handle, null, this.xpos, this.ypos, rc.right, rc.bottom, SWP_NOZORDER);
 		SystemTime st;
 		this.sendMsg(MCM_GETCURSEL, 0, &st);
 		this.setValueInternal(st);
-
 	}
 
-	private fn void Calendar.setValueInternal(Calendar* this, SystemTime st) {
+	fn void Calendar.setValueInternal(Calendar* this, SystemTime st) @private {
 		this.value = DateTime{st.wYear, st.wMonth, st.wDay, st.wHour,
 								st.wMinute, st.wSecond, st.wMilliseconds, (WeekDays) st.wDayOfWeek};
 	}
 
 
-	private fn Lresult Calendar.wmNotifyHandler(Calendar* this, Lparam lpm) {
+	fn Lresult Calendar.wmNotifyHandler(Calendar* this, Lparam lpm) @private {
 		NMHdr* nm = (NMHdr*)lpm;
 		switch (nm.code) {
 			case MCN_SELECT:
@@ -131,14 +130,14 @@ enum ViewMode : int {
 	}
 
 	// Freeing resources used for this Calendar.
-	private fn void Calendar.dtor(Calendar* this) {
+	fn void Calendar.dtor(Calendar* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 	}
 // End of Private functions
 
 
-private fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	Calendar* this = (Calendar*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {

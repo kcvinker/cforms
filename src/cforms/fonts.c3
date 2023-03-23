@@ -2,7 +2,6 @@
 //font module - Created on 26-Jan-2023 06:20
 
 module cforms;
-
 import std::io;
 
 const int LOGPIXELSX = 88;
@@ -23,8 +22,6 @@ const int DEFAULT_PITCH = 0;
 const int FIXED_PITCH = 1;
 const int VARIABLE_PITCH = 2;
 const int DEFAULT_CHARSET = 1;
-
-
 
 enum FontWeight : int {
 	THIN,
@@ -63,9 +60,9 @@ fn Font newFont(String fontName, int fontSize,
 	return f;
 }
 
-fn void Font.destroy(Font* this) {
+// fn void Font.destroy(Font* this) {
 
-}
+// }
 
 fn void Font.createHandle(Font* f, Hwnd hwnd) {
 	Hdc hdc = api_GetDC(hwnd);
@@ -78,7 +75,7 @@ fn void Font.createHandle(Font* f, Hwnd hwnd) {
 	lf.lfFaceName[:s.len + 1] = s[:s.len + 1]; // Copying wchar array to lfFaceName
 
 	lf.lfHeight = iHeight;
-	lf.lfWeight =  (long)(f.weight * 100) + 100;
+	lf.lfWeight =  (long)((int)f.weight * 100) + 100;
 	lf.lfCharSet = DEFAULT_CHARSET;
 	lf.lfOutPrecision = OUT_STRING_PRECIS;
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;

@@ -1,13 +1,8 @@
 
-
-
 // groupbox module - Created on 16-Feb-2023 06:55
 
 module cforms;
 import std::io;
-
-
-
 
 int gbNumber = 1;
 
@@ -22,14 +17,12 @@ struct GroupBox {
 	Size _txtSize;
 }
 
-
-
 // Public functions
 	// GroupBox constructor - Create and returns a New GroupBox struct
 	fn GroupBox newGroupBox(Form* parent, String text = "", int x = 10, int y = 10, int width = 230, int height = 250) {
 		GroupBox this;
 		this.kind = ControlType.GROUP_BOX;
-		this.name = string::new("GroupBox_");
+		this.name = dstring::new("GroupBox_");
 		this.name.printf("%d", gbNumber);
 		this.className = "Button";
 		this.text = text == "" ? this.name.str() : text;
@@ -45,10 +38,8 @@ struct GroupBox {
 		this.foreColor = newColor(0x000000);
 		this._textable = true;
 		this._normalText = true;
-
 		gbNumber += 1;
 		return this;
-
 	}
 
 	// Create the handle of GroupBox
@@ -64,14 +55,11 @@ struct GroupBox {
 			this._parent.controls.append(this);
 		}
 	}
-
-
-
 // End of Public functions
 
 // Private functions
 
-	private fn void GroupBox.getTextBounds(GroupBox* this) {
+	fn void GroupBox.getTextBounds(GroupBox* this) @private {
 		Char16* gbtext = str::utf8to16(this.text).ptr!!;
 		defer free(gbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
@@ -82,7 +70,7 @@ struct GroupBox {
 		this._txtWidth = this._txtSize.cx;
 	}
 
-	private fn Lresult GroupBox.drawText(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp,) {
+	fn Lresult GroupBox.drawText(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp,) @private {
 		// log("paint");
 		Char16* gbtext = str::utf8to16(this.text).ptr!!;
 		defer free(gbtext);
@@ -100,7 +88,7 @@ struct GroupBox {
 		return 1;
 	}
 
-	private fn Lresult GroupBox.drawTextDB(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp,) {
+	fn Lresult GroupBox.drawTextDB(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp,) @private {
 		Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
 		Rect rc;
 		int yp = 9;
@@ -134,7 +122,7 @@ struct GroupBox {
 	}
 
 
-	private fn void GroupBox.textSetter(GroupBox* this, String value) {
+	fn void GroupBox.textSetter(GroupBox* this, String value) @private {
 		this.getTextBounds();
 		Char16* gbtext = str::utf8to16(value).ptr!!;
 		defer free(gbtext);
@@ -143,17 +131,16 @@ struct GroupBox {
 	}
 
 	// Freeing resources used for this GroupBox.
-	private fn void GroupBox.dtor(GroupBox* this) {
+	fn void GroupBox.dtor(GroupBox* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 		if (this._pen) api_DeleteObject(this._pen);
-
 	}
 // End of Private functions
 
 
-private fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	GroupBox* this = (GroupBox*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -185,15 +172,7 @@ private fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 				api_FillRect((Hdc)wp, &&this.clientRect(), this._bkBrush);
 				return 0;
 			}
-		// case MM_COLOR_STATIC:
-		// 	if (this._normalText) {
-		// 		api_SetBkColor((Hdc) wp, this.backColor.ref);
-		// 		return (Lresult) this._bkBrush;
-		// 	}
-
-
 		case MM_RUNDTOR: this.dtor(); return 0;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

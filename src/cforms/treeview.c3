@@ -1,17 +1,13 @@
 
-
-
 // treeview module - Created on 14-Feb-2023 01:13
 
 module cforms;
 import std::io;
 import std::collections::list;
 
-
-
-define TreeNodeList = List<TreeNode*>;
-define NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, void* data);
-// define NodeDisposeHandler = fn void(TreeNode* this);
+typedef TreeNodeList = List<TreeNode*>;
+typedef NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, void* data);
+// typedef NodeDisposeHandler = fn void(TreeNode* this);
 
 int tvNumber = 1;
 const TVSTYLE = WS_BORDER | WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_DISABLEDRAGDROP;
@@ -31,7 +27,6 @@ struct TreeView {
 	Color lineColor;
 	TreeNode selNode;
 	TreeNodeList nodes;
-
 	int nodeCount;
 	int uniqNodeID;
 }
@@ -53,20 +48,18 @@ struct TreeNode {
 	String text;
 	bool checked;
 	bool _isCreated;
-
 	NodeNotifyHandler notifyHandler;
 	// NodeDisposeHandler disposeHandler;
 }
 
 fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
-
 // Public functions
 	// TreeView constructor - Create and returns a New TreeView struct
 	fn TreeView newTreeView(Form* parent, int x = 10, int y = 10, int width = 200, int height = 200) {
 		TreeView this;
 		this.kind = ControlType.TREE_VIEW;
-		this.name = string::new("TreeView_");
+		this.name = dstring::new("TreeView_");
 		this.name.printf("%d", tvNumber);
 		this.className = "SysTreeView32";
 		this._parent = parent;
@@ -81,11 +74,8 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.foreColor = newColor(0x000000);
 		this.lineColor = newColor(0x000000);
 		this.uniqNodeID = 100;
-		ptf("wparam max - %s, lparam maz %s", Wparam.sizeof, Lparam.sizeof );
-		// ptf("uptr.max %s,   ulong.max %s", uptr.max, ulong.max );
 		tvNumber += 1;
 		return this;
-
 	}
 
 	fn TreeNode newTreeNode(String txt, int image = -1, int selImage = -1) {
@@ -97,11 +87,8 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.imgIndex = -1;
 		this.foreColor = newColor(0x000000);
 		this.backColor = newColor(0xFFFFFF);
-
 		return this;
 	}
-
-	// private fn void TreeNnodeDisposeFunc()
 
 	// Create the handle of TreeView
 	fn void TreeView.createHandle(TreeView* this) {
@@ -198,15 +185,12 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		return tn;
 	}
 
-
-
-
 // End of Public functions
 
 // Private functions
 
 	// Setting control's style bits.
-	private fn void TreeView.setTVStyle(TreeView* this) { // Private
+	fn void TreeView.setTVStyle(TreeView* this) @private { // Private
 		if (this.noLine) this._style ^= TVS_HASLINES;
 		if (this.noButton) this._style ^= TVS_HASBUTTONS;
 		if (this.hasCheckBox) this._style |= TVS_CHECKBOXES;
@@ -217,7 +201,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		if (this.noButton && this.noLine) this._style ^= TVS_LINESATROOT;
 	}
 
-	private fn TVItemEx newTVItem(TreeNode* node) {
+	fn TVItemEx newTVItem(TreeNode* node) @private {
 		TVItemEx tvi;
 		tvi.mask = TVIF_TEXT | TVIF_PARAM;
 		Char16* nodtext = str::utf8to16(node.text).ptr!!;
@@ -236,7 +220,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	/**
 	 * required this._isCreated
 	**/
-	private fn void TreeView.addNodeInternal(TreeView* this, NodeOps nop, TreeNode* node, TreeNode* pnode = null, int pos = -1) {
+	fn void TreeView.addNodeInternal(TreeView* this, NodeOps nop, TreeNode* node, TreeNode* pnode = null, int pos = -1) @private {
 		node._isCreated = true;
 		node.treeHwnd = this.handle;
 		node.nodeID = this.uniqNodeID; // We can identify any node with this
@@ -296,15 +280,13 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		}
 	}
 
-
-
-	fn void TreeView.nodeNotifyHandler(TreeView* this, TreeNode* node, String prop, void* data) {
+	fn void TreeView.nodeNotifyHandler(TreeView* this, TreeNode* node, String prop, void* data) @private {
 		log("not implemented");
 	}
 
 
 
-	fn void TreeNode.destroy(TreeNode* this) {
+	fn void TreeNode.destroy(TreeNode* this) @private {
 		// ptf("Node is destroying, node text %s, count : %s", this.text, this.nodeCount);
 		if (this.nodes.len()) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free(); // Finally free the container too.
@@ -312,16 +294,16 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 
 	// Freeing resources used for this TreeView.
-	private fn void TreeView.dtor(TreeView* this) {
+	fn void TreeView.dtor(TreeView* this) @private {
 		ptf("%s is destroyed", this.name.str());
-		this.name.destroy();
+		this.name.free();
 		if (this.nodeCount > 0) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free();
 	}
 // End of Private functions
 
 
-private fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) {
+fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	TreeView* this = (TreeView*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
@@ -342,16 +324,10 @@ private fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 		case WM_KEYDOWN: this.keyDownHandler(wp);
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
-
-
-
 		case MM_RUNDTOR: this.dtor(); return 0;
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
-
-
 
 // Constants
 	// TV Styles
@@ -404,31 +380,6 @@ private fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr sc
 	const Htreeitem TVI_LAST = (Htreeitem)(Ulongptr)-0xfffeu64;
 	const Htreeitem TVI_SORT = (Htreeitem)(Ulongptr)-0xfffdu64;
 
-	// const Htreeitem TVI_ROOT =  (Htreeitem)18446744073709486080;
-	// const Htreeitem TVI_FIRST = (Htreeitem)18446744073709486081;
-	// const Htreeitem TVI_LAST =  (Htreeitem)18446744073709486082;
-	// const Htreeitem TVI_SORT =  (Htreeitem)18446744073709486083;
-
-	// const TVI_ROOT = (Htreeitem)(-0x10000u);
-	// const TVI_FIRST = (Htreeitem)(-0xffffu);
-	// const TVI_LAST = (Htreeitem)(-0xfffeu);
-	// const TVI_SORT = (Htreeitem)(-0xfffdu);
-
 	const TVIS_USERMASK = 0xF000;
-	// const ASQ = (1u128 << 64);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // End Constants
 
