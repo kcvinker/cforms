@@ -1,6 +1,6 @@
 
 // listbox module - Created on 08-Feb-2023 11:32
-
+// Note: Add selectedIndices property
 module cforms;
 import std::io;
 

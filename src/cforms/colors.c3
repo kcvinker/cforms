@@ -93,9 +93,6 @@ macro clip(x) {
 		return rc;
 	}
 
-
-
-
 	fn void RgbColor.changeShade(RgbColor* self, double adj) {
 		self.red = clip((uint)((double)self.red * adj));
 		self.green = clip((uint)((double)self.green * adj));

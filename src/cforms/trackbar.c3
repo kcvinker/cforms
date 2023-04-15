@@ -60,7 +60,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 // Public functions
 	// TrackBar constructor - Create and returns a New TrackBar struct
-	fn TrackBar newTrackBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 25) {
+	fn TrackBar newTrackBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 35) {
 		TrackBar this;
 		this.kind = ControlType.TRACK_BAR;
 		this.name = dstring::new("TrackBar_");
@@ -112,6 +112,25 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	fn void TrackBar.showSelection(TrackBar* this) {
 		this.selRange = true;
 		this.customDraw = true;
+	}
+
+	macro void TrackBar.setBackColor(TrackBar* this, clr) {
+		$switch ($typeof(clr))
+			$case Color:
+				this.backColor = clr;
+			$case uint:
+				this.backColor.updateColor(clr);
+			$default:
+				$assert(false, "Unknown type");
+		$endswitch
+		if ((this._drawMode & 2) != 2) this._drawMode += 2;
+		if (this._isCreated) {
+			this._bkBrush = this.backColor.getBrush();
+			// Here, we need to send this message.
+            // otherwise we won't see the color change until next paint
+            this.sendMsg(TBM_SETRANGEMAX, 1, this.maxRange);
+			api_InvalidateRect(this.handle, null, false);
+		}
 	}
 
 // End of Public functions
