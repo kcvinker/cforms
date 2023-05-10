@@ -106,7 +106,7 @@ enum ListViewStyle : char {
 		this.headerClickable = true;
 		this._itemIndex = -1;
 		this._hotHdrIndex = -1;
-		this.headerHeight = 35;
+		this.headerHeight = 25;
 		this.backColor = newColor(0xFFFFFF);
 		this.foreColor = newColor(0x000000);
 		this.headerBackColor = newColor(0xb3cccc);
@@ -250,14 +250,14 @@ enum ListViewStyle : char {
 
 	// Adding column to ListView.
 	fn void ListView.addColumnInternal(ListView* this, ListViewColumn* lvcol) @private {
-		Char16* coltxt = str::utf8to16(lvcol.text).ptr!!;
+		Char16* coltxt = String.to_utf16(lvcol.text).ptr!!;
 		defer free(coltxt);
 		lvcol.index = this._colIndex;
         LVColumn lvc;
         lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT | LVCF_SUBITEM;
         lvc.fmt = (int)lvcol.textAlign;
         lvc.cx = lvcol.width;
-        lvc.pszText = coltxt;//  str::utf8to16(lvcol.text).ptr!!;
+        lvc.pszText = coltxt;//  String.to_utf16(lvcol.text).ptr!!;
         // # lvc.iOrder = lvcol.index
 
         if (lvcol.hasImage) {
@@ -278,14 +278,14 @@ enum ListViewStyle : char {
 		LVItem lvi;
         lvi.mask = LVIF_TEXT | LVIF_PARAM | LVIF_STATE;
         if (item.imageIndex != -1) lvi.mask |= LVIF_IMAGE;
-		Char16* sitem = str::utf8to16(item.text).ptr!!;
+		Char16* sitem = String.to_utf16(item.text).ptr!!;
 		defer free(sitem);
         lvi.state = 0;
         lvi.stateMask = 0;
         lvi.iItem = item.index;
         lvi.iSubItem = 0;
         lvi.iImage = item.imageIndex;
-        lvi.pszText = sitem;// str::utf8to16(item.text).ptr!!;
+        lvi.pszText = sitem;// String.to_utf16(item.text).ptr!!;
         lvi.cchTextMax = item.text.len;
         // lvi.lParam = id(item)
         this.sendMsg(LVM_INSERTITEMW, 0, &lvi);
@@ -298,7 +298,7 @@ enum ListViewStyle : char {
         LVItem lvi;
         // # lvi.mask = con.LVIF_TEXT | con.LVIF_STATE
         // # lvi.iItem = item_index
-		Char16* sitem = str::utf8to16(subitem).ptr!!;
+		Char16* sitem = String.to_utf16(subitem).ptr!!;
 		defer free(sitem);
         lvi.iSubItem = subIndex;
         lvi.pszText = sitem;
@@ -358,7 +358,7 @@ enum ListViewStyle : char {
             nmcd.rc.left += 2;
             nmcd.rc.top += 2;
 		}
-		Char16* coltext = str::utf8to16(col.text).ptr!!;
+		Char16* coltext = String.to_utf16(col.text).ptr!!;
 		defer free(coltext);
         api_DrawText(nmcd.hdc, coltext, -1, &nmcd.rc, col._hdrTxtFlag);
 		return CDRF_SKIPDEFAULT;

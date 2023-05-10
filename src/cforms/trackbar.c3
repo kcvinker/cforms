@@ -121,7 +121,8 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 			$case uint:
 				this.backColor.updateColor(clr);
 			$default:
-				$assert(false, "Unknown type");
+				// $assert(false, "Unknown type");
+				print("Unknown type");
 		$endswitch
 		if ((this._drawMode & 2) != 2) this._drawMode += 2;
 		if (this._isCreated) {

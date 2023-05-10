@@ -115,7 +115,7 @@ fault StringFault {
 			if (this.kind == ControlType.GROUP_BOX) {
 				((GroupBox*)this).textSetter(value);
 			} else {
-				Char16* sTxt = str::utf8to16(value).ptr!!;
+				Char16* sTxt = String.to_utf16(value).ptr!!;
 				defer free(sTxt);
 				api_SetWindowText(this.handle, sTxt);
 			}
@@ -123,13 +123,13 @@ fault StringFault {
 	}
 
 	// Get this control's text. The caller must free the string buffer.
-	fn String! Control.getText(Control* this) {
+	fn String Control.getText(Control* this) {
 		if (this._isCreated && this._textable) {
 			return this.getTextInternal();
 		}
 
-		if (!this._isCreated && this._textable) return StringFault.NOT_CREATED!;
-		return StringFault.NOT_TEXTABLE!;
+		if (!this._isCreated && this._textable) return "";
+		return "";
 
 	}
 // End Public Functions
@@ -138,8 +138,8 @@ fault StringFault {
 // Private functions
 	fn void Control.createInternal(Control* ctl, bool special = false) @private {
 		if (!special) ctl.setCtlID();
-		Char16* text = str::utf8to16(ctl.text).ptr!!;
-		Char16* clsN = str::utf8to16(ctl.className).ptr!!;
+		Char16* text = String.to_utf16(ctl.text).ptr!!;
+		Char16* clsN = String.to_utf16(ctl.className).ptr!!;
 		defer {
 			free(text);
 			free(clsN);
@@ -218,7 +218,7 @@ fault StringFault {
 			@pool() {
 				Char16[] buffer = tmalloc(Char16, tLen + 1);
 				int ret = api_GetWindowText(hwnd, buffer.ptr, tLen + 1);
-				return str::utf16to8(buffer)!!;
+				return string::from_utf16(buffer)!!;
 			};
 		}
 		return "";

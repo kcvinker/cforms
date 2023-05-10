@@ -70,7 +70,7 @@ fn void Font.createHandle(Font* f, Hwnd hwnd) {
 	api_ReleaseDC(hwnd, hdc);
 
 	LogFont lf;
-	Char16[] s = str::utf8to16(f.name)!!;
+	Char16[] s = String.to_utf16(f.name)!!;
 	defer free(s);
 	lf.lfFaceName[:s.len + 1] = s[:s.len + 1]; // Copying wchar array to lfFaceName
 
@@ -94,7 +94,7 @@ fn void Font.createHandle(Font* f, Hwnd hwnd) {
 // 	f.handle = api_CreateFont(iHeight, 0, 0, 0, fweight, (Dword)f.italics,
 // 								(Dword)f.underline, (Dword)false, (Dword)1,
 // 								(Dword)OUT_DEFAULT_PRECIS, (Dword)CLIP_DEFAULT_PRECIS,
-// 								(Dword)DEFAULT_QUALITY, (Dword)DEFAULT_PITCH, str::utf8to16(f.name))!!;
+// 								(Dword)DEFAULT_QUALITY, (Dword)DEFAULT_PITCH, String.to_utf16(f.name))!!;
 // 	// io::printfn("font hwnd %d", f.handle);
 // 	if (f.handle) f._isCreated = true;
 

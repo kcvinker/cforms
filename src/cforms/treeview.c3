@@ -204,7 +204,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	fn TVItemEx newTVItem(TreeNode* node) @private {
 		TVItemEx tvi;
 		tvi.mask = TVIF_TEXT | TVIF_PARAM;
-		Char16* nodtext = str::utf8to16(node.text).ptr!!;
+		Char16* nodtext = String.to_utf16(node.text).ptr!!;
 		defer free(nodtext);
 		tvi.pszText = nodtext;
 		tvi.cchTextMax = node.text.len;

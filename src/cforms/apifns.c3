@@ -50,8 +50,10 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn int api_FrameRect(Hdc, Rect*, Hbrush) @extern("FrameRect");
 	extern fn Bool api_RedrawWindow(Hwnd, Rect*, Hrgn, uint) @extern("RedrawWindow");
 	extern fn Hmenu api_CreateMenu() @extern("CreateMenu");
+	extern fn Hmenu api_CreatePopupMenu() @extern("CreatePopupMenu");
 	extern fn Bool api_AppendMenu(Hmenu, uint, Uintptr, Lpcwstr) @extern("AppendMenuW");
 	extern fn Bool api_SetMenu(Hwnd, Hmenu) @extern("SetMenu");
+	extern fn Bool api_InsertMenuItemW(Hmenu, uint, Bool, MenuItemInfoW*) @extern("InsertMenuItemW");
 
 
 // End User32

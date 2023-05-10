@@ -91,10 +91,10 @@ struct CmbData {
 
 	macro void ComboBox.addItem(ComboBox* this, item) {
 		var $tp = $typeof(item).typeid;
-		$if ($tp == String.typeid)
+		$if ($tp == String.typeid):
 			this.items.append(item);
 		$else
-			$if (isStrLiteral(item))
+			$if (isStrLiteral(item)):
 				this.items.append(item);
 			$endif
 		$endif
@@ -107,7 +107,7 @@ struct CmbData {
 		$case ZString: log("TEST: it's an Zstring");
 
 		$default:
-			$if (@convertible(x, String)) log("TEST: it's convertible");
+			$if (@convertible(x, String)): log("TEST: it's convertible");
 			$else log("TEST: its hopeless");
 			$endif
 		$endswitch
@@ -156,7 +156,7 @@ struct CmbData {
 		if (this.items.len() > 0 ) {
 			// log("items are ready");
 			foreach (item: this.items) {
-				Char16* cmbtext = str::utf8to16(item).ptr!!;
+				Char16* cmbtext = String.to_utf16(item).ptr!!;
 				defer free(cmbtext);
 				this.sendMsg(CB_ADDSTRING, 0, cmbtext);
 			}

@@ -70,7 +70,7 @@ struct Label {
 	}
 
 	fn void Label.calculateAutoSize(Label* this) @private { // private
-		Char16* lbtext = str::utf8to16(this.text).ptr!!;
+		Char16* lbtext = String.to_utf16(this.text).ptr!!;
 		defer free(lbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
 		Size ss;

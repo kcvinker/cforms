@@ -170,7 +170,7 @@ struct NumberPicker {
 	fn void NumberPicker.displayValue(NumberPicker* this) @private {
 		this.valStr.clear();
 		this.valStr.printf(this.fmtStr.str(), this.value);
-		Char16* wvalue = str::utf8to16(this.valStr.str()).ptr!!;
+		Char16* wvalue = String.to_utf16(this.valStr.str()).ptr!!;
 		defer free(wvalue);
 		api_SetWindowText(this.buddyHandle, wvalue);
 	}

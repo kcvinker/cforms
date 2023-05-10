@@ -66,7 +66,7 @@ struct ListBox {
 	fn void ListBox.addItem(ListBox* this, String item) {
 		this.items.append(item);
 		if (this._isCreated) {
-			Char16* lbtext = str::utf8to16(item).ptr!!;
+			Char16* lbtext = String.to_utf16(item).ptr!!;
 			defer free(lbtext);
 			this.sendMsg(LB_ADDSTRING, 0, lbtext);
 		}
@@ -76,7 +76,7 @@ struct ListBox {
 	fn void ListBox.addItems(ListBox* this, String... items) {
 		foreach (item: items) {
 			if (this._isCreated) {
-				Char16* sitem = str::utf8to16(item).ptr!!;
+				Char16* sitem = String.to_utf16(item).ptr!!;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
@@ -88,7 +88,7 @@ struct ListBox {
 	fn void ListBox.insertItem(ListBox* this, String item, int index) {
 		this.items.insert_at(index, item);
 		if (this._isCreated) {
-			Char16* sitem = str::utf8to16(item).ptr!!;
+			Char16* sitem = String.to_utf16(item).ptr!!;
 			defer free(sitem);
 			this.sendMsg(LB_INSERTSTRING, index, sitem);
 		}
@@ -118,7 +118,7 @@ struct ListBox {
 			int indx = (int)this.sendMsg(LB_GETCURSEL, 0, 0);
             if (indx != LB_ERR) {
 				this.selectedIndex = indx;
-				String selItem = this.getItemInternal(this.selectedIndex)!!;
+				String selItem = this.getItemInternal(this.selectedIndex);
 				return selItem;
 			} else {
 				return "";
@@ -159,7 +159,7 @@ struct ListBox {
 
 	// Returns the index of given item
 	fn int ListBox.indexOf(ListBox* this, String item) {
-		Char16[] witem = str::utf8to16(item)!!;
+		Char16[] witem = String.to_utf16(item)!!;
 		defer free(witem);
 		return (int) this.sendMsg(LB_FINDSTRINGEXACT, -1, witem.ptr);
 	}
@@ -174,7 +174,7 @@ struct ListBox {
 	fn String ListBox.hotItem(ListBox* this) {
 		if (this.multiSelection) {
 			int hindex =  (int) this.sendMsg(LB_GETCARETINDEX, 0, 0);
-			if (hindex != LB_ERR) return this.getItemInternal(hindex)!!;
+			if (hindex != LB_ERR) return this.getItemInternal(hindex);
 		}
 		return "";
 	}
@@ -198,7 +198,7 @@ struct ListBox {
 	fn void ListBox.manageItems(ListBox* this) @private { // Private
 		if (this.items.len() > 0) { // We need to add those items to list box
             foreach (item: this.items) {
-				Char16* sitem = str::utf8to16(item).ptr!!;
+				Char16* sitem = String.to_utf16(item).ptr!!;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
@@ -215,18 +215,18 @@ struct ListBox {
 	fault ArrayResult {EMPTY_ARRAY}
 
 	// Internal function to get an item
-	fn String! ListBox.getItemInternal(ListBox* this, int index) @private {
+	fn String ListBox.getItemInternal(ListBox* this, int index) @private {
 		int sLen = (int)this.sendMsg(LB_GETTEXTLEN, index, 0);
 		if (sLen) {
 			@pool()
 			{
 				Char16[] buffer = tmalloc(Char16, sLen);
 				Lresult res =this.sendMsg(LB_GETTEXT, index, &buffer[0]);
-				String x = str::utf16to8(buffer)!!;
+				String x = string::from_utf16(buffer)!!;
 				return x;
 			};
 		}
-		return ArrayResult.EMPTY_ARRAY! ;
+		return "" ;
 	}
 
 	// Internal function for handling wm_command message

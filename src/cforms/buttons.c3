@@ -3,6 +3,7 @@
 
 module cforms;
 import std::io;
+import std::core::string;
 
 Dword btnStyle = 1342259200;
 const int BTN_CLICKED = 0b1;
@@ -169,7 +170,7 @@ fn void GradDraw.dtor(GradDraw* g) @private {
 		int ret = api_SetBkMode(ncd.hdc, TRANSPARENT);
 		api_SetTextColor(ncd.hdc, b.foreColor.ref);
 		api_SelectObject(ncd.hdc, b.font.handle);
-		Char16* btext = str::utf8to16(b.text).ptr!!;
+		Char16* btext = String.to_utf16(b.text).ptr!!;
 		defer free(btext);
         api_DrawText(ncd.hdc, btext, -1, &ncd.rc, TXTFLAG);
         return CDRF_NOTIFYPOSTPAINT;

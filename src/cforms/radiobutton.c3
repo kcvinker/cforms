@@ -97,7 +97,7 @@ struct RadioButton {
 					// Adjusing rect. Otherwise, text will be drawn upon the check area
 					if (!this.rightAlign) {nmc.rc.left += 18;} else {nmc.rc.right -= 18;}
 					if (this._drawMode & 1) api_SetTextColor(nmc.hdc, this.foreColor.ref);
-					Char16* rbtext = str::utf8to16(this.text).ptr!!;
+					Char16* rbtext = String.to_utf16(this.text).ptr!!;
 					defer free(rbtext);
 					api_DrawText(nmc.hdc, rbtext, -1, &nmc.rc, this._textStyle);
 					return CDRF_SKIPDEFAULT;

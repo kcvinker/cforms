@@ -140,7 +140,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		Size ss;
 		// int value = (int)this.sendMsg(PBM_GETPOS, 0, 0);
 		String vtext = int_to_string(this.value, true);
-		Char16* wtext = str::utf8to16(vtext).ptr!!;
+		Char16* wtext = String.to_utf16(vtext).ptr!!;
 		defer free(vtext);
 
 		Hdc hdc = api_GetDC(this.handle);

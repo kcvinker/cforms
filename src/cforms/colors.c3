@@ -173,6 +173,10 @@ fn Colorref getClrRef(uint clr) {
     return (Colorref)(((blue << 16) | (green << 8)) | (red));
 }
 
+fn Hbrush getHbrush(uint clr) {
+	return api_CreateSolidBrush(getClrRef(clr));
+}
+
 fn Colorref clrRefFromRGB(uint red, uint green, uint blue) @inline {return (Colorref)(((blue << 16) | (green << 8)) | (red));}
 
 fn Hbrush createGradientBrush(Hdc dc, Rect rct, RgbColor c1, RgbColor c2, bool isRtL = false ) {

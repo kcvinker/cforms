@@ -27,7 +27,7 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const uint MM_BUDDY_RESIZE = 9008;
 	const uint MM_HSCROLL = 9009;
 	const uint MM_VSCROLL = 9010;
-	const uint MM_MENU_NOTIFY = 9011;
+	const uint MM_MENU_ADDED = 9011;
 
 	const HDM_FIRST = 4608;
 	const HDM_LAYOUT = (HDM_FIRST + 5);
@@ -147,9 +147,9 @@ fn Point getMousePoints(Lparam lpm) {return Point{loWord(lpm), hiWord(lpm)};}
 macro isStrLiteral(x) {
 	var $res = false;
 	var $typ = $typeof(x).typeid;
-	$if ($typ.kindof == TypeKind.POINTER)
+	$if ($typ.kindof == TypeKind.POINTER):
 		var $inner = $typ.inner;
-		$if (($inner.kindof == TypeKind.ARRAY) && ($inner.inner == char.typeid))
+		$if (($inner.kindof == TypeKind.ARRAY) && ($inner.inner == char.typeid)):
 			$res = true;
 		$endif
 	$endif
@@ -200,24 +200,24 @@ macro String toStr(x) {
 }
 
 fn void printStr(String ca) { io::printn((char*)&ca);}
-fn void printStr2(String ca, variant x) {
-	char[] fmt;
-	switch (x) {
-		case int:
-			io::printfn("%s - %d", (char*)&ca, *(int*)x);
-		case double:
-			io::printfn("%s - %f", (char*)&ca, *(double*)x);
-		case float:
-			io::printfn("%s - %f", (char*)&ca, *(float*)x);
-		case Hwnd:
-			io::printfn("%s - %p", (char*)&ca, *(Hwnd*)x);
-		case String:
+// fn void printStr2(String ca, variant x) {
+// 	char[] fmt;
+// 	switch (x) {
+// 		case int:
+// 			io::printfn("%s - %d", (char*)&ca, *(int*)x);
+// 		case double:
+// 			io::printfn("%s - %f", (char*)&ca, *(double*)x);
+// 		case float:
+// 			io::printfn("%s - %f", (char*)&ca, *(float*)x);
+// 		case Hwnd:
+// 			io::printfn("%s - %p", (char*)&ca, *(Hwnd*)x);
+// 		case String:
 
-			io::printfn("%s - %p", (char*)&ca, ((String*)x)[0] );
+// 			io::printfn("%s - %p", (char*)&ca, ((String*)x)[0] );
 
-	}
+// 	}
 
-}
+// }
 
 fn void concatNum(char* s, char* name,  int i) {
 	int ret = libc::sprintf(s, "%s_%d", name, i);
@@ -239,7 +239,7 @@ fn int getNumLength(int num) {
 
 
 
-fn void VarString.concatNum(VarString* vs, int num) {
+fn void DString.concatNum(DString* vs, int num) {
 	// int nlen = getNumLength(num);
 	char[4] nstr;
 	int nLen = getNumLength(num);

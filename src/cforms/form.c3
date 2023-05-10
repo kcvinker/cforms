@@ -15,6 +15,7 @@ define cptf = libc::printf;
 typedef ControlList = List<Control*>;
 // typedef MenuItemList = List<MenuItem*>;
 typedef CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the handle of combobox's listbox
+typedef MenuItemMap = std::collections::map::HashMap<uint, MenuItem*>;
 
 // Important static data
 bool frmCreated = false;
@@ -84,12 +85,20 @@ struct Form {
 	bool _isMouseTracking;
 	bool _isSizing;
 	CmbMap _comboMap;
-	MenuItemList menuList;
+	// MenuItemList menuList;
+	MenuItemMap _menuItemMap;
+	bool _menuMapInited;
 	Hinstance hinst;
 	Hwnd bhw;
 	Hbrush _bkBrush;
 	ControlList controls;
 	MenuBar* menubar;
+	Font _menuFont;
+	Hbrush _menuGrayBrush;
+	Hbrush _menuDefBgBrush;
+	Hbrush _menuHotBgBrush;
+	Hbrush _menuFrameBrush;
+	Colorref _menuGrayCref;
 
 	EventHandler onLoad;
 	EventHandler onActivate;
@@ -120,7 +129,7 @@ struct MenuEventData {
 			frmCreated = true;
 			dwc = colorFromRgb(230, 230, 230);
 			hins = api_GetModuleHandle((Lpcwstr) 0);
-			Char16* clsN = str::utf8to16(className).ptr!!;
+			Char16* clsN = String.to_utf16(className).ptr!!;
 			defer free(clsN);
 			registerClass(hins, clsN);
 			screenWidth = api_GetSystemMetrics(0);
@@ -159,8 +168,8 @@ struct MenuEventData {
 	fn void Form.createHandle(Form* f) {
 		f.setStyle();
 		f.setPosition();
-		Char16* title = str::utf8to16(f.text).ptr!!;
-		Char16* clsN = str::utf8to16(className).ptr!!;
+		Char16* title = String.to_utf16(f.text).ptr!!;
+		Char16* clsN = String.to_utf16(className).ptr!!;
 		defer {
 			free(title);
 			free(clsN);
@@ -495,6 +504,15 @@ struct MenuEventData {
 		this.dtor();
 	}
 
+	fn MenuItem* Form.getMenuFromHmenu(Form* this, Hmenu hmenu) @private {
+		@pool() {
+			foreach (menu: this._menuItemMap.value_tlist()) {
+				if (menu.handle == hmenu) return menu;
+			}
+		};
+		return null;
+	}
+
 	// private fn void Form.setMenuEvent(Form* this, MenuItem* menu, MenuEvents event, MenuEventHandler pFunc) {
 	// 	MenuEventData med;
 	// 	med.menu = menu;
@@ -505,14 +523,14 @@ struct MenuEventData {
 
 	fault MenuEventError {MED_NOT_FOUND}
 
-	fn MenuItem* Form.getMenuItem(Form* this, uint id, uint evt) @private {
-		if (this.menuList.len()) {
-			foreach (menu: this.menuList) {
-				if (menu.idNum == id && menu._evtFlag & evt) return menu;
-			}
-		}
-		return null;
-	}
+	// fn MenuItem* Form.getMenuItem(Form* this, uint id, uint evt) @private {
+	// 	if (this.menuList.len()) {
+	// 		foreach (menu: this.menuList) {
+	// 			if (menu.idNum == id && menu._evtFlag & evt) return menu;
+	// 		}
+	// 	}
+	// 	return null;
+	// }
 
 	fn void Form.dtor(Form* this) @private {
 		// This will executed when a Form destroyed
@@ -535,8 +553,11 @@ struct MenuEventData {
 		// this.sText.destroy();
 
 
-		if (this.menubar) this.menubar.destroy();
-		this.menuList.free();
+		if (this.menubar) {
+			this.menubar.destroy();
+			free(this.menubar);
+		}
+		if (this._menuMapInited) this._menuItemMap.free();
 		if (!noComboUsed) this._comboMap.free();
 		if (this._isMainWindow) api_PostQuitMessage(0);
 	}
@@ -612,55 +633,94 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 				return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);
 			}
 
-		case MM_MENU_NOTIFY:
-			// MenuItem* menu =
-			this.menuList.append((MenuItem*)(void*)lp);
+		case WM_MEASUREITEM:
+			MeasureItemStruct* pmi = (MeasureItemStruct*) lp;
+			MenuItem* mi = (MenuItem*) ((void*) pmi.itemData);
+			if (mi.kind == MenuType.BASE_MENU) {
+				Hdc hdc = api_GetDC(hw);
+				defer api_ReleaseDC(hw, hdc);
+				Size size;
+				api_GetTextExtentPoint32(hdc, mi._wideText, mi.text.len, &size);
+				pmi.itemWidth = size.cx + 3;
+				pmi.itemHeight = size.cy;
+			} else {
+				pmi.itemWidth = 100;
+				pmi.itemHeight = 25;
+			}
+			return 1;
 
+		case WM_DRAWITEM:
+			DrawItemStruct* dis = (DrawItemStruct*) lp;
+			MenuItem* mi = (MenuItem*) ((void*) dis.itemData);
+			Colorref txtClrRef = mi.fgColor.ref;
+			if (dis.itemState == 320 || dis.itemState == 257) {
+				if (mi._isEnabled) {
+					Rect rc = {dis.rcItem.left + 5, dis.rcItem.top + 1, dis.rcItem.right, dis.rcItem.bottom};
+					api_FillRect(dis.hDC, &rc, this._menuHotBgBrush);
+					api_FrameRect(dis.hDC, &rc, this._menuFrameBrush);
+					txtClrRef = 0x00000000;
+				} else {
+					api_FillRect(dis.hDC, &dis.rcItem, this._menuGrayBrush);
+					txtClrRef = this._menuGrayCref;
+				}
+			} else {
+				api_FillRect(dis.hDC, &dis.rcItem, this._menuDefBgBrush);
+				if (!mi._isEnabled) txtClrRef = this._menuGrayCref;
+			}
+
+			api_SetBkMode(dis.hDC, 1);
+			if (mi.kind == MenuType.BASE_MENU) {
+				dis.rcItem.left += 10;
+			} else {
+				dis.rcItem.left += 25;
+			}
+			api_SelectObject(dis.hDC, this._menuFont.handle);
+			api_SetTextColor(dis.hDC, txtClrRef);
+			api_DrawText(dis.hDC, mi._wideText, -1, &dis.rcItem, DT_LEFT | DT_SINGLELINE | DT_VCENTER);
+			return 0;
+
+		case MM_MENU_ADDED:
+			// De-reference the pointer and put the menu item in our map
+			uint menuID = (uint)wp;
+			this._menuItemMap[menuID] = (MenuItem*)((void*) lp);
+			return 0;
 
 		case WM_COMMAND:
             switch (hiWord(wp)) {
 				case 0:  // menu click commands
-					MenuItem* menu = this.getMenuItem((uint)loWord(wp), 1);
-					if (menu) {
-						menu.onClick(menu, &&EventArgs{});
+					uint menuID = (uint) loWord(wp);
+					if (try menu = this._menuItemMap[menuID]) {
+						if (menu.onClick) menu.onClick(menu, &&EventArgs{});
 					}
-
-
+					return 0;
                 case 1: return 0; // # accelerator key commands
                 default:
                     Hwnd ctlHwnd = (Hwnd)lp;
                     return api_SendMessage(ctlHwnd, MM_CTL_COMMAND, wp, lp);
 			}
-		// case WM_MENUCOMMAND: ptf("hmenu %s", lp );
 
-		// case WM_NCMOUSEMOVE: // Same as WM_NCMOUSELEAVE if wp == 5 it's on a menu
 
-		// case WM_INITMENU: // wp - hmenu, lp - not used
+		case WM_MENUSELECT:
+			MenuItem* pmenu = this.getMenuFromHmenu((Hmenu) lp);
+			uint mid = (uint)(loWord(wp)); // Could be an id of a child menu or an index of a child menu
+			Word hwwpm = hiWord(wp);
+			if (pmenu) {
+				MenuItem* menu;
+				switch (hwwpm) {
+					case 33152: // A normal child menu. We can use mid ad menu id.
+						menu = this._menuItemMap[mid]!!;
+					case 33168: // A popup child menu. We can use mid as index.
+						menu = pmenu.getChildFromIndex(mid);
+				}
+				if (menu && menu.onFocus) menu.onFocus(menu, &&EventArgs{});
+			}
 
-		// case WM_MENUSELECT: // wp - [low - menu index, hiw - menu's uFlags], lp - hemnu
-		// 	ptf("[%s]  loword %s, hiword %s", cnt, loWord(wp), hiWord(wp));
-		// 	cnt += 1;
-		// case WM_INITMENUPOPUP: // just before popup menu appear. wp -hmenu, lp - [low - 0 based pos of menu], [hiw - true/false(true if window menu)]
-		// 	ptf("[%s]  loword %s, hiword %s", cnt, loWord(lp), hiWord(lp));
-		// 	cnt += 1;
-
-		// case WM_ENTERIDLE: // wp - MSGF_MENU(2), lp - form hwnd
-		// 	ptf("[%s]  wp %s, lp %s", cnt, wp, lp);
-		// 	cnt += 1;
-		// case WM_NCMOUSELEAVE: // wp - hit test values - (look here - https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest), lp - point struct
-		// case WM_UNINITMENUPOPUP: // A popup menu destroyed wpm - hmenu, hiw lp - menu id
-
-			// MenuItem* menu = this.menubar.getMenuItem((Hmenu)wp);
-			// if (menu) {
-			// 	ptf("[%s]  menu %s", cnt, menu.text);
-			// 	cnt += 1;
-			// } else {
-			// 	log("menu not found");
-			// }
-
-		// case WM_EXITMENULOOP: // wp - true if shortcut menu. lp - not used
-		// 	ptf("[%s]  wp %s, lp %s", cnt, wp);
-		// 	cnt += 1;
+		case WM_INITMENUPOPUP:
+			MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
+			if (menu && menu.onPopup) menu.onPopup(menu, &&EventArgs{});
+		case WM_UNINITMENUPOPUP:
+        	MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
+        	if (menu && menu.onCloseup) menu.onCloseup(menu, &&EventArgs{});
 
 	}
 	return api_DefWindowProc(hw, msg, wp, lp);

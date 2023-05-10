@@ -38,7 +38,7 @@ typedef Colorref = Dword;
 typedef Word = ushort;
 typedef Bool = int;
 typedef Wstring = Char16[];
-const Dword UINT_MAX = 1 << 32;
+const Dword UINT_MAX = 1UL << 32 - 1;
 
 // Function pointer types
 typedef Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
@@ -273,7 +273,41 @@ struct HdLayout {
 	WindowPos* pwpos;
 }
 
+struct MenuItemInfoW {
+	uint      cbSize;
+	uint      fMask;
+	uint      fType;
+	uint      fState;
+	uint      wID;
+	Hmenu     hSubMenu;
+	Hbitmap   hbmpChecked;
+	Hbitmap   hbmpUnchecked;
+	Ulongptr dwItemData;
+	Lpcwstr    dwTypeData;
+	uint      cch;
+	Hbitmap   hbmpItem;
+}
 
+struct MeasureItemStruct {
+	uint      ctlType;
+	uint      ctlID;
+	uint      itemID;
+	uint      itemWidth;
+	uint      itemHeight;
+	Ulongptr itemData;
+}
+
+struct DrawItemStruct {
+	uint      ctlType;
+	uint      ctlID;
+	uint      itemID;
+	uint      itemAction;
+	uint      itemState;
+	Hwnd      hwndItem;
+	Hdc       hDC;
+	Rect      rcItem;
+	Ulongptr itemData;
+}
 
 
 

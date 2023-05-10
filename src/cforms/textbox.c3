@@ -58,7 +58,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 			this.setSubClass(&tbWndProc);
 			this.setFontInternal();
 			if (this._cueReady) {
-				Char16* cuetext = str::utf8to16(this.cueStr.str()).ptr!!;
+				Char16* cuetext = String.to_utf16(this.cueStr.str()).ptr!!;
 				defer free(cuetext);
 				api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 			}
@@ -70,7 +70,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	fn void TextBox.setCue(TextBox* this, String s) {
 		this.cueStr = dstring::new(s);
 		if (this._isCreated) {
-			Char16* cuetext = str::utf8to16(this.cueStr.str()).ptr!!;
+			Char16* cuetext = String.to_utf16(this.cueStr.str()).ptr!!;
 			defer free(cuetext);
 			api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 		} else {
