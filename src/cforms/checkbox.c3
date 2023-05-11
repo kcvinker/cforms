@@ -128,7 +128,7 @@ fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_KEYDOWN: this.keyDownHandler(wp);
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
-
+		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_STATIC: return (Lresult) this.colorMsgHandler(wp);
 		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(lp);
 

@@ -718,9 +718,12 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 		case WM_INITMENUPOPUP:
 			MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
 			if (menu && menu.onPopup) menu.onPopup(menu, &&EventArgs{});
+
 		case WM_UNINITMENUPOPUP:
         	MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
         	if (menu && menu.onCloseup) menu.onCloseup(menu, &&EventArgs{});
+
+		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 
 	}
 	return api_DefWindowProc(hw, msg, wp, lp);

@@ -265,7 +265,7 @@ fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
 		case WM_MOUSELEAVE: return this.cmbMouseLeaveHandler();
 		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
-
+		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_LBOX: return (Lresult) this.colorMsgHandler(wp);
 		case MM_CTL_COMMAND: this.wmCommandHandler(wp);
 		case WM_KEYDOWN: this.keyDownHandler(wp);

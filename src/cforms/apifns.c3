@@ -54,6 +54,10 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_AppendMenu(Hmenu, uint, Uintptr, Lpcwstr) @extern("AppendMenuW");
 	extern fn Bool api_SetMenu(Hwnd, Hmenu) @extern("SetMenu");
 	extern fn Bool api_InsertMenuItemW(Hmenu, uint, Bool, MenuItemInfoW*) @extern("InsertMenuItemW");
+	extern fn Bool api_TrackPopupMenu(Hmenu, uint, int, int, int, Hwnd, Rect*) @extern("TrackPopupMenu");
+	extern fn Bool api_DestroyMenu(Hmenu) @extern("DestroyMenu");
+
+
 
 
 // End User32

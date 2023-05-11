@@ -143,6 +143,11 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 
 // End of Common Constants
 fn Point getMousePoints(Lparam lpm) {return Point{loWord(lpm), hiWord(lpm)};}
+fn Point getMousePosOnMsg() {
+    Dword dw_value = api_GetMessagePos();
+	Point p = {(long)(loWord(dw_value)), (long)(hiWord(dw_value))};
+	return p;
+}
 
 macro isStrLiteral(x) {
 	var $res = false;

@@ -31,7 +31,6 @@ enum ControlType : char {
 struct Control {
 	ControlType kind;
 	DString name;
-	// VarString sText;
 	String text;
 	String className;
 	Hwnd handle;
@@ -42,6 +41,7 @@ struct Control {
 	int xpos;
 	int ypos;
 	iptr ctlID;
+	ContextMenu* contextMenu;
 	Dword _style;
 	Dword _exStyle;
 	uint _drawMode;
@@ -131,6 +131,20 @@ fault StringFault {
 		if (!this._isCreated && this._textable) return "";
 		return "";
 
+	}
+
+	fn void Control.setContextMenu(Control* this, ContextMenu* cmenu) {
+		this.contextMenu = cmenu;
+		if (!cmenu.parent) this.contextMenu.parent = this;
+		this.contextMenu.setDummyControl();
+	}
+
+	fn void Control.setContextMenuEx(Control* this, String... menuNames) {
+		ContextMenu* cmenu = newContextMenu();
+		cmenu.addMenus(menuNames);
+		cmenu.parent = this;
+		this.contextMenu = cmenu;
+		this.contextMenu.setDummyControl();
 	}
 // End Public Functions
 

@@ -104,7 +104,7 @@ fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 	Label* this = (Label*)((void*)refData);
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbWndProc, scID);;
+		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbWndProc, scID);
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
 		case MM_MOUSE_LBCLICK: this.leftClickHandler();
@@ -116,7 +116,7 @@ fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
 		case WM_MOUSELEAVE: this.mouseLeaveHandler();
 		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
-
+		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_STATIC: return (Lresult) this.colorMsgHandler(wp);
 
 		case MM_RUNDTOR: this.dtor(); return 0;

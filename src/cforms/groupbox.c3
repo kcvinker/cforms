@@ -161,7 +161,7 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_KEYDOWN: this.keyDownHandler(wp);
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
-
+		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case WM_PAINT: return this.drawTextDB(hw, msg, wp, lp); //this.drawText(hw, msg, wp, lp);
 		case WM_GETTEXTLENGTH:  return 0;
 
