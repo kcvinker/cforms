@@ -37,8 +37,8 @@ struct CmbData {
 
 // Public functions
 	// ComboBox constructor
-	fn ComboBox newComboBox(Form* parent, int x = 10, int y = 10, int width = 140, int height = 27) {
-		ComboBox this;
+	fn ComboBox* newComboBox(Form* parent, int x = 10, int y = 10, int width = 140, int height = 27, Allocator* using = mem::heap()) {
+		ComboBox* this = calloc(ComboBox, .using = using);
 		this.kind = ControlType.COMBO_BOX;
 		this.name = dstring::new("ComboBox_");
 		this.name.printf("%d", cmbNumber);
@@ -243,6 +243,7 @@ struct CmbData {
 		this.name.free();
 		this.items.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
+		free(this);
 	}
 // End of Private functions
 

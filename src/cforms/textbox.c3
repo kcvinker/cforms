@@ -26,8 +26,8 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 
 // Public functions
 	// TextBox constructor
-	fn TextBox newTextBox(Form* parent, String text, int x = 10, int y = 10, int width = 140, int height = 27) {
-		TextBox this;
+	fn TextBox* newTextBox(Form* parent, String text, int x = 10, int y = 10, int width = 140, int height = 27, Allocator* using = mem::heap()) {
+		TextBox* this = calloc(TextBox, .using = using);
 		this.kind = ControlType.TEXT_BOX;
 		this.name = dstring::new("TextBox_");
 		this.name.printf("%d", tbNumber);
@@ -123,7 +123,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.name.free();
 		this.cueStr.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
-
+		free(this);
 	}
 // End of Private functions
 

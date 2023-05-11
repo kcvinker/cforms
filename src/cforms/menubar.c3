@@ -22,7 +22,7 @@ struct MenuBar {
 	Font font;
 	Hwnd _formHwnd;
 	Form* _parent;
-	int _menuCount;
+	uint _menuCount;
 }
 
 // MenuItem structure
@@ -77,7 +77,7 @@ fn bool isPopup(MenuType mtp) {
 	return mtp == MenuType.BASE_MENU || mtp == MenuType.POPUP;
 }
 
-fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, int indexNum, Allocator* using = mem::heap()) {
+fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint indexNum, Allocator* using = mem::heap()) {
 	MenuItem* this = calloc(MenuItem, .using = using);
 	this._popup = isPopup(mtp);
     this.handle = this._popup ? api_CreatePopupMenu() : api_CreateMenu();
@@ -128,12 +128,9 @@ fn void MenuBar.createHandle(MenuBar* this) {
 	} else {
 		this._parent._menuFont.createHandle(this._parent.handle);
 	}
-
-    @pool() {
-		if (this._menuCount > 0) {
-        	foreach(menu: this.menus.value_tlist()) {menu.create();}
-		}
-	};
+    if (this._menuCount > 0) {
+		@pool() { foreach(menu: this.menus.value_tlist()) {menu.create();} };
+	}
     api_SetMenu(this._parent.handle, this.handle);
 }
 
@@ -149,8 +146,9 @@ fn void MenuItem.insertMenuInternal(MenuItem* this, Hmenu parentHmenu) {
     mii.dwItemData = (Ulongptr)((void*) this);
     mii.wID = this.idNum;
     mii.hSubMenu = this._popup ? this.handle : nullMenu;
-    api_InsertMenuItemW(parentHmenu, this._index, 1, &mii);
+    api_InsertMenuItemW(parentHmenu, this.idNum, 0, &mii);
     this._isCreated = true;
+	// ptf("inserted : %s, id: %d, index : %d", this.text, this.idNum, this._index);
 }
 
 
@@ -159,12 +157,15 @@ fn void MenuItem.create(MenuItem* this) {
 	switch (this.kind) {
     	case MenuType.BASE_MENU: nextcase;
 		case MenuType.POPUP:
-			@pool() {
-				if (this._childCount > 0) {
-					foreach(menu: this.menus.value_tlist()) {menu.create();}
-				}
-			};
 			this.insertMenuInternal(this.parentHandle);
+			if (this.menus.count > 0) {
+				@pool() {
+					foreach(menu: this.menus.value_tlist()) {
+						ptf("menu create func - text: %s, index: %d", menu.text, menu._index);
+						menu.create();
+					}
+				};
+			}
     	case MenuType.MENU_ITEM:
         	this.insertMenuInternal(this.parentHandle);
     	case MenuType.SEPRATOR:
@@ -207,6 +208,7 @@ fn void MenuItem.addMenus(MenuItem* this, String... menuNames ) {
 		this.menus[name] = result;
 		Lparam lpm = (Lparam)((void*)result);
 		if (result._formMenu)api_SendMessage(result._formHwnd, MM_MENU_ADDED, (Wparam)result.idNum, lpm);
+
 	}
 }
 

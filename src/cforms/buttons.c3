@@ -87,8 +87,8 @@ fn void GradDraw.dtor(GradDraw* g) @private {
 
 // Public functions
 	// Button constructor
-	fn Button newButton(Form* parent, String text, int x = 10, int y = 10, int width = 120, int height = 33) {
-		Button this;
+	fn Button* newButton(Form* parent, String text, int x = 10, int y = 10, int width = 120, int height = 33, Allocator* using = mem::heap()) {
+		Button* this = calloc(Button, .using = using);
 		this.kind = ControlType.BUTTON;
 		this.className = "Button";
 		this.name = dstring::new("Button_");
@@ -235,6 +235,7 @@ fn void GradDraw.dtor(GradDraw* g) @private {
 			case 4..5: this._gdraw.dtor();
 		}
 		this.name.free();
+		free(this);
 	}
 // End of Private functions
 

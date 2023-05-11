@@ -33,8 +33,8 @@ enum ViewMode : int {
 
 // Public functions
 	// Calendar constructor
-	fn Calendar newCalendar(Form* parent, int x = 10, int y = 10) {
-		Calendar this;
+	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, Allocator* using = mem::heap()) {
+		Calendar* this = calloc(Calendar, .using = using);
 		this.kind = ControlType.CALENDAR;
 		this.name = dstring::new("Calendar_");
 		this.name.printf("%d", calNumber);
@@ -133,6 +133,7 @@ enum ViewMode : int {
 	fn void Calendar.dtor(Calendar* this) @private {
 		ptf("%s is destroyed", this.name.str());
 		this.name.free();
+		free(this);
 	}
 // End of Private functions
 

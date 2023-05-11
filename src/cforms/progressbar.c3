@@ -26,8 +26,8 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 
 // Public functions
 	// ProgressBar constructor - Create and returns a New ProgressBar struct
-	fn ProgressBar newProgressBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 25) {
-		ProgressBar this;
+	fn ProgressBar* newProgressBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 25, Allocator* using = mem::heap()) {
+		ProgressBar* this = calloc(ProgressBar, .using = using);
 		this.kind = ControlType.PROGRESS_BAR;
 		this.name = dstring::new("ProgressBar_");
 		this.name.printf("%d", pbNumber);
@@ -161,7 +161,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	fn void ProgressBar.dtor(ProgressBar* this) @private {
 		ptf("%s is destroyed", this.name.str());
 		this.name.free();
-
+		free(this);
 	}
 // End of Private functions
 

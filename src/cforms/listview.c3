@@ -83,8 +83,8 @@ enum ListViewStyle : char {
 
 // Public functions
 	// ListView constructor - Create and returns a New ListView struct
-	fn ListView newListView(Form* parent, int x = 10, int y = 10, int width = 300, int height = 200) {
-		ListView this;
+	fn ListView* newListView(Form* parent, int x = 10, int y = 10, int width = 300, int height = 200, Allocator* using = mem::heap()) {
+		ListView* this = calloc(ListView, .using = using);
 		this.kind = ControlType.LIST_VIEW;
 		this.name = dstring::new("ListView_");
 		this.name.printf("%d", lvNumber);
@@ -390,6 +390,7 @@ enum ListViewStyle : char {
 		if (this._itemIndex > -1) {foreach (item: this.items) {item.destroy();}}
 		this.columns.free();
 		this.items.free();
+		free(this);
 	}
 // End of Private functions
 

@@ -60,8 +60,8 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 // Public functions
 	// TrackBar constructor - Create and returns a New TrackBar struct
-	fn TrackBar newTrackBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 35) {
-		TrackBar this;
+	fn TrackBar* newTrackBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 35, Allocator* using = mem::heap()) {
+		TrackBar* this = calloc(TrackBar, .using = using);
 		this.kind = ControlType.TRACK_BAR;
 		this.name = dstring::new("TrackBar_");
 		this.name.printf("%d", tkbNumber);
@@ -441,6 +441,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.name.free();
 		this._tdList.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
+		free(this);
 	}
 // End of Private functions
 

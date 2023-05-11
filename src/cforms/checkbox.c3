@@ -19,8 +19,8 @@ struct CheckBox {
 
 // Public functions
 	// CheckBox constructor
-	fn CheckBox newCheckBox(Form* parent, String text, int x = 10, int y = 10, int width = 140, int height = 27) {
-		CheckBox this;
+	fn CheckBox* newCheckBox(Form* parent, String text, int x = 10, int y = 10, int width = 140, int height = 27, Allocator* using = mem::heap()) {
+		CheckBox* this = calloc(CheckBox, .using = using);
 		this.kind = ControlType.CHECK_BOX;
 		this.name = dstring::new("CheckBox_");
 		this.name.printf("%d", cbNumber);
@@ -102,7 +102,7 @@ struct CheckBox {
 		ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
-
+		free(this);
 	}
 // End of Private functions
 

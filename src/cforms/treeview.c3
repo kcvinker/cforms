@@ -56,8 +56,8 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 // Public functions
 	// TreeView constructor - Create and returns a New TreeView struct
-	fn TreeView newTreeView(Form* parent, int x = 10, int y = 10, int width = 200, int height = 200) {
-		TreeView this;
+	fn TreeView* newTreeView(Form* parent, int x = 10, int y = 10, int width = 200, int height = 200, Allocator* using = mem::heap()) {
+		TreeView* this = calloc(TreeView, .using = using);
 		this.kind = ControlType.TREE_VIEW;
 		this.name = dstring::new("TreeView_");
 		this.name.printf("%d", tvNumber);
@@ -299,6 +299,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.name.free();
 		if (this.nodeCount > 0) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free();
+		free(this);
 	}
 // End of Private functions
 

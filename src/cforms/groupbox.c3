@@ -19,8 +19,8 @@ struct GroupBox {
 
 // Public functions
 	// GroupBox constructor - Create and returns a New GroupBox struct
-	fn GroupBox newGroupBox(Form* parent, String text = "", int x = 10, int y = 10, int width = 230, int height = 250) {
-		GroupBox this;
+	fn GroupBox* newGroupBox(Form* parent, String text = "", int x = 10, int y = 10, int width = 230, int height = 250, Allocator* using = mem::heap()) {
+		GroupBox* this = calloc(GroupBox, .using = using);
 		this.kind = ControlType.GROUP_BOX;
 		this.name = dstring::new("GroupBox_");
 		this.name.printf("%d", gbNumber);
@@ -136,6 +136,7 @@ struct GroupBox {
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 		if (this._pen) api_DeleteObject(this._pen);
+		free(this);
 	}
 // End of Private functions
 

@@ -49,8 +49,8 @@ struct DateTime {
 
 // Public functions
 	// DateTimePicker constructor
-	fn DateTimePicker newDateTimePicker(Form* parent, int x = 10, int y = 10) {
-		DateTimePicker this;
+	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10, Allocator* using = mem::heap()) {
+		DateTimePicker* this = calloc(DateTimePicker, .using = using);
 		this.kind = ControlType.DATE_TIME_PICKER;
 		this.name = dstring::new("DateTimePicker_");
 		this.name.printf("%d", dtpNumber);
@@ -152,8 +152,8 @@ struct DateTime {
 	fn void DateTimePicker.dtor(DateTimePicker* this) @private {
 		ptf("%s is destroyed", this.name.str());
 		this.name.free();
-
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
+		free(this);
 	}
 // End of Private functions
 

@@ -19,8 +19,8 @@ struct RadioButton {
 
 // Public functions
 	// RadioButton constructor
-	fn RadioButton newRadioButton(Form* parent, String text, int x = 10, int y = 10, int width = 0, int height = 0) {
-		RadioButton this;
+	fn RadioButton* newRadioButton(Form* parent, String text, int x = 10, int y = 10, int width = 0, int height = 0, Allocator* using = mem::heap()) {
+		RadioButton* this = calloc(RadioButton, .using = using);
 		this.kind = ControlType.RADIO_BUTTON;
 		this.name = dstring::new("RadioButton_");
 		this.name.printf("%d", rbNumber);
@@ -110,7 +110,7 @@ struct RadioButton {
 		ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
-
+		free(this);
 	}
 // End of Private functions
 

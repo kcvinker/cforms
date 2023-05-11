@@ -124,7 +124,7 @@ struct MenuEventData {
 }
 
 // Public Functions
-	fn Form newForm(String title, int width = 500, int height = 400) {
+	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = mem::heap()) {
 		if (!frmCreated) {
 			frmCreated = true;
 			dwc = colorFromRgb(230, 230, 230);
@@ -141,7 +141,7 @@ struct MenuEventData {
 
 		}
 
-		Form f;
+		Form* f = calloc(Form, .using = using);
 		f.kind = ControlType.NONE;
 		f.name = dstring::new("Form_");
 		f.name.printf("%d", frmNumber);
@@ -560,6 +560,7 @@ struct MenuEventData {
 		if (this._menuMapInited) this._menuItemMap.free();
 		if (!noComboUsed) this._comboMap.free();
 		if (this._isMainWindow) api_PostQuitMessage(0);
+		free(this);
 	}
 
 
@@ -647,6 +648,7 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 				pmi.itemWidth = 100;
 				pmi.itemHeight = 25;
 			}
+			ptf("Measure : %s", mi.text);
 			return 1;
 
 		case WM_DRAWITEM:
@@ -667,7 +669,6 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 				api_FillRect(dis.hDC, &dis.rcItem, this._menuDefBgBrush);
 				if (!mi._isEnabled) txtClrRef = this._menuGrayCref;
 			}
-
 			api_SetBkMode(dis.hDC, 1);
 			if (mi.kind == MenuType.BASE_MENU) {
 				dis.rcItem.left += 10;

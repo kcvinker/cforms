@@ -46,8 +46,8 @@ struct NumberPicker {
 
 // Public functions
 	// NumberPicker constructor
-	fn NumberPicker newNumberPicker(Form* parent, int x = 10, int y = 10, int width = 85, int height = 25) {
-		NumberPicker this;
+	fn NumberPicker* newNumberPicker(Form* parent, int x = 10, int y = 10, int width = 85, int height = 25, Allocator* using = mem::heap()) {
+		NumberPicker* this = calloc(NumberPicker, .using = using);
 		this.kind = ControlType.NUM_PICKER;
 		this.name = dstring::new("NumberPicker_");
 		this.className = "msctls_updown32";
@@ -271,6 +271,7 @@ struct NumberPicker {
 
 		api_DeleteObject(this.font.handle);
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
+		free(this);
 
 	}
 // End of Private functions

@@ -28,8 +28,8 @@ struct ListBox {
 
 // Public functions
 	// ListBox constructor
-	fn ListBox newListBox(Form* parent, int x = 10, int y = 10, int width = 150, int height = 150) {
-		ListBox this;
+	fn ListBox* newListBox(Form* parent, int x = 10, int y = 10, int width = 150, int height = 150, Allocator* using = mem::heap()) {
+		ListBox* this = calloc(ListBox, .using = using);
 		this.kind = ControlType.LIST_BOX;
 		this.name = dstring::new("ListBox_");
 		this.name.printf("%d", lbxNumber);
@@ -259,6 +259,7 @@ struct ListBox {
 		this.selectedIndices.free();
 		this.items.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
+		free(this);
 	}
 // End of Private functions
 

@@ -21,8 +21,8 @@ struct Label {
 
 // Public functions
 	// Label constructor
-	fn Label newLabel(Form* parent, String text, int x = 10, int y = 10, int width = 0, int height = 0) {
-		Label this;
+	fn Label* newLabel(Form* parent, String text, int x = 10, int y = 10, int width = 0, int height = 0, Allocator* using = mem::heap()) {
+		Label* this = calloc(Label, .using = using);
 		this.kind = ControlType.LABEL;
 		this.name = dstring::new("Label_");
 		this.name.printf("%d", lbNumber);
@@ -96,6 +96,7 @@ struct Label {
 		api_DeleteObject(this._bkBrush);
 		print("lbl destroyed");
 		ptf("lb width  %s", this.text);
+		free(this);
 	}
 // End of Private functions
 
