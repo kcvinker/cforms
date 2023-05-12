@@ -6,6 +6,7 @@ import std::io;
 import std::core::mem;
 import std::collections::list;
 import std::collections::map;
+import libc;
 
 typedef MenuItemList = List<MenuItem*>;
 typedef MenuMap = std::collections::map::HashMap<String, MenuItem*>;
@@ -160,9 +161,23 @@ fn void MenuItem.create(MenuItem* this) {
 			this.insertMenuInternal(this.parentHandle);
 			if (this.menus.count > 0) {
 				@pool() {
-					foreach(menu: this.menus.value_tlist()) {
-						ptf("menu create func - text: %s, index: %d", menu.text, menu._index);
-						menu.create();
+					/*
+						This is a workaround. We faced a strange problem here. `value_tlist()
+						returns an array in reverse order. And there is no sort feature in c3 array.
+						So we need to implement a temporary sort arrangement here.
+					*/
+					MenuItem*[] menuArr = this.menus.value_tlist();
+					int indxVal = 0;
+					int counter = 0;
+					while (true) {
+						MenuItem* mi = menuArr[indxVal];
+						if (mi._index == counter) {
+							mi.create();
+							counter += 1;
+						}
+						if (counter == this.menus.count) break;
+						indxVal += 1;
+						if (indxVal == this.menus.count) indxVal = 0;
 					}
 				};
 			}
@@ -257,6 +272,7 @@ fn void MenuBar.destroy(MenuBar* this) {
 		};
 	}
 }
+
 
 //=============================================================ContextMenu============================================
 
