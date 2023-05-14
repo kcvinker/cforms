@@ -116,8 +116,8 @@ enum ListViewStyle : char {
 	}
 
 	// ListViewCoulmn constructor.
-	fn ListViewColumn newListViewColumn(String txt, int width = 100, int imageIndex = -1) {
-		ListViewColumn this;
+	fn ListViewColumn* newListViewColumn(String txt, int width = 100, int imageIndex = -1, Allocator* using = mem::heap()) {
+		ListViewColumn* this = calloc(ListViewColumn, .using = using);
 		this.text = txt;
 		this.width = width;
 		this.imgIndex = imageIndex;
@@ -130,8 +130,8 @@ enum ListViewStyle : char {
 	}
 
 	// ListViewItem constructor
-	fn ListViewItem newListViewItem(String txt, uint bgColor = 0xFFFFFF, uint fgColor = 0x000000, int imgIndex = -1) {
-		ListViewItem this;
+	fn ListViewItem* newListViewItem(String txt, uint bgColor = 0xFFFFFF, uint fgColor = 0x000000, int imgIndex = -1, Allocator* using = mem::heap()) {
+		ListViewItem* this = calloc(ListViewItem, .using = using);
 		this.text = txt;
 		this.backColor = newColor(bgColor);
 		this.foreColor = newColor(fgColor);
@@ -140,9 +140,9 @@ enum ListViewStyle : char {
 		return this;
 	}
 
-	// Another ListViewItem constructor, but appends sub items too. Works for only REPORT_VIEW style.
-	fn ListViewItem newListViewRow(String txt, String... subitems) {
-		ListViewItem item = newListViewItem(txt);
+	// Another ListViewItem constructor, but appends subitems too. Works for only REPORT_VIEW style.
+	fn ListViewItem* newListViewRow(String txt, String... subitems) {
+		ListViewItem* item = newListViewItem(txt);
 		foreach (sitem: subitems) {item.subItems.push(sitem);}
 		return item;
 	}
@@ -163,23 +163,62 @@ enum ListViewStyle : char {
 		}
 	}
 
-	// Not implemented yet
-	fn void ListView.addColumnsEx(ListView* this, String text, int width = 100, int imgIndx = -1) {
-
+	/* Add a column to listview. There are two overloads for this.
+	 * 1. textOrCol = Name of the column. In this case, you can use width & imgIndx.
+	 * 2. textOrCol = ListViewColumn*. In this case, width & imgIndex are irrelevent. */
+	macro ListViewColumn* ListView.addColumn(ListView* this, textOrCol, width = 100, imgIndx = -1) {
+		$switch ($typeof(textOrCol))
+			$case String: return this.addColumnStr(textOrCol, width, imgIndx);
+			$case ListViewColumn*: this.addColumnInternal(textOrCol);
+			$default: $error "No overload for type";
+		$endswitch
 	}
 
-	// Add column to ListView. Use newListViewColumn function to create a column
-	fn void ListView.addColumn(ListView* this, ListViewColumn* lvc) {
+	// Helper function for the above macro
+	fn ListViewColumn* ListView.addColumnStr(ListView* this, String txt, int width = 100, int imgIndx = -1) @private {
+		ListViewColumn* lvc = newListViewColumn(txt, width, imgIndx);
+		this.addColumnInternal(lvc);
+		return lvc;
+	}
+
+
+	// Helper function for the above macro
+	fn void ListView.addColumnLvc(ListView* this, ListViewColumn* lvc) @private {
 		this.addColumnInternal(lvc);
 	}
 
-	// Add more than one column. Use newListViewColumn function to create a column
-	fn void ListView.addColumns(ListView* this, ListViewColumn*... cols) {
-		foreach (col: cols) {this.addColumnInternal(col);}
+	/* Adding columns to listview. There are two overloads for this.
+	 * 1. lv.addColumns(ListViewColumn*... params) // A collection of ListViewColumn pointers
+	 * 2. lv.addColumns(int columnCount, String... colNames, int... colWidths)	 */
+	macro void ListView.addColumns(ListView* this, params...) {
+		any p1 = params[0]; // This may be the column count or a ListViewColumn pointer
+		switch (p1) {
+			case int:
+				int colCount = *p1;
+				for (int i = 1; i < colCount + 1; i++) {
+					String* colName = (String*)params[i];
+					int* width = (int*)(params[i + colCount]);
+					this.addColumnStr(*colName, *width);
+				}
+			case ListViewColumn*:
+				foreach(vp: params) {
+					ListViewColumn* col = *(ListViewColumn**) vp.ptr;
+					this.addColumnInternal(col);
+				}
+			default:
+				print("Unknown type");
+		}
+	}
+
+	// // Add more than one column. Use newListViewColumn function to create a column
+	fn ListViewItem* ListView.addItem1(ListView* this, String txt) @private {
+		ListViewItem* item = newListViewItem(txt);
+		this.addItem2(item);
+		return item;
 	}
 
 	// Add an item to ListView. Use newListViewItem function to create an item.
-	fn void ListView.addItem(ListView* this, ListViewItem* item) {
+	fn void ListView.addItem2(ListView* this, ListViewItem* item) @private {
 		if (this._itemIndex == -1) this._itemIndex = 0;
 		item.index = this._itemIndex;
 		item.font = this.font;
@@ -192,19 +231,44 @@ enum ListViewStyle : char {
 		}
 	}
 
+	/* Add Item to ListView. There are two overloads for this.
+	 * 1. textOrItemPtr = String - The text for listview item. In this case, macro returns the ListViewItem*
+	 * 2. textOrItemPtr = ListViewItem* */
+	macro ListViewItem* ListView.addItem(ListView* this, textOrItemPtr) {
+		$switch ($typeof(textOrItemPtr))
+			$case String: return this.addItem1(textOrItemPtr);
+			$case ListViewItem*: this.addItem2(textOrItemPtr);
+			$default: $error "No overload for type";
+		$endswitch
+	}
+
+	// Adds an item and it's subitems too. Works only in Report view
+	fn ListViewItem* ListView.addRow(ListView* this, String itemText, String... subitems) {
+		ListViewItem* item = newListViewItem(itemText);
+		foreach (sitem: subitems) {item.subItems.push(sitem);}
+		this.addItem2(item);
+		return item;
+	}
+
 	// Add more than one item to ListView. Use newListViewItem function to create an item.
-	fn void ListView.addItems(ListView* this, ListViewItem*... items) {
-		if (this._itemIndex == -1) this._itemIndex = 0;
-		foreach (item: items) {
-			item.index = this._itemIndex;
-			item.font = this.font;
-			this.addItemInternal(item);
-			if (item.subItems.len()) {
-				foreach (i, sitem: item.subItems) {
-					this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);
-				}
-			}
-		}
+	// fn void ListView.addItems1(ListView* this, ListViewItem*... items) {
+	// 	if (this._itemIndex == -1) this._itemIndex = 0;
+	// 	foreach (item: items) {
+	// 		item.index = this._itemIndex;
+	// 		item.font = this.font;
+	// 		this.addItemInternal(item);
+	// 		if (item.subItems.len()) {
+	// 			foreach (i, sitem: item.subItems) {
+	// 				this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+
+	// Add string items or ListViewItem pointers,
+	macro void ListView.addItems(ListView* this, txtOrItems...) {
+		foreach(item: txtOrItems) {this.addItem(item);}
 	}
 
 	// Add  sub items to a ListViewItem.
@@ -288,7 +352,7 @@ enum ListViewStyle : char {
         lvi.pszText = sitem;// String.to_utf16(item.text).ptr!!;
         lvi.cchTextMax = item.text.len;
         // lvi.lParam = id(item)
-        this.sendMsg(LVM_INSERTITEMW, 0, &lvi);
+       	this.sendMsg(LVM_INSERTITEMW, 0, &lvi);
         this.items.append(item);
 		this._itemIndex += 1;
 	}
@@ -381,13 +445,17 @@ enum ListViewStyle : char {
 	fn void ListViewItem.destroy(ListViewItem* this) @private {
 		ptf("Item index %s", this.index );
 		this.subItems.free();
+		free(this);
 	}
 
 	// Freeing resources used for this ListView.
 	fn void ListView.dtor(ListView* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._itemIndex > -1) {foreach (item: this.items) {item.destroy();}}
+		if (this.columns.len()) {
+			foreach (col: this.columns) {free(col);}
+		}
 		this.columns.free();
 		this.items.free();
 		free(this);
