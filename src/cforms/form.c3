@@ -1,5 +1,4 @@
 
-// c3l library file
 // cforms.form - Created on 24-Jan-2023
 
 module cforms;
@@ -13,22 +12,18 @@ define ptf = io::printfn;
 define log = io::printn;
 define cptf = libc::printf;
 typedef ControlList = List<Control*>;
-// typedef MenuItemList = List<MenuItem*>;
 typedef CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the handle of combobox's listbox
 typedef MenuItemMap = std::collections::map::HashMap<uint, MenuItem*>;
 
 // Important static data
 bool frmCreated = false;
 bool mainLoopStarted = false;
-String className = "Cforms_Window_Written_in_C3";
+String className = "Cforms_Window_in_C3";
 Hinstance hins;
 int screenWidth;
 int screenHeight;
 Color dwc; // Default window color
 int frmNumber = 1;
-
-
-
 
 // Helper types & Enums
 	enum FormPos : int {
@@ -85,7 +80,6 @@ struct Form {
 	bool _isMouseTracking;
 	bool _isSizing;
 	CmbMap _comboMap;
-	// MenuItemList menuList;
 	MenuItemMap _menuItemMap;
 	bool _menuMapInited;
 	Hinstance hinst;
@@ -117,11 +111,10 @@ struct Form {
 }
 
 // Managing menu events;
-struct MenuEventData {
-	MenuEvents event;
-	MenuItem* menu;
-
-}
+// struct MenuEventData {
+// 	MenuEvents event;
+// 	MenuItem* menu;
+// }
 
 // Public Functions
 	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = mem::heap()) {
@@ -138,82 +131,75 @@ struct MenuEventData {
 			icc.dwSize = InitCommonControls.sizeof;
 			icc.dwICC = ICC_STANDARD_CLASSES;
 			api_InitCommonControlsEx(&icc);
-
 		}
 
-		Form* f = calloc(Form, .using = using);
-		f.kind = ControlType.NONE;
-		f.name = dstring::new("Form_");
-		f.name.printf("%d", frmNumber);
-		f.text = title;
-		// f.sText = string::new(title);
-		f.width = width;
-		f.height = height;
-		f.xpos = 100;
-		f.ypos = 100;
-		f.formState = FormState.NORMAL ;
-		f.formStyle = FormStyle.NORMAL_WINDOW;
-		f.formPos = FormPos.CENTER;
-		f._fDrawMode = FormDrawMode.DEFAULT;
-		f.maximizeBox = true;
-		f.minimizeBox = true;
-		f.font = newFont("Tahoma", 11);
-		f.hinst = hins;
-		f.backColor = dwc;
+		Form* this = calloc(Form, .using = using);
+		this.kind = ControlType.NONE;
+		this.name = dstring::new("Form_");
+		this.name.printf("%d", frmNumber);
+		this.text = title;
+		this.width = width;
+		this.height = height;
+		this.xpos = 100;
+		this.ypos = 100;
+		this.formState = FormState.NORMAL ;
+		this.formStyle = FormStyle.NORMAL_WINDOW;
+		this.formPos = FormPos.CENTER;
+		this._fDrawMode = FormDrawMode.DEFAULT;
+		this.maximizeBox = true;
+		this.minimizeBox = true;
+		this.font = newFont("Tahoma", 11);
+		this.hinst = hins;
+		this.backColor = dwc;
 		frmNumber += 1;
-
-		return f;
+		return this;
 	}
 
-	fn void Form.createHandle(Form* f) {
-		f.setStyle();
-		f.setPosition();
-		Char16* title = String.to_utf16(f.text).ptr!!;
+	fn void Form.createHandle(Form* this) {
+		this.setStyle();
+		this.setPosition();
+		Char16* title = String.to_utf16(this.text).ptr!!;
 		Char16* clsN = String.to_utf16(className).ptr!!;
-		defer {
-			free(title);
-			free(clsN);
-		}
-		f.handle = api_CreateWindowEx(	f._exStyle,
+		defer {	free(title); free(clsN); }
+		this.handle = api_CreateWindowEx(	this._exStyle,
 										clsN,
 										title,
-										f._style,
-										f.xpos, f.ypos,
-										f.width, f.height,
+										this._style,
+										this.xpos, this.ypos,
+										this.width, this.height,
 										(Hwnd)0,
 										(Hmenu)0,
 										hins, null);
-		if (f.handle) {
-			f._isCreated = true;
-			api_SetWindowLongPtr(f.handle, GWLP_USERDATA, (Longptr)((void*)f));
-			f.setFontInternal();
+		if (this.handle) {
+			this._isCreated = true;
+			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
+			this.setFontInternal();
 		}
 	}
 
-	fn void Form.show(Form* f) {
-		api_ShowWindow(f.handle, 5);
-		api_UpdateWindow(f.handle);
+	fn void Form.show(Form* this) {
+		api_ShowWindow(this.handle, 5);
+		api_UpdateWindow(this.handle);
 		if (!mainLoopStarted) {
 			mainLoopStarted = true;
-			f._isMainWindow = true;
+			this._isMainWindow = true;
 			Msg pMsg;
 			while (api_GetMessage(&pMsg, null, 0, 0) > 0) {
 				api_TranslateMessage(&pMsg);
 				api_DispatchMessage(&pMsg);
 			}
 		}
-		log("Form ended successfully....");
 	}
 
-	fn void Form.setBackColor(Form* f, uint clr) {
-		f.backColor.updateColor(clr);
-		f._fDrawMode = FormDrawMode.FLAT_COLOR;
-		f._bkBrush = api_CreateSolidBrush(f.backColor.ref);
-		if (f._isCreated) api_InvalidateRect(f.handle, null, false);
+	fn void Form.setBackColor(Form* this, uint clr) {
+		this.backColor.updateColor(clr);
+		this._fDrawMode = FormDrawMode.FLAT_COLOR;
+		this._bkBrush = api_CreateSolidBrush(this.backColor.ref);
+		if (this._isCreated) api_InvalidateRect(this.handle, null, false);
 	}
 
 	// A handy function to help find the points where we can place new controls.
-	fn void Form.printPoint(Form* f, MouseEventArgs* m) {
+	fn void Form.printPoint(Form* this, MouseEventArgs* m) {
 		cptf("X : %d,  Y : %d\n", m.x, m.y);
 	}
 
@@ -432,14 +418,6 @@ struct MenuEventData {
 		}
 	}
 
-	// private fn void Form.formMouseHoverHandler(Form* f, uint msg, Wparam wp, Lparam lp) {
-	// 	if (f._isMouseTracking) f._isMouseTracking = false;
-	// 	if (f.onMouseHover) {
-	// 		MouseEventArgs mea = newMouseEventArgs(msg, wp, lp);
-	// 		f.onMouseHover(f, &mea);
-	// 	}
-	// }
-
 	fn void Form.formMouseLeaveHandler(Form* f) @private {
 		if (f._isMouseEntered) f._isMouseEntered = false;
 		if (f.onMouseLeave) f.onMouseLeave(f, &&EventArgs{});
@@ -513,28 +491,10 @@ struct MenuEventData {
 		return null;
 	}
 
-	// private fn void Form.setMenuEvent(Form* this, MenuItem* menu, MenuEvents event, MenuEventHandler pFunc) {
-	// 	MenuEventData med;
-	// 	med.menu = menu;
-	// 	med.event = event;
-	// 	med.handler = pFunc;
-	// 	this.menuList.push(med);
-	// }
-
 	fault MenuEventError {MED_NOT_FOUND}
 
-	// fn MenuItem* Form.getMenuItem(Form* this, uint id, uint evt) @private {
-	// 	if (this.menuList.len()) {
-	// 		foreach (menu: this.menuList) {
-	// 			if (menu.idNum == id && menu._evtFlag & evt) return menu;
-	// 		}
-	// 	}
-	// 	return null;
-	// }
-
+	// This will execute when a Form destroyed
 	fn void Form.dtor(Form* this) @private {
-		// This will executed when a Form destroyed
-
 		if (this._bkBrush) {
 			api_DeleteObject((Hgdiobj)this._bkBrush);
 		}
@@ -544,15 +504,9 @@ struct MenuEventData {
 			foreach (ctl: this.controls) {
 				Lresult ret = api_SendMessage(ctl.handle, MM_RUNDTOR, 0, 0);
 			}
-			io::printn("Form destroyed");
 		}
-
 		this.controls.free();
-
 		this.name.free();
-		// this.sText.destroy();
-
-
 		if (this.menubar) {
 			this.menubar.destroy();
 			free(this.menubar);
@@ -563,17 +517,12 @@ struct MenuEventData {
 		free(this);
 	}
 
-
 // End Private Functions
-int cnt = 1;
 
 fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
-
 	// ptf("WIn Message %s", msg);
-	Form* this = (Form*)(api_GetWindowLongPtr(hw, GWLP_USERDATA));
-	// f.print(msg, "Message");
-	// ptf("[%s] Form Message %s", cnt, msg  );
-	// cnt += 1;
+	// Form* this = (Form*)(api_GetWindowLongPtr(hw, GWLP_USERDATA));
+	Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 	switch (msg) {
 	// Common msgs
 		case WM_SHOWWINDOW: this.formShownHandler();
@@ -648,7 +597,6 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 				pmi.itemWidth = 100;
 				pmi.itemHeight = 25;
 			}
-			ptf("Measure : %s", mi.text);
 			return 1;
 
 		case WM_DRAWITEM:
