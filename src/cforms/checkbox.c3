@@ -1,5 +1,3 @@
-
-
 // checkbox module - Created on 08-Feb-2023 01:50
 
 module cforms;
@@ -99,7 +97,7 @@ struct CheckBox {
 
 	// Freeing resources used for this CheckBox.
 	fn void CheckBox.dtor(CheckBox* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 		free(this);
@@ -108,7 +106,7 @@ struct CheckBox {
 
 
 fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	CheckBox* this = (CheckBox*)((void*)refData);
+	CheckBox* this = bitcast(refData, CheckBox*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &cbWndProc, scID);
@@ -131,8 +129,6 @@ fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_STATIC: return (Lresult) this.colorMsgHandler(wp);
 		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(lp);
-
-		// case WM_PAINT: return this.paintHandler(msg, wp, lp);
 
 		case MM_CTL_COMMAND :
 			this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);

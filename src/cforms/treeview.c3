@@ -1,4 +1,3 @@
-
 // treeview module - Created on 14-Feb-2023 01:13
 
 module cforms;
@@ -492,7 +491,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 
 fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	TreeView* this = (TreeView*)((void*)refData);
+	TreeView* this = bitcast(refData, TreeView*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &tvWndProc, scID);

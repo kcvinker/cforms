@@ -1,10 +1,8 @@
-
 // control module - Created on 25-Jan-2023 19:43
 module cforms;
 
 import libc;
 import std::io;
-// import private fonts;
 
 iptr globalCtlID = 100;
 ulong globalSubClsID = 1000;
@@ -127,10 +125,8 @@ fault StringFault {
 		if (this._isCreated && this._textable) {
 			return this.getTextInternal();
 		}
-
 		if (!this._isCreated && this._textable) return "";
 		return "";
-
 	}
 
 	fn void Control.setContextMenu(Control* this, ContextMenu* cmenu) {
@@ -178,7 +174,7 @@ fault StringFault {
 	}
 
 	fn void Control.setSubClass(Control* ctl, Subclassproc pFunc) @private {
-		api_SetWindowSubclass(ctl.handle, pFunc, globalSubClsID, (Dwordptr)ctl);
+		api_SetWindowSubclass(ctl.handle, pFunc, globalSubClsID, bitcast(ctl, Dwordptr));
 		globalSubClsID += 1;
 	}
 
@@ -227,7 +223,6 @@ fault StringFault {
 	fn String Control.getTextInternal(Control* this, Hwnd hw = null) @private {
 		Hwnd hwnd = hw ? hw : this.handle;
 		int tLen = api_GetWindowTextLength(hwnd);
-
 		if (tLen) {
 			@pool() {
 				Char16[] buffer = tmalloc(Char16, tLen + 1);

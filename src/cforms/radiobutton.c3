@@ -1,4 +1,3 @@
-
 // radiobutton module - Created on 08-Feb-2023 08:13
 
 module cforms;
@@ -107,7 +106,7 @@ struct RadioButton {
 
 	// Freeing resources used for this RadioButton.
 	fn void RadioButton.dtor(RadioButton* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 		free(this);
@@ -116,7 +115,7 @@ struct RadioButton {
 
 
 fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	RadioButton* this = (RadioButton*)((void*)refData);
+	RadioButton* this = bitcast(refData, RadioButton*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &rbWndProc, scID);

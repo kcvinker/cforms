@@ -1,4 +1,3 @@
-
 // listbox module - Created on 08-Feb-2023 11:32
 // Note: Add selectedIndices property
 module cforms;
@@ -254,7 +253,7 @@ struct ListBox {
 
 	// Freeing resources used for this ListBox.
 	fn void ListBox.dtor(ListBox* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		this.selectedIndices.free();
 		this.items.free();
@@ -265,7 +264,7 @@ struct ListBox {
 
 
 fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	ListBox* this = (ListBox*)((void*)refData);
+	ListBox* this = bitcast(refData, ListBox*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbxWndProc, scID);

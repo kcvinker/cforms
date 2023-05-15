@@ -1,4 +1,3 @@
-
 // menubar module - Created on 19-Feb-2023 07:58
 
 module cforms;
@@ -6,7 +5,7 @@ import std::io;
 import std::core::mem;
 import std::collections::list;
 import std::collections::map;
-import libc;
+// import libc;
 
 typedef MenuItemList = List<MenuItem*>;
 typedef MenuMap = std::collections::map::HashMap<String, MenuItem*>;
@@ -18,7 +17,6 @@ Hmenu nullMenu = (Hmenu)0;
 // MenuBar structure
 struct MenuBar {
 	Hmenu handle;
-	// MenuItemList menus;
 	MenuMap menus;
 	Font font;
 	Hwnd _formHwnd;
@@ -47,7 +45,6 @@ struct MenuItem {
 	bool _formMenu;
 	String text;
 	MenuType kind;
-	// MenuItemList menus;
 	MenuMap menus;
 	MenuItem* _parent;
 	uint uFlag;
@@ -144,7 +141,7 @@ fn void MenuItem.insertMenuInternal(MenuItem* this, Hmenu parentHmenu) {
     mii.fType = MF_OWNERDRAW;
     mii.dwTypeData = sText;
     mii.cch = (uint)this.text.len;
-    mii.dwItemData = (Ulongptr)((void*) this);
+    mii.dwItemData = bitcast(this, Ulongptr);
     mii.wID = this.idNum;
     mii.hSubMenu = this._popup ? this.handle : nullMenu;
     api_InsertMenuItemW(parentHmenu, this.idNum, 0, &mii);
@@ -223,7 +220,6 @@ fn void MenuItem.addMenus(MenuItem* this, String... menuNames ) {
 		this.menus[name] = result;
 		Lparam lpm = (Lparam)((void*)result);
 		if (result._formMenu)api_SendMessage(result._formHwnd, MM_MENU_ADDED, (Wparam)result.idNum, lpm);
-
 	}
 }
 
@@ -345,7 +341,7 @@ fn void ContextMenu.setDummyControl(ContextMenu* this) { // This will be get cal
 		hinsta = this.parent._parent.hinst;
 	}
 	this._dummyHwnd = api_CreateWindowEx(0,  toChar16p("Button"), null, WS_CHILD, 0, 0, 0, 0, pHwnd, null, hinsta, null);
-	api_SetWindowSubclass(this._dummyHwnd, &cmenuWndProc,  globalSubClsID, (Dwordptr) this);
+	api_SetWindowSubclass(this._dummyHwnd, &cmenuWndProc,  globalSubClsID, bitcast(this, Dwordptr));
 	globalSubClsID += 1;
 	if (!this.font.handle) this.font.createHandle(this._dummyHwnd);
 }
@@ -386,7 +382,7 @@ fn void ContextMenu.destroy(ContextMenu* this) {
 }
 
 fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	ContextMenu* this = (ContextMenu*)((void*)refData);
+	ContextMenu* this = bitcast(refData, ContextMenu*);
 	switch (msg) {
 		case WM_DESTROY:
 			this.destroy();

@@ -1,4 +1,3 @@
-
 // trackbar module - Created on 13-Feb-2023 13:07
 
 module cforms;
@@ -437,7 +436,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 	// Freeing resources used for this TrackBar.
 	fn void TrackBar.dtor(TrackBar* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		this._tdList.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
@@ -447,7 +446,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 
 fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	TrackBar* this = (TrackBar*)((void*)refData);
+	TrackBar* this = bitcast(refData, TrackBar*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &tkbWndProc, scID);

@@ -1,4 +1,3 @@
-
 // datetimepicker module - Created on 09-Feb-2023 01:30
 
 module cforms;
@@ -150,7 +149,7 @@ struct DateTime {
 
 	// Freeing resources used for this DateTimePicker.
 	fn void DateTimePicker.dtor(DateTimePicker* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 		free(this);
@@ -159,7 +158,7 @@ struct DateTime {
 
 
 fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	DateTimePicker* this = (DateTimePicker*)((void*)refData);
+	DateTimePicker* this = bitcast(refData, DateTimePicker*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &dtpWndProc, scID);

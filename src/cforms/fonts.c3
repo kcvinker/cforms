@@ -1,4 +1,3 @@
-
 //font module - Created on 26-Jan-2023 06:20
 
 module cforms;
@@ -73,7 +72,6 @@ fn void Font.createHandle(Font* f, Hwnd hwnd) {
 	Char16[] s = String.to_utf16(f.name)!!;
 	defer free(s);
 	lf.lfFaceName[:s.len + 1] = s[:s.len + 1]; // Copying wchar array to lfFaceName
-
 	lf.lfHeight = iHeight;
 	lf.lfWeight =  (long)((int)f.weight * 100) + 100;
 	lf.lfCharSet = DEFAULT_CHARSET;

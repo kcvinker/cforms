@@ -1,4 +1,3 @@
-
 // groupbox module - Created on 16-Feb-2023 06:55
 
 module cforms;
@@ -132,7 +131,7 @@ struct GroupBox {
 
 	// Freeing resources used for this GroupBox.
 	fn void GroupBox.dtor(GroupBox* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 		if (this._pen) api_DeleteObject(this._pen);
@@ -142,7 +141,7 @@ struct GroupBox {
 
 
 fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	GroupBox* this = (GroupBox*)((void*)refData);
+	GroupBox* this = bitcast(refData, GroupBox*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &gbWndProc, scID);

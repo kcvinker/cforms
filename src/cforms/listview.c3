@@ -1,4 +1,3 @@
-
 // listview module - Created on 14-Feb-2023 01:13
 
 module cforms;
@@ -250,21 +249,6 @@ enum ListViewStyle : char {
 		return item;
 	}
 
-	// Add more than one item to ListView. Use newListViewItem function to create an item.
-	// fn void ListView.addItems1(ListView* this, ListViewItem*... items) {
-	// 	if (this._itemIndex == -1) this._itemIndex = 0;
-	// 	foreach (item: items) {
-	// 		item.index = this._itemIndex;
-	// 		item.font = this.font;
-	// 		this.addItemInternal(item);
-	// 		if (item.subItems.len()) {
-	// 			foreach (i, sitem: item.subItems) {
-	// 				this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 
 	// Add string items or ListViewItem pointers,
 	macro void ListView.addItems(ListView* this, txtOrItems...) {
@@ -351,7 +335,7 @@ enum ListViewStyle : char {
         lvi.iImage = item.imageIndex;
         lvi.pszText = sitem;// String.to_utf16(item.text).ptr!!;
         lvi.cchTextMax = item.text.len;
-        // lvi.lParam = id(item)
+        // lvi.lParam = bitcast(item, Lparam);
        	this.sendMsg(LVM_INSERTITEMW, 0, &lvi);
         this.items.append(item);
 		this._itemIndex += 1;
@@ -374,7 +358,7 @@ enum ListViewStyle : char {
 	// Get the Header handle & subclass it.
 	fn void ListView.setHeaderSubclass(ListView* this) @private {
 		this._hdrHwnd = (Hwnd) this.sendMsg(LVM_GETHEADER, 0, 0);
-		api_SetWindowSubclass(this._hdrHwnd, &hdrWndProc, globalSubClsID, (Dwordptr)this);
+		api_SetWindowSubclass(this._hdrHwnd, &hdrWndProc, globalSubClsID, bitcast(this, Dwordptr));
 		globalSubClsID += 1;
 	}
 
@@ -443,7 +427,7 @@ enum ListViewStyle : char {
 
 	// Destructor for ListViewItem
 	fn void ListViewItem.destroy(ListViewItem* this) @private {
-		ptf("Item index %s", this.index );
+		// ptf("Item index %s", this.index );
 		this.subItems.free();
 		free(this);
 	}
@@ -464,7 +448,7 @@ enum ListViewStyle : char {
 
 
 fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	ListView* this = (ListView*)((void*)refData);
+	ListView* this = bitcast(refData, ListView*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lvWndProc, scID);
@@ -497,7 +481,7 @@ fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 }
 
 fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	ListView* this = (ListView*)((void*)refData);
+	ListView* this = bitcast(refData, ListView*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &hdrWndProc, scID);

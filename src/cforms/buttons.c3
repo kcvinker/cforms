@@ -1,4 +1,3 @@
-
 // button module - Created on 26-Jan-2023 01:36
 
 module cforms;
@@ -30,17 +29,17 @@ struct FlatDraw {
 }
 
 // Setting the required info needed to draw a flat color button.
-fn void FlatDraw.setData(FlatDraw* f, Color c) @private {
+fn void FlatDraw.setData(FlatDraw* this, Color c) @private {
 	RgbColor hotRc = c.makeRgbColor();
 	RgbColor frmRc = c.makeRgbColor();
 	double hotAdj = hotRc.isDark() ? 1.5 : 1.2;
 	double frmAdj = 0.5;
 	hotRc.changeShade(hotAdj);
 
-	f.defBrush = api_CreateSolidBrush(c.ref);
-	f.hotBrush = api_CreateSolidBrush(hotRc.ref);
-	f.defPen = api_CreatePen(PS_SOLID, 1, frmRc.changeShadeCREF(0.6));
-	f.hotPen = api_CreatePen(PS_SOLID, 1, frmRc.changeShadeCREF(0.3));
+	this.defBrush = api_CreateSolidBrush(c.ref);
+	this.hotBrush = api_CreateSolidBrush(hotRc.ref);
+	this.defPen = api_CreatePen(PS_SOLID, 1, frmRc.changeShadeCREF(0.6));
+	this.hotPen = api_CreatePen(PS_SOLID, 1, frmRc.changeShadeCREF(0.3));
 }
 
 // This struct holds the info for drawing gradient bkg on button.
@@ -112,7 +111,6 @@ fn void GradDraw.dtor(GradDraw* g) @private {
 	fn void Button.createHandle(Button* this) {
 		this.createInternal();
 		if (this.handle) {
-			// this._parent.bhw = this.handle;
 			this.setSubClass(&btnWndProc);
 			this.setFontInternal();
 			this._parent.controls.append(this);
@@ -241,7 +239,7 @@ fn void GradDraw.dtor(GradDraw* g) @private {
 
 
 fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	Button* this = (Button*)((void*)refData);
+	Button* this = bitcast(refData, Button*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &btnWndProc, scID);;

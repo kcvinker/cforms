@@ -1,4 +1,3 @@
-
 // calendar module - Created on 12-Feb-2023 06:23
 
 module cforms;
@@ -131,7 +130,7 @@ enum ViewMode : int {
 
 	// Freeing resources used for this Calendar.
 	fn void Calendar.dtor(Calendar* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		free(this);
 	}
@@ -139,7 +138,7 @@ enum ViewMode : int {
 
 
 fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	Calendar* this = (Calendar*)((void*)refData);
+	Calendar* this = bitcast(refData, Calendar*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &calWndProc, scID);

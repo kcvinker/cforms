@@ -1,4 +1,3 @@
-
 // numberpicker module - Created on 09-Feb-2023 12:37
 
 module cforms;
@@ -125,11 +124,11 @@ struct NumberPicker {
 		globalCtlID += 1;
 		static Char16[*] updClassName = {'m', 's', 'c', 't', 'l', 's', '_', 'u', 'p', 'd', 'o', 'w', 'n', '3', '2', 0};
 		this.handle = api_CreateWindowEx( this._exStyle,
-                                                &updClassName[0],
-                                                null, this._style,
-                                                0, 0, 0, 0,
-                                                this._parent.handle, (Hmenu)this.ctlID,
-                                                this._parent.hinst, null);
+											&updClassName[0],
+											null, this._style,
+											0, 0, 0, 0,
+											this._parent.handle, (Hmenu)this.ctlID,
+											this._parent.hinst, null);
 		if (this.handle) this._isCreated = true;
 	}
 
@@ -163,7 +162,7 @@ struct NumberPicker {
 
 	fn void NumberPicker.setBuddySubclass(NumberPicker* this) @private {
 		// this.setSubClass(&npWndProc);
-		api_SetWindowSubclass(this.buddyHandle, &buddyWndProc, globalSubClsID, (Dwordptr)this);
+		api_SetWindowSubclass(this.buddyHandle, &buddyWndProc, globalSubClsID, bitcast(this, Dwordptr));
 		globalSubClsID += 1;
 	}
 
@@ -264,7 +263,7 @@ struct NumberPicker {
 
 	// Freeing resources used for this NumberPicker.
 	fn void NumberPicker.dtor(NumberPicker* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		this.fmtStr.free();
 		this.valStr.free();
@@ -272,13 +271,12 @@ struct NumberPicker {
 		api_DeleteObject(this.font.handle);
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
 		free(this);
-
 	}
 // End of Private functions
 
 
 fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	NumberPicker* this = (NumberPicker*)((void*)refData);
+	NumberPicker* this = bitcast(refData, NumberPicker*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &npWndProc, scID);
@@ -319,7 +317,7 @@ fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 
 
 fn Lresult buddyWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	NumberPicker* this = (NumberPicker*)((void*)refData);
+	NumberPicker* this = bitcast(refData, NumberPicker*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &buddyWndProc, scID);

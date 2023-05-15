@@ -1,4 +1,3 @@
-
 // label module - Created on 04-Feb-2023 01:15
 
 module cforms;
@@ -94,15 +93,13 @@ struct Label {
 	fn void Label.dtor(Label* this) @private {
 		this.name.free();
 		api_DeleteObject(this._bkBrush);
-		print("lbl destroyed");
-		ptf("lb width  %s", this.text);
 		free(this);
 	}
 // End of Private functions
 
 
 fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	Label* this = (Label*)((void*)refData);
+	Label* this = bitcast(refData, Label*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbWndProc, scID);

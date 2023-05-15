@@ -1,4 +1,3 @@
-
 // textbox module - Created on 04-Feb-2023 12:35
 
 module cforms;
@@ -119,7 +118,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 
 	// Freeing resources used for this TextBox.
 	fn void TextBox.dtor(TextBox* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		this.cueStr.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
@@ -129,7 +128,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 
 
 fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	TextBox* this = (TextBox*)((void*)refData);
+	TextBox* this = bitcast(refData, TextBox*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(this.handle, &tbWndProc, scID);

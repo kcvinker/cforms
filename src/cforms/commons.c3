@@ -208,24 +208,6 @@ macro String toStr(x) {
 }
 
 fn void printStr(String ca) { io::printn((char*)&ca);}
-// fn void printStr2(String ca, variant x) {
-// 	char[] fmt;
-// 	switch (x) {
-// 		case int:
-// 			io::printfn("%s - %d", (char*)&ca, *(int*)x);
-// 		case double:
-// 			io::printfn("%s - %f", (char*)&ca, *(double*)x);
-// 		case float:
-// 			io::printfn("%s - %f", (char*)&ca, *(float*)x);
-// 		case Hwnd:
-// 			io::printfn("%s - %p", (char*)&ca, *(Hwnd*)x);
-// 		case String:
-
-// 			io::printfn("%s - %p", (char*)&ca, ((String*)x)[0] );
-
-// 	}
-
-// }
 
 fn void concatNum(char* s, char* name,  int i) {
 	int ret = libc::sprintf(s, "%s_%d", name, i);

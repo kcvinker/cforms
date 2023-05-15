@@ -1,4 +1,3 @@
-
 // progressbar module - Created on 12-Feb-2023 08:51
 
 module cforms;
@@ -159,7 +158,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 
 	// Freeing resources used for this ProgressBar.
 	fn void ProgressBar.dtor(ProgressBar* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		free(this);
 	}
@@ -167,7 +166,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 
 
 fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	ProgressBar* this = (ProgressBar*)((void*)refData);
+	ProgressBar* this = bitcast(refData, ProgressBar*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &pbWndProc, scID);

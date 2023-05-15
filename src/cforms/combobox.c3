@@ -1,5 +1,3 @@
-
-
 // combobox module - Created on 04-Feb-2023 21:58
 
 module cforms;
@@ -100,18 +98,18 @@ struct CmbData {
 		$endif
 	}
 
-	macro void ComboBox.test(ComboBox* cmb, x) {
-		var $Type = $typeof(x);
-		$switch ($Type)
-		$case String: log("TEST: it's a string");
-		$case ZString: log("TEST: it's an Zstring");
+	// macro void ComboBox.test(ComboBox* cmb, x) {
+	// 	var $Type = $typeof(x);
+	// 	$switch ($Type)
+	// 	$case String: log("TEST: it's a string");
+	// 	$case ZString: log("TEST: it's an Zstring");
 
-		$default:
-			$if (@convertible(x, String)): log("TEST: it's convertible");
-			$else log("TEST: its hopeless");
-			$endif
-		$endswitch
-	}
+	// 	$default:
+	// 		$if (@convertible(x, String)): log("TEST: it's convertible");
+	// 		$else log("TEST: its hopeless");
+	// 		$endif
+	// 	$endswitch
+	// }
 
 // End of Public functions
 
@@ -147,7 +145,7 @@ struct CmbData {
 		this.sendMsg(CB_GETCOMBOBOXINFO, 0, &cmbInfo);
 		CmbData cd = CmbData{cmbInfo.hwndList, cmbInfo.hwndCombo};
 		this._parent._comboMap[cmbInfo.hwndList] = cmbInfo.hwndCombo; // Put the handle in parent's dic
-		api_SetWindowSubclass(cmbInfo.hwndItem, &cmbEditWndProc, editSubId, (Dwordptr)((void*)this));
+		api_SetWindowSubclass(cmbInfo.hwndItem, &cmbEditWndProc, editSubId, bitcast(this, Dwordptr));
 		editSubId += 1;
 		// ptf("Item hwnd - %s, List Hwnd - %s", cmbInfo.hwndItem, cmbInfo.hwndList );
 	}
@@ -239,7 +237,7 @@ struct CmbData {
 
 	// Freeing resources used for this ComboBox.
 	fn void ComboBox.dtor(ComboBox* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		this.items.free();
 		if (this._bkBrush) api_DeleteObject(this._bkBrush);
@@ -249,12 +247,10 @@ struct CmbData {
 
 
 fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
-	ComboBox* this = (ComboBox*)((void*)refData);
+	ComboBox* this = bitcast(refData, ComboBox*);
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY:
-			int res = api_RemoveWindowSubclass(hw, &cmbWndProc, scID);
-			ptf("rem sub class for combo %s", res );
+		case WM_DESTROY: api_RemoveWindowSubclass(hw, &cmbWndProc, scID);
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
 		case MM_MOUSE_LBCLICK: this.leftClickHandler();
@@ -281,9 +277,7 @@ fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
 	ComboBox* this = (ComboBox*)((void*)refData);
 	switch (msg) {
-		case WM_DESTROY:
-			int res = api_RemoveWindowSubclass(hw, &cmbEditWndProc, scID);
-			ptf("rem sub class for combo-edit %s", res );
+		case WM_DESTROY: api_RemoveWindowSubclass(hw, &cmbEditWndProc, scID);
 		case MM_COLOR_EDIT:
 			if (this._drawMode) {
 				Hdc hdc = (Hdc)wp;
@@ -329,3 +323,4 @@ fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID,
 	const Word CBN_SELENDCANCEL = 10;
 
 // End Constants
+
