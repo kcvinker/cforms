@@ -28,6 +28,9 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const uint MM_HSCROLL = 9009;
 	const uint MM_VSCROLL = 9010;
 	const uint MM_MENU_ADDED = 9011;
+	const uint MM_NODE_ADDED = 9012;
+	const uint MM_NODE_INSERTED = 9013;
+	const uint MM_NODE_DELETED = 9014;
 
 	const HDM_FIRST = 4608;
 	const HDM_LAYOUT = (HDM_FIRST + 5);
