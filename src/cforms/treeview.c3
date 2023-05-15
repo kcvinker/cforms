@@ -37,8 +37,8 @@ struct TreeNode {
 	TreeNode* parentNode;
 	Hwnd treeHwnd;
 	TreeNodeList nodes;
-	int imgIndex;
-	int selImgIndex;
+	int imageIndex;
+	int selImageIndex;
 	int childCount;
 	int index;
 	int nodeID;
@@ -78,13 +78,14 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		return this;
 	}
 
-	fn TreeNode newTreeNode(String txt, int image = -1, int selImage = -1) {
-		TreeNode this;
+	fn TreeNode* newTreeNode(String txt, int image_index = -1, int sel_image_index = -1, Allocator* using = mem::heap()) {
+		TreeNode* this = calloc(TreeNode, .using = using);
 		this.text = txt;
-		this.selImgIndex = -1;
+		this.selImageIndex = -sel_image_index;
+		this.imageIndex = image_index;
 		this.index = -1;
 		this.nodeCount = 0;
-		this.imgIndex = -1;
+		this.imageIndex = -1;
 		this.foreColor = newColor(0x000000);
 		this.backColor = newColor(0xFFFFFF);
 		return this;
@@ -104,86 +105,273 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		}
 	}
 
-	/**
-	 * @require this._isCreated
-	 **/
-	fn void TreeView.addNode(TreeView* this, TreeNode* node) {
+
+	fn TreeNode* TreeView.addNode1(TreeView* this, String txt, int img, int selImg) @private {
+		TreeNode* node = newTreeNode(txt, img, selImg);
+		this.addNodeInternal(NodeOps.ADDNODE, node);
+		return node;
+	}
+
+	fn void TreeView.addNode2(TreeView* this, TreeNode* node) @private {
 		this.addNodeInternal(NodeOps.ADDNODE, node);
 	}
 
 	/**
 	 * @require this._isCreated
+	 * Add a node to tree view. There are two overloads for this macro.
+	 * 1. nodeOrText = TreeNode pointer. In this case, imgIndex & selImgIndex are irrelevent.
+	 * 2. nodeOrText = A string. In this case macro returns the newly created node pointer.
 	 **/
-	fn void TreeView.addNodes(TreeView* this, TreeNode*... nodes) {
+	macro TreeNode* TreeView.addNode(TreeView* this, nodeOrText, imgIndex = -1, selImgIndex = -1) {
+		$switch ($typeof(nodeOrText))
+			$case String: return this.addNode1(nodeOrText, imgIndex, selImgIndex);
+			$case TreeNode*:
+				this.addNode2(nodeOrText);
+				return null;
+			$default: $error "No overload for type";
+		$endswitch
+	}
+
+	/**
+	 * @require this._isCreated
+	 * Add more than one node to tree view. There are two overloads for this macro.
+	 * 1. params = A group of TreeNode pointers
+	 * 2. params = A group of Strings
+	 **/
+	macro void TreeView.addNodes(TreeView* this, params...) {
+		any p1 = params[0]; // This may be a node text or a TreeNode pointer
+		switch (p1) {
+			case String:
+				foreach (txt: params) {
+					TreeNode* node = newTreeNode(txt);
+					this.addNodeInternal(NodeOps.ADDNODE, node);
+				}
+			case TreeNode*:
+				foreach (node: params) {this.addNodeInternal(NodeOps.ADDNODE, node);}
+			default:
+				print("Unknown type");
+		}
 		foreach (node: nodes) this.addNodeInternal(NodeOps.ADDNODE, node);
 	}
 
 	/**
 	 * @require this._isCreated
 	 **/
-	fn TreeNode TreeView.addNewNode(TreeView* this, String nodeTxt) {
-		TreeNode tn = newTreeNode(nodeTxt);
-		this.addNodeInternal(NodeOps.ADDNODE, &tn);
-		return tn;
-	}
-
-	/**
-	 * @require this._isCreated
-	 **/
-	fn TreeNode TreeView.addNewChildNode(TreeView* this, String nodeTxt, TreeNode* parentNode) {
-			TreeNode tn = newTreeNode(nodeTxt);
-			this.addNodeInternal(NodeOps.ADDCHILD, &tn, parentNode);
+	fn TreeNode* TreeView.addChildNode1(TreeView* this, String nodeTxt, TreeNode* parentNode, Allocator* using = mem::heap()) @private {
+			TreeNode* tn = newTreeNode(nodeTxt, .using = using);
+			this.addNodeInternal(NodeOps.ADDCHILD, tn, parentNode);
 			return tn;
 	}
 
 	/**
 	 * @require this._isCreated
 	 **/
-	fn void TreeView.addChildNode(TreeView* this, TreeNode* node, TreeNode* parent) {
+	fn void TreeView.addChildNode2(TreeView* this, TreeNode* node, TreeNode* parent) @private {
 		this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
 	}
 
-	/**
-	 * @require this._isCreated
-	 **/
-	fn void TreeView.addChildNodes(TreeView* this, TreeNode* parent, TreeNode*... nodes) {
+	macro TreeNode* TreeView.addChildNode(TreeView* this, TreeNode* parent, nodeOrText, Allocator* using = mem::heap()) {
+		$switch ($typeof(nodeOrText))
+			$case String: return this.addChildNode1(nodeOrText, parent, using);
+			$case TreeNode*:
+				this.addChildNode2(nodeOrText, parent);
+				return null;
+			$default: $error "No overload for type";
+		$endswitch
+	}
+
+	fn void TreeView.addChildNodes1(TreeView* this, TreeNode* parent, nodeTexts...) @private {
+		foreach (txt: nodeTexts) {
+			String* nodeTxt = (String*)txt;
+			TreeNode* node = newTreeNode(*nodeTxt);
+			this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
+		}
+	}
+
+	fn void TreeView.addChildNodes2(TreeView* this, TreeNode* parent, TreeNode*... nodes) @private {
 		foreach (node: nodes) this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
 	}
 
-
 	/**
 	 * @require this._isCreated
 	 **/
-	fn void TreeView.insertNode(TreeView* this, TreeNode* node, int index) {
+	macro void TreeView.addChildNodes(TreeView* this, TreeNode* parent, childs...) {
+		any p1 = chlds[0];
+		switch (p1) {
+			case String: this.addChildNodes1(parent, childs);
+			case TreeNode*: this.addChildNodes2(parent, childs);
+			default: print("Unknown type");
+		}
+	}
+
+	fn TreeNode* TreeView.insertNode1(TreeView* this, String nodeTxt, int index, Allocator* using = mem::heap()) @private {
+		TreeNode* node = newTreeNode(nodeTxt, .using = using);
+		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
+		return node;
+	}
+
+	fn void TreeView.insertNode2(TreeView* this, TreeNode* node, int index) @private {
 		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
 	}
 
-	/**
-	 * @require this._isCreated
-	 **/
-	fn TreeNode TreeView.insertNewNode(TreeView* this, String nodeTxt, int index) {
-		TreeNode tn = newTreeNode(nodeTxt);
-		this.addNodeInternal(NodeOps.INSERTNODE, &tn, .pos = index);
+	macro TreeNode* TreeView.insertNode(TreeView* this, nodeOrText, indexNum, Allocator* using = mem::heap()) {
+		$switch ($typeof(nodeOrText))
+			$case String: return this.insertNode1(nodeOrText, indexNum, using);
+			$case TreeNode*:
+				this.insertNode2(nodeOrText, indexNum);
+				return null;
+			$default: $error "No overload for type";
+		$endswitch
+	}
+
+	fn TreeNode* TreeView.insertChildNode1(TreeView* this, String nodeTxt, TreeNode* parent, int index, Allocator* using = mem::heap()) @private {
+		TreeNode* tn = newTreeNode(nodeTxt, .using = using);
+		this.addNodeInternal(NodeOps.INSERTCHILD, tn, parent, index);
 		return tn;
 	}
 
-	/**
-	 * @require this._isCreated
-	 * @require index > -1
-	 **/
-	fn void TreeView.insertChildNode(TreeView* this, TreeNode* node, TreeNode* parent, int index) {
+	fn void TreeView.insertChildNode2(TreeView* this, TreeNode* node, TreeNode* parent, int index) @private {
 		this.addNodeInternal(NodeOps.INSERTCHILD, node, parent, index);
 	}
 
-	/**
-	 * @require this._isCreated
-	 * @require index > -1
-	 **/
-	fn TreeNode TreeView.insertNewChildNode(TreeView* this, String nodeTxt, TreeNode* parent, int index) {
-		TreeNode tn = newTreeNode(nodeTxt);
-		this.addNodeInternal(NodeOps.INSERTCHILD, &tn, parent, index);
-		return tn;
+	macro TreeNode* TreeView.insertChildNode(TreeView* this, TreeNode* parent, nodeOrText, indexNum, Allocator* using = mem::heap()) {
+		$switch ($typeof(nodeOrText))
+			$case String: return this.insertChildNode1(nodeOrText, parent, indexNum, using);
+			$case TreeNode*:
+				this.insertChildNode2(nodeOrText, parent, indexNum);
+				return null;
+			$default: $error "No overload for type";
+		$endswitch
 	}
+
+
+	// This macro can be used by both TreeView & TreeNode.
+	macro TreeNode* getNodeFromStringOrInt(parent, txtOrIndex) @private {
+		$switch ($typeof(txtOrIndex))
+			$case String:
+				if (parent.nodes.len() > 0) {
+					foreach (node: parent.nodes) {if (node.text == txtOrIndex) return node;}
+				}
+			$case int:
+				if (parent.nodes.len() > 0) {
+					foreach (node: parent.nodes) {if (node.index == txtOrIndex) return node;}
+				}
+			$default: return null;
+		$endswitch
+		return null;
+	}
+
+	// This macro can be used by both TreeView & TreeNode.
+	macro void deleteNodeFromStringOrInt(parent, txtOrIndex) @private {
+		TreeNode* theNode;
+		$switch ($typeof(txtOrIndex))
+			$case String:
+				if (parent.nodes.len() > 0) {
+					foreach (node: parent.nodes) {
+						if (node.text == txtOrIndex) {
+							theNode = node;
+							break;
+						}
+					}
+				}
+			$case int:
+				if (parent.nodes.len() > 0) {
+					foreach (node: parent.nodes) {
+						if (node.index == txtOrIndex) {
+							theNode = node;
+							break;
+						}
+					}
+				}
+			$default: print("Unknown type");
+		$endswitch
+		if (theNode) {
+			$switch ($typeof(parent))
+				$case TreeView*:
+					api_SendMessage(parent.handle, TVM_DELETEITEM, 0, (Lparam) theNode.handle);
+					parent.nodes.remove(theNode);
+					theNode.destroy();
+				$case TreeNode*:
+					api_SendMessage(parent.treeHwnd, MM_NODE_DELETED, 0, theNode.toWpm());
+			$endswitch
+		} else {
+			print("The node is null");
+		}
+	}
+
+	// Delete a node. Parameter textOrIndex can be String or int.
+	macro void TreeView.deleteNode(TreeView* this, textOrIndex) {
+		deleteNodeFromStringOrInt(this, textOrIndex);
+	}
+
+	// Get a node by giving the text or index.
+	macro TreeNode* TreeView.getNode(TreeView* this, txtOrIndex) {
+		return getNodeFromStringOrInt(this, txtOrIndex);
+	}
+
+	//======================================TREENODE FUNCTIONS============================================================
+		// Private use
+		struct NodePack {
+			TreeNode* parent;
+			TreeNode* node;
+			int indexNum;
+		}
+
+		fn Wparam TreeNode.toWpm(TreeNode* this) @private {return (Wparam)((void*) this);}
+		fn Lparam TreeNode.toLpm(TreeNode* this) @private {return (Lparam)((void*) this);}
+
+		// Helper function for adding a child node
+		fn TreeNode* TreeNode.addChildNode1(TreeNode* this, String nodeTxt, Allocator* using = mem::heap()) @private {
+			TreeNode* node = newTreeNode(nodeTxt);
+			api_SendMessage(this.treeHwnd, MM_NODE_ADDED, node.toWpm(), this.toLpm());
+			return node;
+		}
+
+		// Helper function for adding a child node
+		fn void TreeNode.addChildNode2(TreeNode* this, TreeNode* node) @private {
+			api_SendMessage(this.treeHwnd, MM_NODE_ADDED, node.toWpm(), this.toLpm());
+		}
+
+		// Add child node node. Parameter nodeOrText can be string or node pointer.
+		macro TreeNode* TreeNode.addChildNode(TreeNode* this, nodeOrText, Allocator* using = mem::heap()) {
+			$switch ($typeof(nodeOrText))
+				$case String: return this.addChildNode1(nodeOrText, using);
+				$case TreeNode*:
+					this.addChildNode2(nodeOrText);
+					return null;
+				$default: $error "No overload for type";
+			$endswitch
+		}
+
+		// Insert child node node. Parameter nodeOrText can be string or node pointer.
+		macro TreeNode* TreeNode.insertChildNode(TreeNode* this, nodeOrText, indexNum, Allocator* using = mem::heap()) {
+			TreeNode* ret;
+			NodePack np;
+			$switch ($typeof(nodeOrText))
+				$case String:
+					np.node = newTreeNode(nodeOrText);
+					ret = np.node;
+				$case TreeNode*:
+					np.node = nodeOrText;
+					ret = null;
+				$default: $error "No overload for type";
+			$endswitch
+			np.parent = this;
+			np.indexNum = indexNum;
+			api_SendMessage(this.treeHwnd, MM_NODE_INSERTED, 0, (Lparam)((void*) &np));
+			return ret;
+		}
+
+		// Returns a child node node. Parameter nodeOrText can be string or node pointer.
+		macro TreeNode* TreeNode.getNode(TreeNode* this, txtOrIndex) {
+			return getNodeFromStringOrInt(this, txtOrIndex);
+		}
+
+		// Delete a node. Parameter textOrIndex can be String or int.
+		macro void TreeNode.deleteNode(TreeNode* this, textOrIndex) {
+			deleteNodeFromStringOrInt(this, textOrIndex);
+		}
+	// End of TreeNode functions
 
 // End of Public functions
 
@@ -208,11 +396,11 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		defer free(nodtext);
 		tvi.pszText = nodtext;
 		tvi.cchTextMax = node.text.len;
-		tvi.iImage = node.imgIndex;
-		tvi.iSelectedImage = node.selImgIndex;
+		tvi.iImage = node.imageIndex;
+		tvi.iSelectedImage = node.selImageIndex;
 		tvi.stateMask = TVIS_USERMASK;
-		if (node.imgIndex > -1) tvi.mask |= TVIF_IMAGE;
-		if (node.selImgIndex > -1) tvi.mask |= TVIF_SELECTEDIMAGE;
+		if (node.imageIndex > -1) tvi.mask |= TVIF_IMAGE;
+		if (node.selImageIndex > -1) tvi.mask |= TVIF_SELECTEDIMAGE;
 		// if (node.foreColor.value != 0x000000) self._node_clr_change = True;
 		return tvi;
 	}
@@ -284,18 +472,17 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		log("not implemented");
 	}
 
-
-
 	fn void TreeNode.destroy(TreeNode* this) @private {
 		// ptf("Node is destroying, node text %s, count : %s", this.text, this.nodeCount);
 		if (this.nodes.len()) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free(); // Finally free the container too.
+		free(this);
 	}
 
 
 	// Freeing resources used for this TreeView.
 	fn void TreeView.dtor(TreeView* this) @private {
-		ptf("%s is destroyed", this.name.str());
+		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this.nodeCount > 0) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free();
@@ -309,6 +496,20 @@ fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &tvWndProc, scID);
+		case MM_NODE_ADDED:
+			TreeNode* node = (TreeNode*)((void*) wp);
+			TreeNode* pnode = (TreeNode*)((void*) lp);
+			this.addChildNode(pnode, node);
+
+		case MM_NODE_INSERTED:
+			NodePack* np = (NodePack*)((void*) lp);
+			this.insertChildNode(np.parent, np.node, np.indexNum);
+
+		case MM_NODE_DELETED:
+			TreeNode* node = (TreeNode*)((void*) lp);
+			Lresult ret = this.sendMsg(TVM_DELETEITEM, 0, (Lparam) node.handle);
+			this.nodes.remove(node);
+			node.destroy();
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
