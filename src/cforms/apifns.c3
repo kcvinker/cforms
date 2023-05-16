@@ -112,6 +112,11 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 
 // Miscs
 	extern fn int api_MultiByteToWideChar(uint, Dword, char*, int, Lpwstr, int) @extern("MultiByteToWideChar");
+	extern fn Bool api_GetOpenFileName(OpenFileNameW*) @extern("GetOpenFileNameW");
+	extern fn Bool api_GetSaveFileName(OpenFileNameW*) @extern("GetSaveFileNameW");
+	extern fn PidList_Absolute api_SHBrowseForFolder(BrowseInfoW*) @extern("SHBrowseForFolderW");
+	extern fn Bool api_SHGetPathFromIDList(PcIdList_Absolute, Lpwstr) @extern("SHGetPathFromIDListW");
+	extern fn void api_CoTaskMemFree(void*) @extern("CoTaskMemFree");
 //
 
 

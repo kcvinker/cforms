@@ -43,6 +43,8 @@ const Dword UINT_MAX = 1UL << 32 - 1;
 // Function pointer types
 typedef Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
 typedef Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
+typedef OfnHookProc = fn Uintptr(Hwnd, uint, Wparam, Lparam);
+typedef BrowserCbProc = fn int(Hwnd, uint, Lparam, Lparam);
 
 struct Size {
 	Long cx;
@@ -309,9 +311,53 @@ struct DrawItemStruct {
 	Ulongptr itemData;
 }
 
+struct OpenFileNameW {
+	Dword         lStructSize;
+	Hwnd          hwndOwner;
+	Hinstance     hInstance;
+	Lpcwstr       lpstrFilter;
+	Lpwstr        lpstrCustomFilter;
+	Dword         nMaxCustFilter;
+	Dword         nFilterIndex;
+	Lpwstr        lpstrFile;
+	Dword         nMaxFile;
+	Lpwstr        lpstrFileTitle;
+	Dword         nMaxFileTitle;
+	Lpcwstr       lpstrInitialDir;
+	Lpcwstr       lpstrTitle;
+	Dword         flags;
+	Word          nFileOffset;
+	Word          nFileExtension;
+	Lpcwstr       lpstrDefExt;
+	Lparam        lCustData;
+	OfnHookProc lpfnHook;
+	Lpcwstr       lpTemplateName;
+	void          *pvReserved;
+	Dword         dwReserved;
+	Dword         flagsEx;
+}
 
+struct ShItemID {
+	ushort cb;
+	char[1] abID;
+}
 
+struct ItemIdList { ShItemID mkid; }
+typedef LpItemIdList = ItemIdList*;
+typedef ItemIdList_Absolute = ItemIdList;
+typedef PcIdList_Absolute = ItemIdList_Absolute*;
+typedef PidList_Absolute = ItemIdList_Absolute*;
 
+struct BrowseInfoW {
+	Hwnd              hwndOwner;
+	PcIdList_Absolute pidlRoot;
+	Lpwstr            pszDisplayName;
+	Lpcwstr           lpszTitle;
+	uint              ulFlags;
+	BrowserCbProc       lpfn;
+	Lparam            lParam;
+	int               iImage;
+}
 
 
 
