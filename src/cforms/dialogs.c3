@@ -1,8 +1,10 @@
 // dialogs module - Created on 16-May-2023 21:31
 
 module cforms;
+import std::collections::list;
 
 const MAX_PATH = 260;
+const NEW_MAX_PATH = 32768 + 256 * 100 + 1;
 const OFN_ALLOWMULTISELECT = 0x200;
 const OFN_PATHMUSTEXIST = 0x800;
 const OFN_FILEMUSTEXIST = 0x1000;
@@ -13,8 +15,11 @@ const BIF_NEWDIALOGSTYLE = 0x00000040;
 const BIF_EDITBOX = 0x00000010;
 const BIF_NONEWFOLDERBUTTON = 0x00000200;
 const BIF_BROWSEINCLUDEFILES = 0x00004000;
+const OFN_EXPLORER = 0x00080000;
 
 // enum DialogType {OPEN, SAVE} Not needed
+
+typedef FileList = List<String>;
 
 // Base class for all dialogs
 struct DialogBase {
@@ -30,6 +35,7 @@ struct FileOpenDialog {
     inline DialogBase base;
     bool multiSelection;
     bool showHiddenFiles;
+    FileList fileNames;
 }
 
 struct FileSaveDialog {
@@ -67,6 +73,33 @@ fn FolderBrowserDialog newFolderBrowserDialog(String title = "Save file", String
     this.title = title;
     this.initFolder = initialFolder;
     return this;
+}
+
+fn void FileOpenDialog.deleteFileNames(FileOpenDialog* this) {
+    if (this.multiSelection) this.fileNames.free();
+}
+
+fn void FileOpenDialog.extractFileNames(FileOpenDialog* this, Char16* buffer, int startPos) {
+    // If user select multiSelection property, we will get all the files names in one array.
+    // Since the elements are separated with null chars, we can extract them.
+    Char16[] wDir = buffer[:startPos - 1];
+    String dirPath = string::from_zutf16(&wDir[0])!!;
+    defer {free(dirPath); free(wDir);}
+    int offset = startPos;
+    @pool() {
+        for (int i = startPos; i < NEW_MAX_PATH; i++ ) {
+            Char16 wchar = buffer[i];
+            if (wchar == '\u0000') {
+                Char16[] slice = buffer[offset: i];
+                offset = i + 1;
+                String fname = string::from_zutf16(&slice[0])!!;
+                String fullPath = string::printf("%s\\%s", dirPath, fname);
+                defer {free(fname);  free(fullPath);}
+                this.fileNames.append(fullPath);
+                if (buffer[offset] == '\u0000') break;
+            }
+        }
+    };
 }
 
 // Show a dialog to user for open a file
@@ -109,36 +142,31 @@ fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = nu
 macro showDialogMacro(this, Hwnd hwnd = null) @private {
     OpenFileNameW ofn;
     ofn.hwndOwner = hwnd;
-    Char16[MAX_PATH] buffer;
+    Char16[NEW_MAX_PATH] buffer;
     Char16* initDirBuff = this.initFolder == "" ? (Char16*)0 : String.to_utf16(this.initFolder)!!;
     Char16* titleBuff = String.to_utf16(this.title)!!;
     Char16* filBuff = String.to_utf16(this.filter)!!;
     defer {free(initDirBuff); free(titleBuff); free(filBuff);}
     ofn.lStructSize = OpenFileNameW.sizeof;
     ofn.lpstrFile = &buffer[0];
-    bool openFile;
-    $switch ($typeof(this))
-        $case FileOpenDialog*:
-            ofn.flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-            if (this.multiSelection) ofn.flags |= OFN_ALLOWMULTISELECT;
-            if (this.showHiddenFiles) ofn.flags |= OFN_FORCESHOWHIDDEN;
-            openFile = true;
-        $case FileSaveDialog*:
-            ofn.flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
-            openFile = false;
-    $endswitch
-
     ofn.lpstrInitialDir = initDirBuff;
     ofn.lpstrTitle = titleBuff;
     ofn.lpstrFilter = filBuff;
-    ofn.nMaxFile = MAX_PATH;
+    ofn.nMaxFile = NEW_MAX_PATH;
     ofn.lpstrDefExt = (Char16*)0; // Without this, we won't get any extension.
+
     Bool ret = 0;
-    if (openFile) {
-        ret = api_GetOpenFileName(&ofn);
-    } else {
-        ret = api_GetSaveFileName(&ofn);
-    }
+    $switch ($typeof(this))
+        $case FileOpenDialog*:
+            ofn.flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+            if (this.multiSelection) ofn.flags |= OFN_ALLOWMULTISELECT | OFN_EXPLORER;
+            if (this.showHiddenFiles) ofn.flags |= OFN_FORCESHOWHIDDEN;
+            ret = api_GetOpenFileName(&ofn);
+            if (ret && this.multiSelection) this.extractFileNames(&buffer[0], ofn.nFileOffset);
+        $case FileSaveDialog*:
+            ofn.flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
+            ret = api_GetSaveFileName(&ofn);
+    $endswitch
     if (ret) {
         this.fileNameStart = ofn.nFileOffset;
         this.extStart = ofn.nFileExtension;
@@ -149,3 +177,4 @@ macro showDialogMacro(this, Hwnd hwnd = null) @private {
     }
     return false;
 }
+
