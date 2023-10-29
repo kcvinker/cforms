@@ -1,11 +1,11 @@
 // cforms.events - Created on 27-Jan-2023 01:56
 module cforms;
 
-typedef EventHandler = fn void(Control* c, EventArgs* e);
-typedef MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
-typedef SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
-typedef KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
-typedef DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
+def EventHandler = fn void(Control* c, EventArgs* e);
+def MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
+def SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
+def KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
+def DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
 
 struct Area {
 	int width;
@@ -108,6 +108,7 @@ fn KeyEventArgs newKeyEventArgs(Wparam wpm) {
 		case ALT:
 			this.altPressed = true;
 			this.modifier = Keys.ALT_MODIFIER;
+        default: break;
 	}
 	this.keyValue = this.keyCode.value;
 	return this;
@@ -321,4 +322,10 @@ enum Keys : int (String description, int value)
     SHIFT_MODIFIER("Shift Modifier", 65_536),
     CTRL_MODIFIER("Control Modifier", 131_072),
     ALT_MODIFIER("Alt Modifier", 262_144)
+}
+
+interface IMouseEvents
+{
+    // fn void test() ;
+    fn void onleftClick(Control* c, EventArgs* e) @optional;
 }

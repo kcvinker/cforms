@@ -1,119 +1,155 @@
 module cforms;
 import std::io;
-// import std::collections::list;
+
 import libc;
 
 // import lib::form;
-// define ptf = printf;
+// def ptf = printf;
 // import private apifns;
-define msgBox = _msgBox;
-define print = io::println;
-// define DblList = List<double>;
+def msgBox = _msgBox;
+def print = io::printn;
+// def DblList = List(<double>);
 
-Form frm;
-Button b1;
-Button b2;
-Button b3;
-Label lb;
-TextBox tb;
-ComboBox cmb;
-CheckBox cb;
-RadioButton rb;
-RadioButton rb2;
-ListBox lbx;
-DateTimePicker dtp;
-NumberPicker np;
-NumberPicker np2;
-NumberPicker np3;
-
-fn int main(char[][] args)
+Form* frm;
+Button* b1;
+Button* b2;
+Button* b3;
+Calendar* cal;
+Label* lb;
+TextBox* tb;
+ComboBox* cmb;
+CheckBox* cb;
+RadioButton* rb1;
+RadioButton* rb2;
+ListBox* lbx;
+DateTimePicker* dtp;
+NumberPicker* np1;
+NumberPicker* np2;
+// NumberPicker* np3;
+ProgressBar* pb;
+TrackBar* tk;
+TreeView* tv;
+GroupBox* gb;
+ListView* lv;
+// MenuBar* mb;
+int cntr = 1;
+fn void makeWindow(TrackingAllocator* tar)
 {
 
-	frm = newForm("Cforms gui library");
+	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	// frm.setBackColor(0xaaff00);
 	// frm.onMouseDown = &frmOnMouseDown;
-	frm.width = 600;
-	frm.onMouseDown = fn(c, e) => frm.printPoint(e);
+	// frm.width = 800;
+	// frm.onMouseDown = fn(c, e) => frm.printPoint(e);
 	frm.createHandle();
+	// ptf("form handle %d, form hinst: %d", frm.handle, frm.hinst );
+
+	// mb = newMenuBar(frm);
+	// mb.addMenus("File", "Edit", "Format");
+	// mb.menus["File"].addMenus("New Work", "Finish Work",  "Simple" );
+	// // mb.menus["File"].addMenu("New Work");
+	// // mb.menus["File"].addMenu("Finish Work");
+	// // mb.menus["File"].addMenu( "Simple" );
+	// mb.createHandle();
 
 
+	b1 = newButton(frm, "Normal Btn", 10, 10, .auto = true);
+	// b1.onMouseClick = &btnClick;
 
-	b1 = newButton(&frm, "Normal Btn");
-	b1.onMouseClick = &btnClick;
-	b1.createHandle();
-
-	b2 = newButton(&frm, "Flat Color", 152);
+	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10, .auto = true);
+	// b2.onMouseClick = &btnClick2;
 	b2.setBackColor(0xa663cc);
-	// b2.setForeColor(0xfefae0);
-	// b2.setGradientColor(0xF4F269, 0x82C26E);
-	b2.createHandle();
 
-	b3 = newButton(&frm, "Gradient", 292);
-	// b3.setForeColor(0x1f7a1f);
-	b3.setGradientColor(0xF4F269, 0x82C26E);
-	// b3.setForeColor(0xd80032);
-	b3.createHandle();
+	b3 = newButton(frm, "Gradient", b2.right() + 10, 10, .auto = true);
+	// // b3.setForeColor(0x1f7a1f);
+	b3.setGradientColor(0xeeef20, 0x70e000); //0xeeef20, 0x70e000, 0xF4F269, 0x82C26E
 
-	lb = newLabel(&frm, "Label one", 10, 60);
-	// lb.setBackColor(0xcaffbf);
-	lb.setForeColor(0xd00000);
-	lb.createHandle();
 
-	tb = newTextBox(&frm, "Type it", 84, 57);
-	tb.createHandle();
-	tb.setBackColor(0x48cae4);
-	tb.setForeColor(0x9d0208);
+	cmb = newComboBox(frm, b3.right() + 10, 10, .auto = true);
+	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
+	cmb.addItem(&&456.45654);
+	// cmb.setProperty("selindex", 1);
+	// setProperty(cmb, "selindex", 1);
 
-	cmb = newComboBox(&frm, 235, 57);
-	// tb.setFont("Calibri", 16);
-	String s = "Sumesh";
-	cmb.addItem("Vinod");
-	cmb.addItem("Vineetha");
-	cmb.addItem("Vinayak");
-	cmb.addItem(s);
-	cmb.createHandle();
-	cmb.setBackColor(0xf4acb7);
-	// cmb.setForeColor(0x3c096c);
+	dtp = newDateTimePicker(frm, cmb.right() + 10, 10, .auto = true);
 
-	cb = newCheckBox(&frm, "CheckBox 1", 395, 57);
-	cb.setForeColor(0x006400);
-	cb.createHandle();
+	gb = newGroupBox(frm,"Compiler Options", 10, b1.bottom() + 10, .height = 150, .auto = true);
+	gb.setForeColor(0x007f5f);
 
-	rb = newRadioButton(&frm, "Radio Button 1", 10, 110);
-	rb.setForeColor(0x2d00f7);
-	rb.createHandle();
-	rb2 = newRadioButton(&frm, "Radio Button 2", 10, 140);
-	rb2.createHandle();
+	cb = newCheckBox(frm, "Threads On", 20, gb.ypos + 30, .auto = true);
+	CheckBox* cb2 = newCheckBox(frm, "Hints Off", 20, cb.bottom() + 10, .auto = true);
+	// setProperty(cb, "checked", true);
+	// setProperty(cb, "text", "Sample");
 
-	lbx = newListBox(&frm, 144, 102);
-	// lbx.setForeColor(0x2d00f7);
+	GroupBox* gb2 = newGroupBox(frm,"Project Data", 10, gb.bottom() + 10, .height = 150, .auto = true);
+	gb2.setForeColor(0xe63946);
+	lb = newLabel(frm, "Line Space", 20, gb2.ypos + 30, .auto = true);
+
+
+	np1 = newNumberPicker(frm, lb.right() + 30, gb2.ypos + 30, .auto = true);
+	// setProperty(np1, "deciprec", 3);
+	// setProperty(np1, "step", 0.25);
+
+	// setProperty(np1, "value", 4.050);
+
+
+	Label* lb2 = newLabel(frm, "Thread Count", 20, np1.bottom() + 14, .auto = true);
+	np2 = newNumberPicker(frm, lb2.right() + 10, np1.bottom() + 10, .auto = true, .btnLeft = true);
+	np2.setBackColor(0xcdb4db);
+	// setProperty(np2, "buttonleft", true);
+
+	lbx = newListBox(frm, gb.right() + 10, b1.bottom() + 10, .auto = true);
+	// // lbx.setForeColor(0x2d00f7);
 	lbx.addItems("Windows", "MacOS", "Linux", "ReactOS");
-	// lbx.setBackColor(0x52b788);
-	// lbx.setForeColor(0xf94144);
-	lbx.createHandle();
+	// // lbx.setBackColor(0x52b788);
+	// // lbx.setForeColor(0xf94144);
 
-	dtp = newDateTimePicker(&frm, 10, 175);
-	dtp.createHandle();
 
-	np = newNumberPicker(&frm, 10, 215);
-	np.setBackColor(0x90be6d);
-	np.createHandle();
 
-	np2 = newNumberPicker(&frm, 10, 247);
-	// np2.setBackColor(0xd4d700);
-	np2.setForeColor(0xe5383b);
-	np2.createHandle();
+	lv = newListView(frm, lbx.right() + 10, b3.bottom() + 10, .width = 330, .height = 150, .auto = true);
+	lv.addColumns("Windows", "Linux", "MacOS", 100, 120, 100);
+	lv.addRow("Win7", "openSUSE", "Mojave");
+	lv.addRow("Win8", "Debian:", "Catalina");
+	lv.addRow("Win10", "Fedora", "Big Sur");
+	lv.addRow("Win11", "Ubuntu", "Monterey");
 
-	np3 = newNumberPicker(&frm, 10, 280);
-	np3.createHandle();
-	// ptf("buddy %s", np2.buddyHandle );
-	Rect rc;
-	api_GetClientRect(np.buddyHandle, &rc);
-	printRect(rc, "first buddy rect");
-	api_GetClientRect(np.handle, &rc);
-	printRect(rc, "first upd rect");
+	pb = newProgressBar(frm, 15, np2.bottom() + 15, .auto = true);
+	pb.showPercentage = true;
+
+	rb1 = newRadioButton(frm, "Console App", 20, cb2.bottom() + 10, .auto = true);
+	rb2 = newRadioButton(frm, "Gui App", 20, rb1.bottom() + 10, .auto = true);
+
+	tb = newTextBox(frm, "Enter text", gb2.right() + 10, lbx.bottom() + 10, .auto = true);
+	tk = newTrackBar(frm, gb2.right() + 10, tb.bottom() + 40, .auto = true, .evtFn = &onTrackChange );
+	tv = newTreeView(frm, tk.right() + 40, lv.bottom() + 20, .height = 250, .auto = true);
+	tv.addNodeWithChilds("Windows", "Vista", "Win7", "Win8", "Win10", "Win11");
+    tv.addNodeWithChilds("MacOS", "Mountain Lion", "Mavericks", "Catalina", "Big Sur", "Monterey");
+    tv.addNodeWithChilds("Linux", "RedHat", "Mint", "Ubuntu", "Debian", "Kali");
+
+	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10, .auto = true);
+
+	// lv.setContextMenuEx("Select Work", "Give Work", "Finish Work");
+
+
+	// ptf("Total allocated memory: %s, Allocation count: %s", tar.total_allocated(), tar.allocation_count())!!;
+
 	frm.show();
 
+}
+
+fn int main(String[] args) {
+	// Allocator* alloc = mem::heap();
+	// TrackingAllocator tal;
+	// mem::temp();
+	// tal.init(mem::heap());
+	TrackingAllocator tal = startTracking();
+	defer tal.free();
+	mem::@scoped(&tal) {
+		makeWindow(&tal);
+	};
+	// ptf("Window closed: allocated memory: %s, Allocation count: %s", tal.total_allocated(), tal.allocation_count());
+	printTrackReport(tal);
+	// log("Program ended");
 	return 0;
 }
 
@@ -125,10 +161,90 @@ fn void frmMouseDown(Control* c, MouseEventArgs* e) {
 	cptf("Mouse hovered %d, %d \n", e.x, e.y);
 }
 
-fn void btnClick(Control* c, EventArgs* e) {
-	String x = lbx.selectedItem();
-	ptf("Item %s", x );
-	free(x);
+fn void Control.onleftClick(&self, EventArgs* e)
+{
+	print("Button pressed");
+}
+
+// fn void btnClick(Control* c, EventArgs* e) {
+// 	// pb.setMarqueeAnimation(false);
+// 	// log("134");
+// 	@pool() {
+// 		Char16* wMsg = toChar16p("സി 3 ഭാഷ");
+// 		Char16* wcap = toChar16p("Caption");
+// 		_msgBox(null, wMsg, wcap, 0);
+// 	};
+// }
+
+// fn void btnClick2(Control* c, EventArgs* e) {
+// 	// tv.getNode(0).deleteNode("Win 7");
+// 	FileOpenDialog fod = newFileOpenDialog();
+// 	// FileSaveDialog fod = newFileSaveDialog();
+// 	// FolderBrowserDialog fod = newFolderBrowserDialog();
+// 	fod.multiSelection = true;
+// 	fod.showDialog(frm.handle);
+// 	ptf("%s", fod.selectedPath);
+// 	foreach (path: fod.fileNames) {print(path);}
+// 	fod.deleteFileNames();
+// }
+
+// fn void btnClick3(Control* c, EventArgs* e) {
+
+// 	ptf("tk.Value %s", tk.value);
+// }
+
+// fn void onMenuClick(MenuItem* m, EventArgs* e) {
+
+// 	ptf("menu text %s", m.text);
+// }
+
+fn void onTrackChange(Control* m, EventArgs* e) {
+
+	// ptf("2nd menu text %s", m.text);
+	pb.setValue(tk.value);
+
+}
+
+fn void onTrackChange1( any* m, any* e) {
+
+	// ptf("2nd menu text %s", m.text);
+	pb.setValue(tk.value);
+
 }
 
 
+
+
+//======================================
+
+// module cforms;
+
+// fn int main(char[][] args)
+// {
+// 	Form frm;
+// 	MenuBar mb;
+
+// 	frm = newForm("Cforms gui library");
+// 	frm.createHandle();
+
+// 	mb = newMenuBar(&frm);
+// 	MenuItem mFile = newBaseMenu("File");
+// 	MenuItem mEdit = newBaseMenu("Edit");
+
+// 	mb.addMenus(&mFile, &mEdit); // Add two main menus
+
+// 	MenuItem mStart = newMenu("Start");
+// 	MenuItem mExit = newMenu("Exit");
+
+// 	MenuItem mFormat = newMenu("Format");
+// 	MenuItem mDel = newMenu("Delete");
+
+// 	mFile.addMenus(&mStart, &mExit); // Add 2 submenus to File menu
+// 	mEdit.addMenus(&mFormat, &mDel); // Add 2 submenus to Edit menu
+
+// 	mStart.addClickHandler(fn(m,e) {ptf("Start menu click %s", m.text );});
+// 	mFormat.addClickHandler(fn(m,e) {ptf("Format menu click %s", m.text );});
+
+// 	frm.show();
+// 	return 0;
+// }

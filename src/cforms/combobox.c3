@@ -10,13 +10,14 @@ Uintptr editSubId = 50;
 bool noComboUsed = true;
 
 // ComboBox control struct
-struct ComboBox {
+struct ComboBox
+{
 	inline Control control;
-	int _selIndex;
-	int _ctID;
+	int selectedIndex;
+	bool hasInput;
 	StrList items;
 	bool _reEnabled;
-	bool hasInput;
+	int _ctID;
 	Hwnd _oldHwnd;
 
 	EventHandler onSelectionChanged;
@@ -28,14 +29,18 @@ struct ComboBox {
 	EventHandler onSelectionCancelled;
 }
 
-struct CmbData {
+struct CmbData
+{
 	Hwnd listHwnd;
 	Hwnd cmbHwnd;
 }
 
 // Public functions
 	// ComboBox constructor
-	fn ComboBox* newComboBox(Form* parent, int x = 10, int y = 10, int width = 140, int height = 27, Allocator* using = mem::heap()) {
+	fn ComboBox* newComboBox(Form* parent, int x = 10, int y = 10,
+								int width = 140, int height = 27,
+								bool auto = false, Allocator* using = mem::heap())
+	{
 		ComboBox* this = calloc(ComboBox, .using = using);
 		this.kind = ControlType.COMBO_BOX;
 		this.name = dstring::new("ComboBox_");
@@ -51,35 +56,41 @@ struct CmbData {
 		this.height = height;
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
-		this._selIndex = -1;
+		this.selectedIndex = -1;
 		cmbNumber += 1;
 		if (noComboUsed) {
 			this._parent._comboMap.init();
 			noComboUsed = false;
 		}
+		this._parent.controls.append(this);
+		if (auto) this.createHandle();
 		return this;
 	}
 
 	// Create the handle of ComboBox
-	fn void ComboBox.createHandle(ComboBox* this) {
+	fn void ComboBox.createHandle(ComboBox* this)
+	{
 		this.preCreationJobs();
 		this.createInternal(true);
-		if (this.handle) {
+		if (this.handle)
+		{
 			this.setSubClass(&cmbWndProc);
 			this.setFontInternal();
 			this.getComboInfo();
-			this._parent.controls.append(this);
 			this.insertItems();
-			if (this._selIndex > -1) this.sendMsg(CB_SETCURSEL, this._selIndex, 0);
+			if (this.selectedIndex > -1) this.sendMsg(CB_SETCURSEL, this.selectedIndex, 0);
 			this._reEnabled = false;
 		}
 	}
 
-	fn void ComboBox.setInput(ComboBox* this, bool value) {
-		if (this.hasInput != value) {
+	fn void ComboBox.enableInput(ComboBox* this, bool value)
+	{
+		if (this.hasInput != value)
+		{
 			this.hasInput = value;
-			if (this._isCreated) {
-				this._selIndex = (int)this.sendMsg(CB_GETCURSEL, 0, 0 );
+			if (this._isCreated)
+			{
+				this.selectedIndex = (int)this.sendMsg(CB_GETCURSEL, 0, 0 );
 				this._reEnabled = true;
 				api_DestroyWindow(this.handle);
 				this.createHandle();
@@ -87,15 +98,35 @@ struct CmbData {
 		}
 	}
 
-	macro void ComboBox.addItem(ComboBox* this, item) {
-		var $tp = $typeof(item).typeid;
-		$if ($tp == String.typeid):
-			this.items.append(item);
-		$else
-			$if (isStrLiteral(item)):
-				this.items.append(item);
-			$endif
-		$endif
+	// macro void ComboBox.addItem(ComboBox* this, item) 281023
+	// {
+	// 	var $tp = $typeof(item).typeid;
+	// 	$if ($tp == String.typeid):
+	// 		this.items.append(item);
+	// 	$else
+	// 		$if (isStrLiteral(item)):
+	// 			this.items.append(item);
+	// 		$endif
+	// 	$endif
+	// }
+
+	fn void ComboBox.addItem(&this, any* item)
+	{
+		this.putItemInternal(item);
+	}
+
+	fn void ComboBox.addItems(&this, args...)
+	{
+		foreach (item : args)
+		{
+			this.putItemInternal(item);
+		}
+	}
+
+	fn void ComboBox.setSelIndex(&this, int index)
+	{
+		this.selectedIndex = index;
+        if (this._isCreated) this.sendMsg(CB_SETCURSEL, index, 0);
 	}
 
 	// macro void ComboBox.test(ComboBox* cmb, x) {
@@ -115,23 +146,52 @@ struct CmbData {
 
 // Private functions
 
+	fn void ComboBox.putItemInternal(&this, any* item)
+	{
+		switch (item)
+		{
+			case String:
+				Char16* witem = String.to_utf16(*item).ptr!!;
+				defer free(witem);
+				this.sendMsg(CB_ADDSTRING, 0, witem);
+				this.items.append(*item);
+
+			default:
+				String sitem = numeralsToString(item);
+				Char16* witem = String.to_utf16(sitem).ptr!!;
+				defer {free(witem); free(sitem);}
+				this.sendMsg(CB_ADDSTRING, 0, witem);
+				this.items.append(sitem);
+		}
+	}
+
 	// Set pre creation info.
-	fn void ComboBox.preCreationJobs(ComboBox* this) @private {
-		if (!this._reEnabled) {
+	fn void ComboBox.preCreationJobs(ComboBox* this) @private
+	{
+		if (!this._reEnabled)
+		{
 			// Means, combo is creating freshly
 			this.setCtlID();
 			this._bkBrush = this.backColor.getBrush();
-			if (this.hasInput) {
+			if (this.hasInput)
+			{
 				this._style |= CBS_DROPDOWN;
-			} else {
+			}
+			else
+			{
 				this._style |= CBS_DROPDOWNLIST;
 			}
-		} else {
+		}
+		else
+		{
 			// This happens when combo recreates for a style change
-			if (this.hasInput) {
+			if (this.hasInput)
+			{
 				if ((this._style & CBS_DROPDOWNLIST) == CBS_DROPDOWNLIST) this._style ^= CBS_DROPDOWNLIST;
 				this._style |= CBS_DROPDOWN;
-			} else {
+			}
+			else
+			{
 				if ((this._style & CBS_DROPDOWN) == CBS_DROPDOWN) this._style ^= CBS_DROPDOWN;
 				this._style |= CBS_DROPDOWNLIST;
 			}
@@ -139,7 +199,8 @@ struct CmbData {
 	}
 
 	// Get and save the internal info of a ComboBox.
-	fn void ComboBox.getComboInfo(ComboBox* this) @private {
+	fn void ComboBox.getComboInfo(ComboBox* this) @private
+	{
 		ComboBoxInfo cmbInfo;
 		cmbInfo.cbSize = ComboBoxInfo.sizeof ;
 		this.sendMsg(CB_GETCOMBOBOXINFO, 0, &cmbInfo);
@@ -150,10 +211,13 @@ struct CmbData {
 		// ptf("Item hwnd - %s, List Hwnd - %s", cmbInfo.hwndItem, cmbInfo.hwndList );
 	}
 
-	fn void ComboBox.insertItems(ComboBox* this) @private {
-		if (this.items.len() > 0 ) {
+	fn void ComboBox.insertItems(ComboBox* this) @private
+	{
+		if (this.items.len() > 0 )
+		{
 			// log("items are ready");
-			foreach (item: this.items) {
+			foreach (item: this.items)
+			{
 				Char16* cmbtext = String.to_utf16(item).ptr!!;
 				defer free(cmbtext);
 				this.sendMsg(CB_ADDSTRING, 0, cmbtext);
@@ -161,28 +225,37 @@ struct CmbData {
 		}
 	}
 
-	fn Point getComboMousePoints() @private {
+	fn Point getComboMousePoints() @private
+	{
 		Dword value = api_GetMessagePos();
 		int x = (int)((short)loWord(value));
 		int y = (int)((short)hiWord(value));
 		return Point{x, y};
 	}
 
-	fn Bool isMouseInCombo(Hwnd hwn) @private {
+	fn Bool isMouseInCombo(Hwnd hwn) @private
+	{
 		Rect rc;
 		api_GetWindowRect(hwn, &rc);
 		Point pts = getComboMousePoints();
 		return api_PtInRect(&rc, pts);
 	}
 
-	fn Lresult ComboBox.cmbMouseLeaveHandler(ComboBox* this) @private {
-		if (this.hasInput) {
-			if (isMouseInCombo(this.handle)) {
+	fn Lresult ComboBox.cmbMouseLeaveHandler(ComboBox* this) @private
+	{
+		if (this.hasInput)
+		{
+			if (isMouseInCombo(this.handle))
+			{
 				return 1;
-			} else {
+			}
+			else
+			{
 				if (this.onMouseLeave) this.onMouseLeave(this, &&EventArgs{});
 			}
-		} else {
+		}
+		else
+		{
 			if (this.onMouseLeave) this.onMouseLeave(this, &&EventArgs{});
 		}
 		return 0;
@@ -190,8 +263,10 @@ struct CmbData {
 
 
 	// Handling back & fore color changing in WndProc function
-	fn Hbrush ComboBox.colorMsgHandler(ComboBox* this, Wparam wpm) @private {
-		if (this._drawMode) {
+	fn Hbrush ComboBox.colorMsgHandler(ComboBox* this, Wparam wpm) @private
+	{
+		if (this._drawMode)
+		{
 			Hdc hdc = (Hdc)wpm;
 			if (this._drawMode & 1) api_SetTextColor(hdc, this.foreColor.ref);
 			if (this._drawMode & 2) api_SetBkColor(hdc, this.backColor.ref);
@@ -199,9 +274,11 @@ struct CmbData {
 		return this._bkBrush;
 	}
 
-	fn void ComboBox.wmCommandHandler(ComboBox* this, Wparam wpm) @private {
+	fn void ComboBox.wmCommandHandler(ComboBox* this, Wparam wpm) @private
+	{
 		Word ncode = hiWord(wpm);
-        switch (ncode) {
+        switch (ncode)
+		{
 			case CBN_SELCHANGE:
 				if (this.onSelectionChanged) this.onSelectionChanged(this, &&EventArgs{});
 			case CBN_EDITCHANGE:
@@ -221,35 +298,44 @@ struct CmbData {
 
 	}
 
-	fn void ComboBox.cmbKeyDownHandler(ComboBox* this, Wparam wp) @private {
-		if (this.onKeyDown) {
+	fn void ComboBox.cmbKeyDownHandler(ComboBox* this, Wparam wp) @private
+	{
+		if (this.onKeyDown)
+		{
 			KeyEventArgs kea = newKeyEventArgs(wp);
 			this.onKeyDown(this, &kea);
 		}
 	}
 
-	fn void ComboBox.cmbKeyUpHandler(ComboBox* this, Wparam wp) @private {
-		if (this.onKeyUp) {
+	fn void ComboBox.cmbKeyUpHandler(ComboBox* this, Wparam wp) @private
+	{
+		if (this.onKeyUp)
+		{
 			KeyEventArgs kea = newKeyEventArgs(wp);
 			this.onKeyUp(this, &kea);
 		}
 	}
 
+
+
 	// Freeing resources used for this ComboBox.
-	fn void ComboBox.dtor(ComboBox* this) @private {
+	fn void ComboBox.dtor(ComboBox* this) @private
+	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		this.items.free();
-		if (this._bkBrush) api_DeleteObject(this._bkBrush);
+		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		free(this);
 	}
 // End of Private functions
 
 
-fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
+fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
+{
 	ComboBox* this = bitcast(refData, ComboBox*);
 	// io::printfn("message %s", msg);
-	switch (msg) {
+	switch (msg)
+	{
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &cmbWndProc, scID);
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
@@ -262,7 +348,7 @@ fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
 		case WM_MOUSELEAVE: return this.cmbMouseLeaveHandler();
 		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		// case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_LBOX: return (Lresult) this.colorMsgHandler(wp);
 		case MM_CTL_COMMAND: this.wmCommandHandler(wp);
 		case WM_KEYDOWN: this.keyDownHandler(wp);
@@ -274,12 +360,15 @@ fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 }
 
 
-fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
+fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
+{
 	ComboBox* this = (ComboBox*)((void*)refData);
-	switch (msg) {
+	switch (msg)
+	{
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &cmbEditWndProc, scID);
 		case MM_COLOR_EDIT:
-			if (this._drawMode) {
+			if (this._drawMode)
+			{
 				Hdc hdc = (Hdc)wp;
                 if (this._drawMode & (1 << 0)) api_SetTextColor(hdc, this.foreColor.ref);
                 if (this._drawMode & 2) api_SetBkColor(hdc, this.backColor.ref);

@@ -6,8 +6,8 @@ import std::io;
 import libc;
 import std::collections::list;
 
-typedef StrList = List<String>;
-typedef IntList = List<int>;
+def StrList = List(<String>);
+def IntList = List(<int>);
 
 const uint WHITE = 0xffffff;
 macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
@@ -138,6 +138,17 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const uint WS_VISIBLE = 268435456;
 
 	const int PS_SOLID = 0;
+	const Dword ES_NUMBER = 0x2000;
+	const Dword ES_LEFT	= 0;
+	const Dword ES_CENTER = 1;
+	const Dword ES_RIGHT = 2;
+
+	// Calendar & DTP constants
+	const Dword MCS_WEEKNUMBERS = 0x4;
+	const Dword MCS_NOTODAYCIRCLE = 0x8;
+	const Dword MCS_NOTODAY = 0x10;
+	const Dword MCS_NOTRAILINGDATES = 0x40;
+	const Dword MCS_SHORTDAYSOFWEEK = 0x80;
 
 
 
@@ -146,13 +157,16 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 
 // End of Common Constants
 fn Point getMousePoints(Lparam lpm) {return Point{loWord(lpm), hiWord(lpm)};}
-fn Point getMousePosOnMsg() {
+
+fn Point getMousePosOnMsg()
+{
     Dword dw_value = api_GetMessagePos();
 	Point p = {(long)(loWord(dw_value)), (long)(hiWord(dw_value))};
 	return p;
 }
 
-macro isStrLiteral(x) {
+macro isStrLiteral(x)
+{
 	var $res = false;
 	var $typ = $typeof(x).typeid;
 	$if ($typ.kindof == TypeKind.POINTER):
@@ -164,6 +178,15 @@ macro isStrLiteral(x) {
 	return $res;
 }
 
+fn String makeStringFromAny(any* value)
+{
+	switch (value)
+	{
+		case String: return *value;
+		default: return string::printf("%s", value);
+	}
+}
+
 fn void printWchars(Char16* txt, int count) {
 	cptf("wchar codes in font name 'Tahoma' : ", null);
 	for (int i = 0; i < count + 1; i++ ) {
@@ -172,21 +195,28 @@ fn void printWchars(Char16* txt, int count) {
 	io::printn("");
 }
 
-fn String int_to_string(int i, bool perc = false) @private {
-	@pool() {
-		DString ds = dstring::tnew_with_capacity(16);
-		if (perc) {ds.printf("%d%%", i);} else {ds.printf("%d", i);}
-		return ds.copy_str();
-	};
+fn String numeralsToString(any* value) @private
+{
+	// DString ds = dstring::tnew_with_capacity(16);
+	switch (value)
+	{
+		case int: return string::printf("%d", value);
+		case float: nextcase;
+		case double: return string::printf("%.2f", *value);
+		default: break;
+	}
+		// if (perc) {ds.printf("%d%%", *i);} else {ds.printf("%d", *i);}
+	return "";
+
 }
 
-fn char[] dbl_to_string(double i) @private {
-	@pool() {
-		DString v = dstring::new_with_capacity(16, mem::temp_allocator());
-		v.printf("%f", i);
-		return v.copy_str();
-	};
-}
+// fn char[] dbl_to_string(double i) @private { 261023
+// 	@pool() {
+// 		DString v = dstring::new_with_capacity(16, mem::temp_allocator());
+// 		v.printf("%f", i);
+// 		return v.copy_str();
+// 	};
+// }
 
 fn double strToDouble(String s) @private {
 	char* cp;
@@ -209,19 +239,24 @@ macro String toStr(x) {
 
 fn void printStr(String ca) { io::printn((char*)&ca);}
 
-fn void concatNum(char* s, char* name,  int i) {
+fn void concatNum(char* s, char* name,  int i)
+{
 	int ret = libc::sprintf(s, "%s_%d", name, i);
 	// io::printfn("btn name len %d", ret);
-	// return ret;
-
 }
 
-fn int getNumLength(int num) {
-	if (num < 10) {
+fn int getNumLength(int num)
+{
+	if (num < 10)
+	{
 		return 1;
-	} else if (num < 100) {
+	}
+	else if (num < 100)
+	{
 		return 2;
-	} else if (num < 1000) {
+	}
+	else if (num < 1000)
+	{
 		return 3;
 	}
 	return 1;
@@ -229,17 +264,18 @@ fn int getNumLength(int num) {
 
 
 
-fn void DString.concatNum(DString* vs, int num) {
-	// int nlen = getNumLength(num);
-	char[4] nstr;
-	int nLen = getNumLength(num);
-	char[] nStr = nstr[:nLen + 1];
-	libc::sprintf((char*)&nStr, "%d", num);
-	vs.append(((ZString)&nStr).as_str());
+// fn void DString.concatNum(DString* vs, int num) { 261023
+// 	// int nlen = getNumLength(num);
+// 	char[4] nstr;
+// 	int nLen = getNumLength(num);
+// 	char[] nStr = nstr[:nLen + 1];
+// 	libc::sprintf((char*)&nStr, "%d", num);
+// 	vs.append(((ZString)&nStr).as_str());
 
-}
+// }
 
-enum TextAlignment : char { // For label &
+enum TextAlignment : char
+{ // For label &
     TOPLEFT,
 	TOPCENTER,
 	TOPRIGHT,
@@ -253,17 +289,46 @@ enum TextAlignment : char { // For label &
 
 enum Alignment : char {LEFT, RIGHT, CENTER} // For ListView, TextBox
 
-fn void printRect(Rect rc, String msg = "Rect") {
+fn void printRect(Rect rc, String msg = "Rect")
+{
 	ptf("%s - Left: %s, Top: %s, Right: %s, Bottom: %s", msg, rc.left, rc.top, rc.right, rc.bottom  );
 }
 const CP_UTF8 = 65001;
 const MB_ERR_INVALID_CHARS = 0x00000008;
 
-fn Char16* toChar16p(String str, Allocator* allocator = mem::temp_allocator()) {
-	long size = api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, null, 0);
-	Char16* buffer = allocator.alloc((size + 1) * Char16.sizeof)!!;
-	api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, buffer, (int)size + 1);
-	buffer[size] = 0;
-	return buffer[:size];
+// fn Char16* toChar16p(String str, Allocator* allocator = mem::temp_allocator()) { 261023
+// 	long size = api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, null, 0);
+// 	Char16* buffer = allocator.alloc((size + 1) * Char16.sizeof)!!;
+// 	api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, buffer, (int)size + 1);
+// 	buffer[size] = 0;
+// 	return buffer[:size];
+// }
+
+fn TrackingAllocator startTracking()
+{
+	Allocator* alloc = mem::heap();
+	TrackingAllocator tal;
+	mem::temp();
+	tal.init(mem::heap());
+	return tal;
+}
+
+fn void printTrackReport(TrackingAllocator tal)
+{
+	@pool()
+	{
+		if (tal.map.len() > 0)
+		{
+			print("Showing memory tracking reports....");
+			foreach (k: tal.map.key_tlist())
+			{
+				ptf("map key: %p, map value: %d bytes", k, tal.map.get(k))!!;
+			}
+		}
+		else
+		{
+			print("No memory leaks found....");
+		}
+	};
 }
 

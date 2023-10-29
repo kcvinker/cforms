@@ -185,10 +185,10 @@ fn Hbrush createGradientBrush(Hdc dc, Rect rct, RgbColor c1, RgbColor c2, bool i
     Hbitmap hBmp = api_CreateCompatibleBitmap(dc, rct.right, rct.bottom);
     int loopEnd = isRtL ? rct.right : rct.bottom;
     // defer DeleteObject(tBrush);
-    defer api_DeleteObject(hBmp);
+    defer api_DeleteObject((Hgdiobj)hBmp);
     defer api_DeleteDC(memHDC);
 
-    api_SelectObject(memHDC, hBmp);
+    api_SelectObject(memHDC, (Hgdiobj)hBmp);
 
     for (int i = 0; i < loopEnd; i++) {
         Rect tRct;
@@ -201,7 +201,7 @@ fn Hbrush createGradientBrush(Hdc dc, Rect rct, RgbColor c1, RgbColor c2, bool i
         b = c1.blue + (i * (uint) (c2.blue - c1.blue) / loopEnd);
 
         tBrush = api_CreateSolidBrush(clrRefFromRGB(r, g, b));
-        defer api_DeleteObject(tBrush);
+        defer api_DeleteObject((Hgdiobj)tBrush);
 
         tRct.left = isRtL ? i : 0;
         tRct.top =  isRtL ? 0 : i ;

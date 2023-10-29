@@ -6,7 +6,8 @@ import std::io;
 int rbNumber = 1;
 
 // RadioButton control struct
-struct RadioButton {
+struct RadioButton
+{
 	inline Control control;
 	bool autoSize;
 	bool checked;
@@ -18,7 +19,10 @@ struct RadioButton {
 
 // Public functions
 	// RadioButton constructor
-	fn RadioButton* newRadioButton(Form* parent, String text, int x = 10, int y = 10, int width = 0, int height = 0, Allocator* using = mem::heap()) {
+	fn RadioButton* newRadioButton(Form* parent, String text, int x = 10, int y = 10,
+									int width = 0, int height = 0, EventHandler evtFn = null,
+									bool auto = false, Allocator* using = mem::heap())
+	{
 		RadioButton* this = calloc(RadioButton, .using = using);
 		this.kind = ControlType.RADIO_BUTTON;
 		this.name = dstring::new("RadioButton_");
@@ -37,24 +41,30 @@ struct RadioButton {
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
+		this._autoSizable = true;
 		rbNumber += 1;
+		this.onCheckedChanged = evtFn;
+		this._parent.controls.append(this);
+		if (auto) this.createHandle();
 		return this;
 	}
 
 	// Create the handle of RadioButton
-	fn void RadioButton.createHandle(RadioButton* this) {
+	fn void RadioButton.createHandle(RadioButton* this)
+	{
 		this.setRBStyle();
 		this.createInternal();
-		if (this.handle) {
+		if (this.handle)
+		{
 			this.setSubClass(&rbWndProc);
 			this.setFontInternal();
 			this.setIdealSize();
-			this._parent.controls.append(this);
 			if (this.checked) this.sendMsg(BM_SETCHECK, 1, 0);
 		}
 	}
 
-	fn void RadioButton.setState(RadioButton* this, bool value) {
+	fn void RadioButton.setState(RadioButton* this, bool value)
+	{
 		this.checked = value;
 		if (this._isCreated) this.sendMsg(BM_SETCHECK, (int)value, 0);
 	}
@@ -64,8 +74,10 @@ struct RadioButton {
 // Private functions
 
 	// Setting control's style bits.
-	fn void RadioButton.setRBStyle(RadioButton* this) @private { // Private
-		if (this.rightAlign) {
+	fn void RadioButton.setRBStyle(RadioButton* this) @private
+	{
+		if (this.rightAlign)
+		{
 			this._style |= BS_RIGHTBUTTON ;
 			this._textStyle |= DT_RIGHT ;
 		}
@@ -73,8 +85,10 @@ struct RadioButton {
 		this._bkBrush = this.backColor.getBrush();
 	}
 
-	fn void RadioButton.wmCommandHandler(RadioButton* this, Wparam wpm) @private {
-		if (hiWord(wpm) == 0) {
+	fn void RadioButton.wmCommandHandler(RadioButton* this, Wparam wpm) @private
+	{
+		if (hiWord(wpm) == 0)
+		{
 			this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);
             if (this.onCheckedChanged) this.onCheckedChanged(this, &&EventArgs{});
 		}
@@ -82,15 +96,18 @@ struct RadioButton {
 
 
 	// Handling back & fore color changing in WndProc function
-	fn Hbrush RadioButton.colorMsgHandler(RadioButton* this, Wparam wpm) @private {
+	fn Hbrush RadioButton.colorMsgHandler(RadioButton* this, Wparam wpm) @private
+	{
 		Hdc hdc = (Hdc)wpm;
 		api_SetBkColor(hdc, this.backColor.ref);
 		return this._bkBrush;
 	}
 
-	fn Lresult RadioButton.wmNotifyHandler(RadioButton* this, Lparam lp) @private {
+	fn Lresult RadioButton.wmNotifyHandler(RadioButton* this, Lparam lp) @private
+	{
 			NMCustomDraw* nmc = (NMCustomDraw*)lp;
-			switch (nmc.dwDrawStage) {
+			switch (nmc.dwDrawStage)
+			{
 				case CDDS_PREERASE:	return CDRF_NOTIFYPOSTERASE;
 				case CDDS_PREPAINT:
 					// Adjusing rect. Otherwise, text will be drawn upon the check area
@@ -105,19 +122,22 @@ struct RadioButton {
 	}
 
 	// Freeing resources used for this RadioButton.
-	fn void RadioButton.dtor(RadioButton* this) @private {
+	fn void RadioButton.dtor(RadioButton* this) @private
+	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
-		if (this._bkBrush) api_DeleteObject(this._bkBrush);
+		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		free(this);
 	}
 // End of Private functions
 
 
-fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
+fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
+{
 	RadioButton* this = bitcast(refData, RadioButton*);
 	// io::printfn("message %s", msg);
-	switch (msg) {
+	switch (msg)
+	{
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &rbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
@@ -135,7 +155,7 @@ fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_KEYDOWN: this.keyDownHandler(wp);
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		// case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_STATIC: return (Lresult) this.colorMsgHandler(wp);
 		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(lp);
 

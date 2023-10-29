@@ -6,14 +6,15 @@ import std::io;
 int calNumber = 1;
 
 // Calendar control struct
-struct Calendar {
+struct Calendar
+{
 	inline Control control;
 	DateTime value;
-	bool showWeekNum ;
-	bool noTodayCircle ;
-	bool noToday ;
-	bool noTraillDates ;
-	bool shortDateNames ;
+	bool  showWeekNum;
+	bool  noTodayCircle;
+	bool  noToday;
+	bool  noTraillDates;
+	bool  shortDateNames;
 	ViewMode viewMode;
 	ViewMode oldViewMode;
 
@@ -22,7 +23,8 @@ struct Calendar {
 	EventHandler onViewChanged;
 }
 
-enum ViewMode : int {
+enum ViewMode : int
+{
 	MONTH_VIEW,
     YEAR_VIEW,
     DECADE_VIEW,
@@ -32,7 +34,8 @@ enum ViewMode : int {
 
 // Public functions
 	// Calendar constructor
-	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, Allocator* using = mem::heap()) {
+	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, bool auto = false, Allocator* using = mem::heap())
+	{
 		Calendar* this = calloc(Calendar, .using = using);
 		this.kind = ControlType.CALENDAR;
 		this.name = dstring::new("Calendar_");
@@ -50,30 +53,35 @@ enum ViewMode : int {
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		calNumber += 1;
+		this._parent.controls.append(this);
+		if (auto) this.createHandle();
 		return this;
 	}
 
 	// Create the handle of Calendar
-	fn void Calendar.createHandle(Calendar* this) {
+	fn void Calendar.createHandle(Calendar* this)
+	{
 		this.setCalStyle();
 		this.createInternal();
-		if (this.handle) {
+		if (this.handle)
+		{
 			this.setSubClass(&calWndProc);
 			this.setFontInternal();
 			this.postCreationTasks();
-			this._parent.controls.append(this);
 		}
 	}
 
 	// Set Calendar value
-	fn void Calendar.setValue(Calendar* this, DateTime dt) {
+	fn void Calendar.setValue(Calendar* this, DateTime dt)
+	{
 		this.value = dt;
 		SystemTime st = sysTimeFromDateTime(dt);
 		if (this._isCreated) this.sendMsg(MCM_SETCURSEL, 0, &st);
 	}
 
 	// Set Calendar view mode
-	fn void Calendar.setViewMode(Calendar* this, ViewMode value) {
+	fn void Calendar.setViewMode(Calendar* this, ViewMode value)
+	{
 		this.viewMode = value;
 		if (this._isCreated) this.sendMsg(MCM_SETCURRENTVIEW, 0, this.viewMode);
 	}
@@ -83,7 +91,8 @@ enum ViewMode : int {
 // Private functions
 
 	// Setting control's style bits.
-	fn void Calendar.setCalStyle(Calendar* this) @private { // Private
+	fn void Calendar.setCalStyle(Calendar* this) @private
+	{
 		if (this.showWeekNum) this._style |= MCS_WEEKNUMBERS;
         if (this.noTodayCircle) this._style |= MCS_NOTODAYCIRCLE;
         if (this.noToday) this._style  |= MCS_NOTODAY;
@@ -91,7 +100,8 @@ enum ViewMode : int {
         if (this.shortDateNames) this._style |= MCS_SHORTDAYSOFWEEK;
 	}
 
-	fn void Calendar.postCreationTasks(Calendar* this) @private {
+	fn void Calendar.postCreationTasks(Calendar* this) @private
+	{
 		Rect rc;
 		this.sendMsg(MCM_GETMINREQRECT, 0, &rc);
 		api_SetWindowPos(this.handle, null, this.xpos, this.ypos, rc.right, rc.bottom, SWP_NOZORDER);
@@ -100,15 +110,18 @@ enum ViewMode : int {
 		this.setValueInternal(st);
 	}
 
-	fn void Calendar.setValueInternal(Calendar* this, SystemTime st) @private {
+	fn void Calendar.setValueInternal(Calendar* this, SystemTime st) @private
+	{
 		this.value = DateTime{st.wYear, st.wMonth, st.wDay, st.wHour,
 								st.wMinute, st.wSecond, st.wMilliseconds, (WeekDays) st.wDayOfWeek};
 	}
 
 
-	fn Lresult Calendar.wmNotifyHandler(Calendar* this, Lparam lpm) @private {
+	fn Lresult Calendar.wmNotifyHandler(Calendar* this, Lparam lpm) @private
+	{
 		NMHdr* nm = (NMHdr*)lpm;
-		switch (nm.code) {
+		switch (nm.code)
+		{
 			case MCN_SELECT:
 				NMSelchange* nms = (NMSelchange*)lpm;
 				this.setValueInternal(nms.stSelStart);
@@ -128,8 +141,11 @@ enum ViewMode : int {
 		return 0;
 	}
 
+
+
 	// Freeing resources used for this Calendar.
-	fn void Calendar.dtor(Calendar* this) @private {
+	fn void Calendar.dtor(Calendar* this) @private
+	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		free(this);
@@ -137,10 +153,12 @@ enum ViewMode : int {
 // End of Private functions
 
 
-fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
+fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
+{
 	Calendar* this = bitcast(refData, Calendar*);
 	// io::printfn("message %s", msg);
-	switch (msg) {
+	switch (msg)
+	{
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &calWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
@@ -158,7 +176,7 @@ fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 		case WM_KEYDOWN: this.keyDownHandler(wp);
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		// case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(lp);
 		case MM_RUNDTOR: this.dtor(); return 0;
 	}
@@ -182,7 +200,8 @@ fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 
 // End Constants
 
-fn SystemTime sysTimeFromDateTime(DateTime dt) {
+fn SystemTime sysTimeFromDateTime(DateTime dt)
+{
 	SystemTime this;
 	this.wYear = (Word)dt.year;
 	this.wMonth = (Word)dt.month;

@@ -4,13 +4,14 @@ module cforms;
 import std::io;
 import std::collections::list;
 
-typedef TicDataList = List<TicData>;
+def TicDataList = List(<TicData>);
 const U16_MAX = 1 << 16;
 
 int tkbNumber = 1;
 
 // TrackBar control struct
-struct TrackBar {
+struct TrackBar
+{
 	inline Control control;
 	bool vertical;
 	bool reversed;
@@ -59,7 +60,10 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 // Public functions
 	// TrackBar constructor - Create and returns a New TrackBar struct
-	fn TrackBar* newTrackBar(Form* parent, int x = 10, int y = 10, int width = 200, int height = 35, Allocator* using = mem::heap()) {
+	fn TrackBar* newTrackBar(Form* parent, int x = 10, int y = 10,
+								int width = 200, int height = 35, bool auto = false,
+								EventHandler evtFn = null, Allocator* using = mem::heap())
+	{
 		TrackBar* this = calloc(TrackBar, .using = using);
 		this.kind = ControlType.TRACK_BAR;
 		this.name = dstring::new("TrackBar_");
@@ -90,30 +94,36 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
         this.ticColor = newColor(0x3385ff);
 		this.customDraw = true;
 		tkbNumber += 1;
+		this.onValueChanged = evtFn;
+		this._parent.controls.append(this);
+		if (auto) this.createHandle();
 		return this;
 	}
 
 	// Create the handle of TrackBar
-	fn void TrackBar.createHandle(TrackBar* this) {
+	fn void TrackBar.createHandle(TrackBar* this)
+	{
 		this.setTKBStyle();
 		this.createInternal();
-		if (this.handle) {
+		if (this.handle)
+		{
 			this.setSubClass(&tkbWndProc);
 			if (this.customDraw) this.prepareForCustDraw();
 			this.sendInitialMessages();
 			if (this.customDraw) this.calculateTics();
 			if (this.selRange) this._selBrush = api_CreateSolidBrush(this.selColor.ref);
-			this._parent.controls.append(this);
 		}
 	}
 
 	// Show the selection range in Trackbar
-	fn void TrackBar.showSelection(TrackBar* this) {
+	fn void TrackBar.showSelection(TrackBar* this)
+	{
 		this.selRange = true;
 		this.customDraw = true;
 	}
 
-	macro void TrackBar.setBackColor(TrackBar* this, clr) {
+	macro void TrackBar.setBackColor(TrackBar* this, clr)
+	{
 		$switch ($typeof(clr))
 			$case Color:
 				this.backColor = clr;
@@ -124,7 +134,8 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 				print("Unknown type");
 		$endswitch
 		if ((this._drawMode & 2) != 2) this._drawMode += 2;
-		if (this._isCreated) {
+		if (this._isCreated)
+		{
 			this._bkBrush = this.backColor.getBrush();
 			// Here, we need to send this message.
             // otherwise we won't see the color change until next paint
@@ -138,18 +149,24 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 // Private functions
 
 	// Setting control's style bits.
-	fn void TrackBar.setTKBStyle(TrackBar* this) @private { // Private
-		if (this.vertical) {
+	fn void TrackBar.setTKBStyle(TrackBar* this) @private
+	{
+		if (this.vertical)
+		{
 			this._style |= TBS_VERT;
-			switch (this.ticPos) {
+			switch (this.ticPos)
+			{
 				case TicPosition.RIGHTSIDE: this._style |= TBS_RIGHT; break;
 				case TicPosition.LEFTSIDE: this._style |= TBS_LEFT; break;
 				case TicPosition.BOTHSIDE: this._style |= TBS_BOTH; break;
 				default: break;
 			}
-		} else {
+		}
+		else
+		{
 			// this._style |= TBS_;
-			switch (this.ticPos) {
+			switch (this.ticPos)
+			{
 				case TicPosition.DOWNSIDE: this._style |= TBS_BOTTOM; break;
 				case TicPosition.UPSIDE: this._style |= TBS_TOP; break;
 				case TicPosition.BOTHSIDE: this._style |= TBS_BOTH; break;
@@ -167,16 +184,21 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 	}
 
-	fn void TrackBar.prepareForCustDraw(TrackBar* this) @private {
+	fn void TrackBar.prepareForCustDraw(TrackBar* this) @private
+	{
 		this._chanPen = api_CreatePen(PS_SOLID, 1, this.channelColor.ref);
         this._ticPen = api_CreatePen(PS_SOLID, this.ticWidth, this.ticColor.ref);
 	}
 
-	fn void TrackBar.sendInitialMessages(TrackBar* this) @private {
-		if (this.reversed) {
+	fn void TrackBar.sendInitialMessages(TrackBar* this) @private
+	{
+		if (this.reversed)
+		{
 			this.sendMsg(TBM_SETRANGEMIN, 1, (this.maxRange * -1));
 			this.sendMsg(TBM_SETRANGEMAX, 1, this.minRange);
-		} else {
+		}
+		else
+		{
 			this.sendMsg(TBM_SETRANGEMIN, 1, (this.minRange));
 			this.sendMsg(TBM_SETRANGEMAX, 1, this.maxRange);
 		}
@@ -185,7 +207,8 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.sendMsg(TBM_SETLINESIZE, 0, this.lineSize);
 	}
 
-	fn void TrackBar.calculateTics(TrackBar* this) @private {
+	fn void TrackBar.calculateTics(TrackBar* this) @private
+	{
 		// Calculating logical & physical positions for tics.
 		int twidth;
 		int numTics;
@@ -203,13 +226,17 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 		//2. Calculate thumb offset
 		if (this.vertical)
-			{twidth = this._tmbRc.bottom - this._tmbRc.top;}
+		{
+			twidth = this._tmbRc.bottom - this._tmbRc.top;
+		}
 		else
-			{twidth = this._tmbRc.right - this._tmbRc.left;}
+		{
+			twidth = this._tmbRc.right - this._tmbRc.left;
+		}
 		this._tmbHalf = (int) twidth / 2;
 
 		// Now calculate required variables
-		range = this.maxRange - this.minRange;
+		range = (double)(this.maxRange - this.minRange);
 		numTics = (int) range / this.frequency;
 		if (range % this.frequency == 0) numTics -= 1;
 		stPos = this._chnRc.left + this._tmbHalf;
@@ -219,37 +246,47 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 		tic = this.minRange + this.frequency;
 		this._tdList.append(TicData{stPos, 0}); // Very first tic
-		for (int i = 0; i < numTics; i++) {
+		for (int i = 0; i < numTics; i++)
+		{
 			this._tdList.append(TicData{(int)(tic * pFactor) + stPos, tic}); // Middle tics
 			tic += this.frequency;
 		}
 		this._tdList.append(TicData{enPos, (int)range}); // Last tic
 
 		// Now, set up single point (x/y) for tics.
-		if (this.vertical) {
-			switch (this.ticPos) {
+		if (this.vertical)
+		{
+			switch (this.ticPos)
+			{
 				case TicPosition.LEFTSIDE: this._p1 = this._tmbRc.left - 5;
 				case TicPosition.RIGHTSIDE: this._p1 = this._tmbRc.right + 2;
 				case TicPosition.BOTHSIDE:
 					this._p1 = this._tmbRc.right + 2;
 					this._p2 = this._tmbRc.left - 5;
+				default: break;
 			}
-		} else {
-			switch (this.ticPos) {
+		}
+		else
+		{
+			switch (this.ticPos)
+			{
 				case TicPosition.DOWNSIDE: this._p1 = this._tmbRc.bottom + 1;
 				case TicPosition.UPSIDE: this._p1 = this._tmbRc.top - 4;
 				case TicPosition.BOTHSIDE:
 					this._p1 = this._tmbRc.bottom + 1;
 					this._p2 = this._tmbRc.top - 3;
+				default: break;
 			}
 		}
 	}
 
-	fn void TrackBar.setupValueInternal(TrackBar* this, int iValue) @private {
+	fn void TrackBar.setupValueInternal(TrackBar* this, int iValue) @private
+	{
 		this.value = this.reversed ? (int)(U16_MAX - iValue) : iValue;
 	}
 
-	fn bool TrackBar.fillChannelRect(TrackBar* this, NMCustomDraw* nm, Rect trc) @private {
+	fn bool TrackBar.fillChannelRect(TrackBar* this, NMCustomDraw* nm, Rect trc) @private
+	{
 		/* If show_selection property is enabled in this trackbar,
 		 * we need to show the area between thumb and channel starting in diff color.
 		 * But we need to check if the trackbar is reversed or not.
@@ -259,23 +296,31 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		bool result = false;
 		Rect rct;
 
-		if (this.vertical) {
+		if (this.vertical)
+		{
 			rct.left = nm.rc.left;
 			rct.right = nm.rc.right;
-			if (this.reversed) {
+			if (this.reversed)
+			{
 				rct.top = trc.bottom;
 				rct.bottom = nm.rc.bottom;
-			} else {
+			} else
+			{
 				rct.top = nm.rc.top;
 				rct.bottom = trc.top;
 			}
-		} else {
+		}
+		else
+		{
 			rct.top = nm.rc.top;
 			rct.bottom = nm.rc.bottom;
-			if (this.reversed) {
+			if (this.reversed)
+			{
 				rct.left = trc.right;
 				rct.right = nm.rc.right;
-			} else {
+			}
+			else
+			{
 				rct.left = nm.rc.left;
 				rct.right = trc.left;
 			}
@@ -285,63 +330,80 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		return result;
 	}
 
-	fn Rect TrackBar.getThumbRect(TrackBar* this) @private {
+	fn Rect TrackBar.getThumbRect(TrackBar* this) @private
+	{
 		Rect rc;
         this.sendMsg(TBM_GETTHUMBRECT, 0, &rc);
         return rc;
 	}
 
-	fn void TrackBar.drawVerticalTics(TrackBar* this, Hdc hdc, int px, int py) @private {
+	fn void TrackBar.drawVerticalTics(TrackBar* this, Hdc hdc, int px, int py) @private
+	{
 		api_MoveToEx(hdc, px, py, null);
         api_LineTo(hdc, px + this.ticLen, py);
 	}
 
-	fn void TrackBar.drawHorizontalTicsDown(TrackBar* this, Hdc hdc, int px, int py) @private {
+	fn void TrackBar.drawHorizontalTicsDown(TrackBar* this, Hdc hdc, int px, int py) @private
+	{
 		api_MoveToEx(hdc, px, py, null);
         api_LineTo(hdc, px, py + this.ticLen);
 	}
 
-	fn void TrackBar.drawHorizontalTicsUpper(TrackBar* this, Hdc hdc, int px, int py) @private {
+	fn void TrackBar.drawHorizontalTicsUpper(TrackBar* this, Hdc hdc, int px, int py) @private
+	{
 		api_MoveToEx(hdc, px, py, null);
         api_LineTo(hdc, px, py - this.ticLen);
 	}
 
-	fn void TrackBar.drawTics(TrackBar* this, Hdc hdc) @private {
-		api_SelectObject(hdc, this._ticPen);
-		if (this.vertical) {
-			switch (this.ticPos) {
+	fn void TrackBar.drawTics(TrackBar* this, Hdc hdc) @private
+	{
+		api_SelectObject(hdc, (Hgdiobj)this._ticPen);
+		if (this.vertical)
+		{
+			switch (this.ticPos)
+			{
 				case TicPosition.RIGHTSIDE:
 				case TicPosition.LEFTSIDE:
 					foreach (p: this._tdList) this.drawVerticalTics(hdc, this._p1, p.phyPoint);
 				case TicPosition.BOTHSIDE:
-					foreach (p: this._tdList) {
+					foreach (p: this._tdList)
+					{
 						this.drawVerticalTics(hdc, this._p1, p.phyPoint);
 						this.drawVerticalTics(hdc, this._p2, p.phyPoint);
 					}
+				default: break;
 			}
 
-		} else {
-			switch (this.ticPos) {
+		}
+		else
+		{
+			switch (this.ticPos)
+			{
 				case TicPosition.UPSIDE:
 				case TicPosition.DOWNSIDE:
 					foreach (p: this._tdList) this.drawHorizontalTicsDown(hdc, p.phyPoint, this._p1);
 				case TicPosition.BOTHSIDE:
-					foreach (p: this._tdList) {
+					foreach (p: this._tdList)
+					{
 						this.drawHorizontalTicsDown(hdc, p.phyPoint, this._p1);
 						this.drawHorizontalTicsUpper(hdc, p.phyPoint, this._p2);
 					}
+				default: break;
 			}
 		}
 	}
 
-	fn void TrackBar.scrollHandler(TrackBar* this, Hwnd hw, Wparam wpm) @private {
+	fn void TrackBar.scrollHandler(TrackBar* this, Hwnd hw, Wparam wpm) @private
+	{
 		Word lwp = loWord(wpm);
-		switch (lwp) {
+		switch (lwp)
+		{
 			case TB_THUMBPOSITION:
 				this.setupValueInternal((int)hiWord(wpm));
-				if (!this.freeMove) {
+				if (!this.freeMove)
+				{
 					int pos = this.value;
-					double half = this.frequency / 2;
+					double half = (double)(this.frequency / 2);
 					int diff = pos % this.frequency;
 					if (diff >= half)
 						{pos = (this.frequency - diff) + this.value;}
@@ -389,35 +451,46 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		}
 	}
 
-	fn Lresult TrackBar.wmNotifyHandler(TrackBar* this, Hwnd hw, Lparam lpm) @private {
+	fn Lresult TrackBar.wmNotifyHandler(TrackBar* this, Hwnd hw, Lparam lpm) @private
+	{
 		NMHdr* nmh = (NMHdr*) lpm;
-		switch (nmh.code) {
+		switch (nmh.code)
+		{
 			case NM_CUSTOMDRAW:
-				if (this.customDraw) {
+				if (this.customDraw)
+				{
 					NMCustomDraw* nmcd = (NMCustomDraw*) lpm;
 					if (nmcd.dwDrawStage == CDDS_PREPAINT) return CDRF_NOTIFYITEMDRAW;
 
-					if (nmcd.dwDrawStage ==  CDDS_ITEMPREPAINT) {
-						if (nmcd.dwItemSpec == TBCD_TICS) {
-							if (!this.noTics) {
+					if (nmcd.dwDrawStage ==  CDDS_ITEMPREPAINT)
+					{
+						if (nmcd.dwItemSpec == TBCD_TICS)
+						{
+							if (!this.noTics)
+							{
 								this.drawTics(nmcd.hdc);
 								return CDRF_SKIPDEFAULT;
 							}
 						}
 
-						if (nmcd.dwItemSpec == TBCD_CHANNEL) {
+						if (nmcd.dwItemSpec == TBCD_CHANNEL)
+						{
 							/* Python proect is using EDGE_SUNKEN style without BF_FLAT.
 							But D gives a strange outline in those flags. So I decided to use...
 							these flags. But in this case, we don't need to reduce 1 point from...
 							the coloring rect. It looks perfect without changing rect. */
-							if (this.channelStyle == ChannelStyle.CLASSIC) {
+							if (this.channelStyle == ChannelStyle.CLASSIC)
+							{
 								api_DrawEdge(nmcd.hdc, &nmcd.rc, BDR_SUNKENOUTER, this._chnFlag);
-							} else {
-								api_SelectObject(nmcd.hdc, this._chanPen);
+							}
+							else
+							{
+								api_SelectObject(nmcd.hdc, (Hgdiobj)this._chanPen);
 								api_Rectangle(nmcd.hdc, nmcd.rc.left, nmcd.rc.top, nmcd.rc.right, nmcd.rc.bottom );
 							}
 
-							if (this.selRange) { // Fill the selection range
+							if (this.selRange)
+							{ // Fill the selection range
 								Rect rc = this.getThumbRect();
 								if (this.fillChannelRect(nmcd, rc)) api_InvalidateRect(hw, &nmcd.rc, false);
 							}
@@ -425,7 +498,11 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 							return CDRF_SKIPDEFAULT;
 						}
 					}
-				} else { return CDRF_DODEFAULT;}
+				}
+				else
+				{
+					return CDRF_DODEFAULT;
+				}
 
 			case 4_294_967_280: // con.TRBN_THUMBPOSCHANGING:
 				this.trackChange = TrackChange.MOUSECLICK;
@@ -435,20 +512,23 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	}
 
 	// Freeing resources used for this TrackBar.
-	fn void TrackBar.dtor(TrackBar* this) @private {
+	fn void TrackBar.dtor(TrackBar* this) @private
+	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		this._tdList.free();
-		if (this._bkBrush) api_DeleteObject(this._bkBrush);
+		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		free(this);
 	}
 // End of Private functions
 
 
-fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
+fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
+{
 	TrackBar* this = bitcast(refData, TrackBar*);
 	// io::printfn("message %s", msg);
-	switch (msg) {
+	switch (msg)
+	{
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &tkbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
@@ -466,7 +546,7 @@ fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 		case WM_KEYDOWN: this.keyDownHandler(wp);
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		// case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_HSCROLL:
 		case MM_VSCROLL: this.scrollHandler(hw, wp);
 		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(hw, lp);

@@ -8,12 +8,12 @@ import std::collections::map;
 import libc;
 
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
-define ptf = io::printfn;
-define log = io::printn;
-define cptf = libc::printf;
-typedef ControlList = List<Control*>;
-typedef CmbMap = std::collections::map::HashMap<Hwnd, Hwnd>; //To hold the handle of combobox's listbox
-typedef MenuItemMap = std::collections::map::HashMap<uint, MenuItem*>;
+def ptf = io::printfn;
+def log = io::printn;
+def cptf = libc::printf;
+def ControlList = List(<Control*>);
+def CmbMap = std::collections::map::HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
+// def MenuItemMap = std::collections::map::HashMap(<uint, MenuItem*>);
 
 // Important static data
 bool frmCreated = false;
@@ -26,7 +26,8 @@ Color dwc; // Default window color
 int frmNumber = 1;
 
 // Helper types & Enums
-	enum FormPos : int {
+	enum FormPos : int
+	{
 		CENTER,
 		TOP_LEFT,
 		TOP_MID,
@@ -39,7 +40,8 @@ int frmNumber = 1;
 		MANUAL
 	}
 
-	enum FormStyle : int {
+	enum FormStyle : int
+	{
 		NONE,
 		FIXED_SINGLE,
 		FIXED_3D,
@@ -66,7 +68,8 @@ int frmNumber = 1;
 
 // End Helper types & Enums
 
-struct Form {
+struct Form
+{
 	inline Control control;
 	FormPos formPos;
 	FormStyle formStyle;
@@ -80,13 +83,13 @@ struct Form {
 	bool _isMouseTracking;
 	bool _isSizing;
 	CmbMap _comboMap;
-	MenuItemMap _menuItemMap;
+	// MenuItemMap _menuItemMap; 261023
 	bool _menuMapInited;
 	Hinstance hinst;
 	Hwnd bhw;
 	Hbrush _bkBrush;
 	ControlList controls;
-	MenuBar* menubar;
+	// MenuBar* menubar; 261023
 	Font _menuFont;
 	Hbrush _menuGrayBrush;
 	Hbrush _menuDefBgBrush;
@@ -117,11 +120,13 @@ struct Form {
 // }
 
 // Public Functions
-	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = mem::heap()) {
-		if (!frmCreated) {
+	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = mem::heap())
+	{
+		if (!frmCreated)
+		{
 			frmCreated = true;
 			dwc = colorFromRgb(230, 230, 230);
-			hins = api_GetModuleHandle((Lpcwstr) 0);
+			hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
 			Char16* clsN = String.to_utf16(className).ptr!!;
 			defer free(clsN);
 			registerClass(hins, clsN);
@@ -132,7 +137,6 @@ struct Form {
 			icc.dwICC = ICC_STANDARD_CLASSES;
 			api_InitCommonControlsEx(&icc);
 		}
-
 		Form* this = calloc(Form, .using = using);
 		this.kind = ControlType.NONE;
 		this.name = dstring::new("Form_");
@@ -155,13 +159,14 @@ struct Form {
 		return this;
 	}
 
-	fn void Form.createHandle(Form* this) {
+	fn void Form.createHandle(Form* this)
+	{
 		this.setStyle();
 		this.setPosition();
 		Char16* title = String.to_utf16(this.text).ptr!!;
 		Char16* clsN = String.to_utf16(className).ptr!!;
 		defer {	free(title); free(clsN); }
-		this.handle = api_CreateWindowEx(	this._exStyle,
+		this.handle = api_CreateWindowEx(this._exStyle,
 										clsN,
 										title,
 										this._style,
@@ -204,12 +209,12 @@ struct Form {
 	}
 
 	// Set menu bar to this form. Call right after a menu bar instance is created
-	fn void Form.setMenuBar(Form* this, MenuBar* menu) {
-		this.menubar = menu;
-		menu._parent = this;
-		menu.font = this.font;
-		menu._formHwnd = this.handle;
-	}
+	// fn void Form.setMenuBar(Form* this, MenuBar* menu) { 261023
+	// 	this.menubar = menu;
+	// 	menu._parent = this;
+	// 	menu.font = this.font;
+	// 	menu._formHwnd = this.handle;
+	// }
 
 // End Public Functions
 
@@ -339,6 +344,7 @@ struct Form {
 			case FormStyle.HIDDEN:
 				f._exStyle = WS_EX_TOOLWINDOW;
 				f._style = WS_BORDER;
+			default: break;
 		}
 		if (f.topMost) f._exStyle = f._exStyle | WS_EX_TOPMOST;
         if (f.formState == FormState.MAXIMIZED) f._style = f._style | WS_MAXIMIZE;
@@ -362,6 +368,7 @@ struct Form {
 			case BOTTOM_RIGHT:
 				f.xpos = screenWidth - f.width  ;
                 f.ypos = screenHeight - f.height ;
+			default: break;
 		}
 	}
 
@@ -482,14 +489,14 @@ struct Form {
 		this.dtor();
 	}
 
-	fn MenuItem* Form.getMenuFromHmenu(Form* this, Hmenu hmenu) @private {
-		@pool() {
-			foreach (menu: this._menuItemMap.value_tlist()) {
-				if (menu.handle == hmenu) return menu;
-			}
-		};
-		return null;
-	}
+	// fn MenuItem* Form.getMenuFromHmenu(Form* this, Hmenu hmenu) @private { 261023
+	// 	@pool() {
+	// 		foreach (menu: this._menuItemMap.value_tlist()) {
+	// 			if (menu.handle == hmenu) return menu;
+	// 		}
+	// 	};
+	// 	return null;
+	// }
 
 	fault MenuEventError {MED_NOT_FOUND}
 
@@ -507,11 +514,11 @@ struct Form {
 		}
 		this.controls.free();
 		this.name.free();
-		if (this.menubar) {
-			this.menubar.destroy();
-			free(this.menubar);
-		}
-		if (this._menuMapInited) this._menuItemMap.free();
+		// if (this.menubar) {
+		// 	this.menubar.destroy();
+		// 	free(this.menubar);
+		// }
+		// if (this._menuMapInited) this._menuItemMap.free();
 		if (!noComboUsed) this._comboMap.free();
 		if (this._isMainWindow) api_PostQuitMessage(0);
 		free(this);
@@ -575,104 +582,104 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 			// ptf("COLOR EDIT HWND %s", hc );
 			return api_SendMessage(hc, MM_COLOR_EDIT, wp, lp);
 
-		case WM_CTLCOLORLISTBOX:
-			Hwnd hc = (Hwnd)lp;
-			if (try cmbHwn = this._comboMap[hc]) {
-				return api_SendMessage(cmbHwn, MM_COLOR_LBOX, wp, lp);
-			} else {
-				return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);
-			}
+		// case WM_CTLCOLORLISTBOX:
+		// 	Hwnd hc = (Hwnd)lp;
+		// 	if (try cmbHwn = this._comboMap[hc]) {
+		// 		return api_SendMessage(cmbHwn, MM_COLOR_LBOX, wp, lp);
+		// 	} else {
+		// 		return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);
+		// 	}
 
-		case WM_MEASUREITEM:
-			MeasureItemStruct* pmi = (MeasureItemStruct*) lp;
-			MenuItem* mi = (MenuItem*) ((void*) pmi.itemData);
-			if (mi.kind == MenuType.BASE_MENU) {
-				Hdc hdc = api_GetDC(hw);
-				defer api_ReleaseDC(hw, hdc);
-				Size size;
-				api_GetTextExtentPoint32(hdc, mi._wideText, mi.text.len, &size);
-				pmi.itemWidth = size.cx + 3;
-				pmi.itemHeight = size.cy;
-			} else {
-				pmi.itemWidth = 100;
-				pmi.itemHeight = 25;
-			}
-			return 1;
+		// case WM_MEASUREITEM:
+		// 	MeasureItemStruct* pmi = (MeasureItemStruct*) lp;
+		// 	MenuItem* mi = (MenuItem*) ((void*) pmi.itemData);
+		// 	if (mi.kind == MenuType.BASE_MENU) {
+		// 		Hdc hdc = api_GetDC(hw);
+		// 		defer api_ReleaseDC(hw, hdc);
+		// 		Size size;
+		// 		api_GetTextExtentPoint32(hdc, mi._wideText, mi.text.len, &size);
+		// 		pmi.itemWidth = size.cx + 3;
+		// 		pmi.itemHeight = size.cy;
+		// 	} else {
+		// 		pmi.itemWidth = 100;
+		// 		pmi.itemHeight = 25;
+		// 	}
+		// 	return 1;
 
-		case WM_DRAWITEM:
-			DrawItemStruct* dis = (DrawItemStruct*) lp;
-			MenuItem* mi = (MenuItem*) ((void*) dis.itemData);
-			Colorref txtClrRef = mi.fgColor.ref;
-			if (dis.itemState == 320 || dis.itemState == 257) {
-				if (mi._isEnabled) {
-					Rect rc = {dis.rcItem.left + 5, dis.rcItem.top + 1, dis.rcItem.right, dis.rcItem.bottom};
-					api_FillRect(dis.hDC, &rc, this._menuHotBgBrush);
-					api_FrameRect(dis.hDC, &rc, this._menuFrameBrush);
-					txtClrRef = 0x00000000;
-				} else {
-					api_FillRect(dis.hDC, &dis.rcItem, this._menuGrayBrush);
-					txtClrRef = this._menuGrayCref;
-				}
-			} else {
-				api_FillRect(dis.hDC, &dis.rcItem, this._menuDefBgBrush);
-				if (!mi._isEnabled) txtClrRef = this._menuGrayCref;
-			}
-			api_SetBkMode(dis.hDC, 1);
-			if (mi.kind == MenuType.BASE_MENU) {
-				dis.rcItem.left += 10;
-			} else {
-				dis.rcItem.left += 25;
-			}
-			api_SelectObject(dis.hDC, this._menuFont.handle);
-			api_SetTextColor(dis.hDC, txtClrRef);
-			api_DrawText(dis.hDC, mi._wideText, -1, &dis.rcItem, DT_LEFT | DT_SINGLELINE | DT_VCENTER);
-			return 0;
+		// case WM_DRAWITEM:
+		// 	DrawItemStruct* dis = (DrawItemStruct*) lp;
+		// 	MenuItem* mi = (MenuItem*) ((void*) dis.itemData);
+		// 	Colorref txtClrRef = mi.fgColor.ref;
+		// 	if (dis.itemState == 320 || dis.itemState == 257) {
+		// 		if (mi._isEnabled) {
+		// 			Rect rc = {dis.rcItem.left + 5, dis.rcItem.top + 1, dis.rcItem.right, dis.rcItem.bottom};
+		// 			api_FillRect(dis.hDC, &rc, this._menuHotBgBrush);
+		// 			api_FrameRect(dis.hDC, &rc, this._menuFrameBrush);
+		// 			txtClrRef = 0x00000000;
+		// 		} else {
+		// 			api_FillRect(dis.hDC, &dis.rcItem, this._menuGrayBrush);
+		// 			txtClrRef = this._menuGrayCref;
+		// 		}
+		// 	} else {
+		// 		api_FillRect(dis.hDC, &dis.rcItem, this._menuDefBgBrush);
+		// 		if (!mi._isEnabled) txtClrRef = this._menuGrayCref;
+		// 	}
+		// 	api_SetBkMode(dis.hDC, 1);
+		// 	if (mi.kind == MenuType.BASE_MENU) {
+		// 		dis.rcItem.left += 10;
+		// 	} else {
+		// 		dis.rcItem.left += 25;
+		// 	}
+		// 	api_SelectObject(dis.hDC, this._menuFont.handle);
+		// 	api_SetTextColor(dis.hDC, txtClrRef);
+		// 	api_DrawText(dis.hDC, mi._wideText, -1, &dis.rcItem, DT_LEFT | DT_SINGLELINE | DT_VCENTER);
+		// 	return 0;
 
-		case MM_MENU_ADDED:
-			// De-reference the pointer and put the menu item in our map
-			uint menuID = (uint)wp;
-			this._menuItemMap[menuID] = (MenuItem*)((void*) lp);
-			return 0;
+		// case MM_MENU_ADDED:
+		// 	// De-reference the pointer and put the menu item in our map
+		// 	uint menuID = (uint)wp;
+		// 	this._menuItemMap[menuID] = (MenuItem*)((void*) lp);
+		// 	return 0;
 
-		case WM_COMMAND:
-            switch (hiWord(wp)) {
-				case 0:  // menu click commands
-					uint menuID = (uint) loWord(wp);
-					if (try menu = this._menuItemMap[menuID]) {
-						if (menu.onClick) menu.onClick(menu, &&EventArgs{});
-					}
-					return 0;
-                case 1: return 0; // # accelerator key commands
-                default:
-                    Hwnd ctlHwnd = (Hwnd)lp;
-                    return api_SendMessage(ctlHwnd, MM_CTL_COMMAND, wp, lp);
-			}
+		// case WM_COMMAND:
+        //     switch (hiWord(wp)) {
+		// 		case 0:  // menu click commands
+		// 			uint menuID = (uint) loWord(wp);
+		// 			if (try menu = this._menuItemMap[menuID]) {
+		// 				if (menu.onClick) menu.onClick(menu, &&EventArgs{});
+		// 			}
+		// 			return 0;
+        //         case 1: return 0; // # accelerator key commands
+        //         default:
+        //             Hwnd ctlHwnd = (Hwnd)lp;
+        //             return api_SendMessage(ctlHwnd, MM_CTL_COMMAND, wp, lp);
+		// 	}
 
 
-		case WM_MENUSELECT:
-			MenuItem* pmenu = this.getMenuFromHmenu((Hmenu) lp);
-			uint mid = (uint)(loWord(wp)); // Could be an id of a child menu or an index of a child menu
-			Word hwwpm = hiWord(wp);
-			if (pmenu) {
-				MenuItem* menu;
-				switch (hwwpm) {
-					case 33152: // A normal child menu. We can use mid ad menu id.
-						menu = this._menuItemMap[mid]!!;
-					case 33168: // A popup child menu. We can use mid as index.
-						menu = pmenu.getChildFromIndex(mid);
-				}
-				if (menu && menu.onFocus) menu.onFocus(menu, &&EventArgs{});
-			}
+		// case WM_MENUSELECT:
+		// 	MenuItem* pmenu = this.getMenuFromHmenu((Hmenu) lp);
+		// 	uint mid = (uint)(loWord(wp)); // Could be an id of a child menu or an index of a child menu
+		// 	Word hwwpm = hiWord(wp);
+		// 	if (pmenu) {
+		// 		MenuItem* menu;
+		// 		switch (hwwpm) {
+		// 			case 33152: // A normal child menu. We can use mid ad menu id.
+		// 				menu = this._menuItemMap[mid]!!;
+		// 			case 33168: // A popup child menu. We can use mid as index.
+		// 				menu = pmenu.getChildFromIndex(mid);
+		// 		}
+		// 		if (menu && menu.onFocus) menu.onFocus(menu, &&EventArgs{});
+		// 	}
 
-		case WM_INITMENUPOPUP:
-			MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
-			if (menu && menu.onPopup) menu.onPopup(menu, &&EventArgs{});
+		// case WM_INITMENUPOPUP:
+		// 	MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
+		// 	if (menu && menu.onPopup) menu.onPopup(menu, &&EventArgs{});
 
-		case WM_UNINITMENUPOPUP:
-        	MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
-        	if (menu && menu.onCloseup) menu.onCloseup(menu, &&EventArgs{});
+		// case WM_UNINITMENUPOPUP:
+        // 	MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
+        // 	if (menu && menu.onCloseup) menu.onCloseup(menu, &&EventArgs{});
 
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		// case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 
 	}
 	return api_DefWindowProc(hw, msg, wp, lp);

@@ -10,7 +10,8 @@ const uint LBTXTFLAG = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX;
 int lbNumber = 1;
 
 // Label control struct
-struct Label {
+struct Label
+{
 	inline Control control;
 	bool autoSize;
 	bool multiLine;
@@ -20,7 +21,10 @@ struct Label {
 
 // Public functions
 	// Label constructor
-	fn Label* newLabel(Form* parent, String text, int x = 10, int y = 10, int width = 0, int height = 0, Allocator* using = mem::heap()) {
+	fn Label* newLabel(Form* parent, String text,
+						int x = 10, int y = 10, int width = 0, int height = 0,
+						bool auto = false, Allocator* using = mem::heap())
+	{
 		Label* this = calloc(Label, .using = using);
 		this.kind = ControlType.LABEL;
 		this.name = dstring::new("Label_");
@@ -38,20 +42,24 @@ struct Label {
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
+		this._autoSizable = true;
 		lbNumber += 1;
+		this._parent.controls.append(this);
+		if (auto) this.createHandle();
 		return this;
 
 	}
 
 	// Create the handle of Label
-	fn void Label.createHandle(Label* this) {
+	fn void Label.createHandle(Label* this)
+	{
 		this.checkForAutoSize();
 		this.createInternal();
-		if (this.handle) {
+		if (this.handle)
+		{
 			if (this.autoSize) this.calculateAutoSize();
 			this.setSubClass(&lbWndProc);
 			this.setFontInternal();
-			this._parent.controls.append(this);
 		}
 		// ptf("bk brush %s, bk clr %s, parent clr %x", lb._bkBrush, lb.backColor.ref, lb._parent.backColor.ref);
 	}
@@ -59,21 +67,24 @@ struct Label {
 // End of Public functions
 
 // Private functions
-	fn void Label.checkForAutoSize(Label* lb) @private { // Private
+	fn void Label.checkForAutoSize(Label* lb) @private
+	{
 		if (lb.multiLine || (lb.width != 0) || (lb.height != 0 )) lb.autoSize = false ;
-		if (!lb.autoSize) {
+		if (!lb.autoSize)
+		{
 			if (lb.width == 0) lb.width = 100;
 			if (lb.height == 0) lb.height = 30;
 		}
 		lb._bkBrush = lb.backColor.getBrush();
 	}
 
-	fn void Label.calculateAutoSize(Label* this) @private { // private
+	fn void Label.calculateAutoSize(Label* this) @private
+	{
 		Char16* lbtext = String.to_utf16(this.text).ptr!!;
 		defer free(lbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
 		Size ss;
-		api_SelectObject(hdc, this.font.handle);
+		api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
 		api_GetTextExtentPoint32(hdc, lbtext, this.text.len, &ss );
 		api_ReleaseDC(this.handle, hdc) ;
 		this.width = ss.cx + 3 ;
@@ -82,7 +93,8 @@ struct Label {
 	}
 
 
-	fn Hbrush Label.colorMsgHandler(Label* this, Wparam wpm) @private {
+	fn Hbrush Label.colorMsgHandler(Label* this, Wparam wpm) @private
+	{
 		Hdc hdc = (Hdc)wpm;
 		if (this._drawMode & 1) api_SetTextColor(hdc, this.foreColor.ref);
 		api_SetBkColor(hdc, this.backColor.ref);
@@ -90,18 +102,21 @@ struct Label {
 	}
 
 	// Freeing resources used for this Label.
-	fn void Label.dtor(Label* this) @private {
+	fn void Label.dtor(Label* this) @private
+	{
 		this.name.free();
-		api_DeleteObject(this._bkBrush);
+		api_DeleteObject((Hgdiobj)this._bkBrush);
 		free(this);
 	}
 // End of Private functions
 
 
-fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private {
+fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
+{
 	Label* this = bitcast(refData, Label*);
 	// io::printfn("message %s", msg);
-	switch (msg) {
+	switch (msg)
+	{
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbWndProc, scID);
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
@@ -114,7 +129,7 @@ fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
 		case WM_MOUSELEAVE: this.mouseLeaveHandler();
 		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		// case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_STATIC: return (Lresult) this.colorMsgHandler(wp);
 
 		case MM_RUNDTOR: this.dtor(); return 0;
