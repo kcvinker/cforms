@@ -32,10 +32,10 @@ struct ListBox
 							int width = 150, int height = 150,
 							bool auto = false, Allocator* using = mem::heap())
 	{
-		ListBox* this = calloc(ListBox, .using = using);
+		ListBox* this = using.new_clear(ListBox);
 		this.kind = ControlType.LIST_BOX;
 		this.name = dstring::new("ListBox_");
-		this.name.printf("%d", lbxNumber);
+		this.name.appendf("%d", lbxNumber);
 		this.className = "Listbox";
 		this._parent = parent;
 		this.font = parent.font;
@@ -74,7 +74,7 @@ struct ListBox
 		this.items.append(item);
 		if (this._isCreated)
 		{
-			Char16* lbtext = String.to_utf16(item).ptr!!;
+			Char16* lbtext = String.to_new_utf16(item).ptr!!;
 			defer free(lbtext);
 			this.sendMsg(LB_ADDSTRING, 0, lbtext);
 		}
@@ -87,7 +87,7 @@ struct ListBox
 		{
 			if (this._isCreated)
 			{
-				Char16* sitem = String.to_utf16(item).ptr!!;
+				Char16* sitem = String.to_new_utf16(item).ptr!!;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
@@ -101,7 +101,7 @@ struct ListBox
 		this.items.insert_at(index, item);
 		if (this._isCreated)
 		{
-			Char16* sitem = String.to_utf16(item).ptr!!;
+			Char16* sitem = String.to_new_utf16(item).ptr!!;
 			defer free(sitem);
 			this.sendMsg(LB_INSERTSTRING, index, sitem);
 		}
@@ -160,7 +160,7 @@ struct ListBox
 			{
 				@pool()
 				{
-					int[] buffer = tmalloc(int, selCount);
+					int[] buffer = mem::temp_array(int, selCount);
 					this.sendMsg(LB_GETSELITEMS, selCount, &buffer[0]);
 					foreach (indx: buffer) { sItems.append(this.getItemInternal(indx));}
 				};
@@ -189,7 +189,7 @@ struct ListBox
 	// Returns the index of given item
 	fn int ListBox.indexOf(ListBox* this, String item)
 	{
-		Char16[] witem = String.to_utf16(item)!!;
+		Char16[] witem = String.to_new_utf16(item)!!;
 		defer free(witem);
 		return (int) this.sendMsg(LB_FINDSTRINGEXACT, -1, witem.ptr);
 	}
@@ -235,7 +235,7 @@ struct ListBox
 		{
             foreach (item: this.items)
 			{
-				Char16* sitem = String.to_utf16(item).ptr!!;
+				Char16* sitem = String.to_new_utf16(item).ptr!!;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
@@ -260,9 +260,9 @@ struct ListBox
 		{
 			@pool()
 			{
-				Char16[] buffer = tmalloc(Char16, sLen);
+				Char16[] buffer = mem::temp_array(Char16, sLen);
 				Lresult res =this.sendMsg(LB_GETTEXT, index, &buffer[0]);
-				String x = string::from_utf16(buffer)!!;
+				String x = string::new_from_utf16(buffer)!!;
 				return x;
 			};
 		}

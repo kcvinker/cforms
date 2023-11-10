@@ -41,10 +41,10 @@ struct CmbData
 								int width = 140, int height = 27,
 								bool auto = false, Allocator* using = mem::heap())
 	{
-		ComboBox* this = calloc(ComboBox, .using = using);
+		ComboBox* this = using.new_clear(ComboBox);
 		this.kind = ControlType.COMBO_BOX;
 		this.name = dstring::new("ComboBox_");
-		this.name.printf("%d", cmbNumber);
+		this.name.appendf("%d", cmbNumber);
 		this.className = "ComboBox";
 		this._parent = parent;
 		this.font = parent.font;
@@ -59,7 +59,7 @@ struct CmbData
 		this.selectedIndex = -1;
 		cmbNumber += 1;
 		if (noComboUsed) {
-			this._parent._comboMap.init();
+			this._parent._comboMap.init_new();
 			noComboUsed = false;
 		}
 		this._parent.controls.append(this);
@@ -151,14 +151,14 @@ struct CmbData
 		switch (item)
 		{
 			case String:
-				Char16* witem = String.to_utf16(*item).ptr!!;
+				Char16* witem = String.to_new_utf16(*item).ptr!!;
 				defer free(witem);
 				this.sendMsg(CB_ADDSTRING, 0, witem);
 				this.items.append(*item);
 
 			default:
 				String sitem = numeralsToString(item);
-				Char16* witem = String.to_utf16(sitem).ptr!!;
+				Char16* witem = String.to_new_utf16(sitem).ptr!!;
 				defer {free(witem); free(sitem);}
 				this.sendMsg(CB_ADDSTRING, 0, witem);
 				this.items.append(sitem);
@@ -218,7 +218,7 @@ struct CmbData
 			// log("items are ready");
 			foreach (item: this.items)
 			{
-				Char16* cmbtext = String.to_utf16(item).ptr!!;
+				Char16* cmbtext = String.to_new_utf16(item).ptr!!;
 				defer free(cmbtext);
 				this.sendMsg(CB_ADDSTRING, 0, cmbtext);
 			}

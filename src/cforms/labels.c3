@@ -25,10 +25,10 @@ struct Label
 						int x = 10, int y = 10, int width = 0, int height = 0,
 						bool auto = false, Allocator* using = mem::heap())
 	{
-		Label* this = calloc(Label, .using = using);
+		Label* this = using.new_clear(Label);
 		this.kind = ControlType.LABEL;
 		this.name = dstring::new("Label_");
-		this.name.printf("%d", lbNumber);
+		this.name.appendf("%d", lbNumber);
 		this.className = "Static";
 		this._parent = parent;
 		this.font = parent.font;
@@ -80,7 +80,7 @@ struct Label
 
 	fn void Label.calculateAutoSize(Label* this) @private
 	{
-		Char16* lbtext = String.to_utf16(this.text).ptr!!;
+		Char16* lbtext = String.to_new_utf16(this.text).ptr!!;
 		defer free(lbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
 		Size ss;

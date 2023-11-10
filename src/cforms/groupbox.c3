@@ -23,10 +23,10 @@ struct GroupBox
 								int x = 10, int y = 10, int width = 230, int height = 250,
 								bool auto = false, Allocator* using = mem::heap())
 	{
-		GroupBox* this = calloc(GroupBox, .using = using);
+		GroupBox* this = using.new_clear(GroupBox);
 		this.kind = ControlType.GROUP_BOX;
 		this.name = dstring::new("GroupBox_");
-		this.name.printf("%d", gbNumber);
+		this.name.appendf("%d", gbNumber);
 		this.className = "Button";
 		this.text = text == "" ? this.name.str_view() : text;
 		this._parent = parent;
@@ -67,7 +67,7 @@ struct GroupBox
 
 	fn void GroupBox.getTextBounds(GroupBox* this) @private
 	{
-		Char16* gbtext = String.to_utf16(this.text).ptr!!;
+		Char16* gbtext = String.to_new_utf16(this.text).ptr!!;
 		defer free(gbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
 		api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
@@ -80,7 +80,7 @@ struct GroupBox
 	fn Lresult GroupBox.drawText(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 	{
 		// log("paint");
-		Char16* gbtext = String.to_utf16(this.text).ptr!!;
+		Char16* gbtext = String.to_new_utf16(this.text).ptr!!;
 		defer free(gbtext);
 		Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
 		Hdc hdc = api_GetDC(hw);
@@ -102,7 +102,7 @@ struct GroupBox
 		Rect rc;
 		int yp = 9;
 		Hdc hdc = api_GetDC(hw);
-		Char16* gbtext = String.to_utf16(this.text).ptr!!;
+		Char16* gbtext = String.to_new_utf16(this.text).ptr!!;
 		defer free(gbtext);
 
 		Hdc dcMem = api_CreateCompatibleDC(hdc);
@@ -135,7 +135,7 @@ struct GroupBox
 	fn void GroupBox.textSetter(GroupBox* this, String value) @private
 	{
 		this.getTextBounds();
-		Char16* gbtext = String.to_utf16(value).ptr!!;
+		Char16* gbtext = String.to_new_utf16(value).ptr!!;
 		defer free(gbtext);
 		api_SetWindowText(this.handle, gbtext);
 		api_InvalidateRect(this.handle, null, false);

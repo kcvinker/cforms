@@ -51,7 +51,7 @@ struct NumberPicker
 										bool auto = false, EventHandler evtFn = null,
 										bool btnLeft = false, Allocator* using = mem::heap())
 	{
-		NumberPicker* this = calloc(NumberPicker, .using = using);
+		NumberPicker* this = using.new_clear(NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
 		this.name = dstring::new("NumberPicker_");
 		this.className = "msctls_updown32";
@@ -116,7 +116,7 @@ struct NumberPicker
 		}
 		else
 		{
-			this.fmtStr.printf("%%.%df", value);
+			this.fmtStr.appendf("%%.%df", value);
 		}
 		if (this._isCreated) this.displayValue();
 	}
@@ -265,8 +265,8 @@ struct NumberPicker
 	fn void NumberPicker.displayValue(NumberPicker* this) @private
 	{
 		this.valStr.clear();
-		this.valStr.printf(this.fmtStr.str_view(), this.value);
-		Char16* wvalue = String.to_utf16(this.valStr.str_view()).ptr!!;
+		this.valStr.appendf(this.fmtStr.str_view(), this.value);
+		Char16* wvalue = String.to_new_utf16(this.valStr.str_view()).ptr!!;
 		defer free(wvalue);
 		api_SetWindowText(this.buddyHandle, wvalue);
 	}

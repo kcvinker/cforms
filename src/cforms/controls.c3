@@ -125,7 +125,7 @@ fault StringFault {
 	// 		}
 	// 		else
 	// 		{
-	// 			Char16* sTxt = String.to_utf16(value).ptr!!;
+	// 			Char16* sTxt = String.to_new_utf16(value).ptr!!;
 	// 			defer free(sTxt);
 	// 			api_SetWindowText(this.handle, sTxt);
 	// 		}
@@ -169,8 +169,8 @@ fault StringFault {
 
 	fn void Control.createInternal(Control* ctl, bool special = false) @private {
 		if (!special) ctl.setCtlID();
-		Char16* text = String.to_utf16(ctl.text).ptr!!;
-		Char16* clsN = String.to_utf16(ctl.className).ptr!!;
+		Char16* text = String.to_new_utf16(ctl.text).ptr!!;
+		Char16* clsN = String.to_new_utf16(ctl.className).ptr!!;
 		defer {
 			free(text);
 			free(clsN);
@@ -267,10 +267,11 @@ fault StringFault {
 		{
 			@pool()
 			{
-				Char16[] buffer = tmalloc(Char16, tLen + 1);
+				// Char16[] buffer = tmalloc(Char16, tLen + 1);
+				Char16[] buffer = mem::temp_array(Char16, (usz)(tLen + 1));
 				int ret = api_GetWindowText(hwnd, buffer.ptr, tLen + 1);
 				// return string::from_utf16(buffer)!!;
-				return string::from_utf16(buffer)!!;
+				return string::new_from_utf16(buffer)!!;
 			};
 		}
 		return "";
@@ -281,7 +282,7 @@ fault StringFault {
 		this.text = txt;
 		if (this._isCreated)
 		{
-			Char16* wtext = String.to_utf16(this.text).ptr!!;
+			Char16* wtext = String.to_new_utf16(this.text).ptr!!;
 			defer free(wtext);
 			api_SetWindowText(this.handle, wtext);
 			if (this._autoSizable) this.setIdealSize();

@@ -23,10 +23,10 @@ struct RadioButton
 									int width = 0, int height = 0, EventHandler evtFn = null,
 									bool auto = false, Allocator* using = mem::heap())
 	{
-		RadioButton* this = calloc(RadioButton, .using = using);
+		RadioButton* this = using.new_clear(RadioButton);
 		this.kind = ControlType.RADIO_BUTTON;
 		this.name = dstring::new("RadioButton_");
-		this.name.printf("%d", rbNumber);
+		this.name.appendf("%d", rbNumber);
 		this.className = "Button";
 		this._parent = parent;
 		this.font = parent.font;
@@ -113,7 +113,7 @@ struct RadioButton
 					// Adjusing rect. Otherwise, text will be drawn upon the check area
 					if (!this.rightAlign) {nmc.rc.left += 18;} else {nmc.rc.right -= 18;}
 					if (this._drawMode & 1) api_SetTextColor(nmc.hdc, this.foreColor.ref);
-					Char16* rbtext = String.to_utf16(this.text).ptr!!;
+					Char16* rbtext = String.to_new_utf16(this.text).ptr!!;
 					defer free(rbtext);
 					api_DrawText(nmc.hdc, rbtext, -1, &nmc.rc, this._textStyle);
 					return CDRF_SKIPDEFAULT;

@@ -24,10 +24,10 @@ struct CheckBox
 								bool auto = false, EventHandler evtFn = null,
 								Allocator* using = mem::heap())
 	{
-		CheckBox* this = calloc(CheckBox, .using = using);
+		CheckBox* this = using.new_clear(CheckBox);
 		this.kind = ControlType.CHECK_BOX;
 		this.name = dstring::new("CheckBox_");
-		this.name.printf("%d", cbNumber);
+		this.name.appendf("%d", cbNumber);
 		this.className = "Button";
 		this._parent = parent;
 		this.font = parent.font;
@@ -106,7 +106,7 @@ struct CheckBox
 					// Adjusing rect. Otherwise, text will be drawn upon the check area
 					if (!this.rightAlign) {nmc.rc.left += 18;} else {nmc.rc.right -= 18;}
 					if (this._drawMode & 1) api_SetTextColor(nmc.hdc, this.foreColor.ref);
-					Char16* cbtext = String.to_utf16(this.text).ptr!!;
+					Char16* cbtext = String.to_new_utf16(this.text).ptr!!;
 					defer free(cbtext);
 					api_DrawText(nmc.hdc, cbtext, -1, &nmc.rc, this._textStyle);
 					return CDRF_SKIPDEFAULT;

@@ -64,10 +64,10 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 								int width = 200, int height = 35, bool auto = false,
 								EventHandler evtFn = null, Allocator* using = mem::heap())
 	{
-		TrackBar* this = calloc(TrackBar, .using = using);
+		TrackBar* this = using.new_clear(TrackBar);
 		this.kind = ControlType.TRACK_BAR;
 		this.name = dstring::new("TrackBar_");
-		this.name.printf("%d", tkbNumber);
+		this.name.appendf("%d", tkbNumber);
 		this.className = "msctls_trackbar32";
 		this._parent = parent;
 		this.font = parent.font;

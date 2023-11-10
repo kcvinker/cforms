@@ -90,10 +90,10 @@ enum ListViewStyle : char
 								int width = 300, int height = 200,
 								bool auto = false, Allocator* using = mem::heap())
 	{
-		ListView* this = calloc(ListView, .using = using);
+		ListView* this = using.new_clear(ListView);
 		this.kind = ControlType.LIST_VIEW;
 		this.name = dstring::new("ListView_");
-		this.name.printf("%d", lvNumber);
+		this.name.appendf("%d", lvNumber);
 		this.className = "SysListView32";
 		this._parent = parent;
 		this.font = parent.font;
@@ -127,7 +127,7 @@ enum ListViewStyle : char
 	fn ListViewColumn* newListViewColumn(String txt, int width = 100,
 										int imageIndex = -1, Allocator* using = mem::heap())
 	{
-		ListViewColumn* this = calloc(ListViewColumn, .using = using);
+		ListViewColumn* this = using.new_clear(ListViewColumn);
 		this.text = txt;
 		this.width = width;
 		this.imgIndex = imageIndex;
@@ -144,7 +144,7 @@ enum ListViewStyle : char
 									uint fgColor = 0x000000, int imgIndex = -1,
 										Allocator* using = mem::heap())
 	{
-		ListViewItem* this = calloc(ListViewItem, .using = using);
+		ListViewItem* this = using.new_clear(ListViewItem);
 		this.text = txt;
 		this.backColor = newColor(bgColor);
 		this.foreColor = newColor(fgColor);
@@ -351,14 +351,14 @@ enum ListViewStyle : char
 	// Adding column to ListView.
 	fn void ListView.addColumnInternal(ListView* this, ListViewColumn* lvcol) @private
 	{
-		Char16* coltxt = String.to_utf16(lvcol.text).ptr!!;
+		Char16* coltxt = String.to_new_utf16(lvcol.text).ptr!!;
 		defer free(coltxt);
 		lvcol.index = this._colIndex;
         LVColumn lvc;
         lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT | LVCF_SUBITEM;
         lvc.fmt = (int)lvcol.textAlign;
         lvc.cx = lvcol.width;
-        lvc.pszText = coltxt;//  String.to_utf16(lvcol.text).ptr!!;
+        lvc.pszText = coltxt;//  String.to_new_utf16(lvcol.text).ptr!!;
         // # lvc.iOrder = lvcol.index
 
         if (lvcol.hasImage)
@@ -381,14 +381,14 @@ enum ListViewStyle : char
 		LVItem lvi;
         lvi.mask = LVIF_TEXT | LVIF_PARAM | LVIF_STATE;
         if (item.imageIndex != -1) lvi.mask |= LVIF_IMAGE;
-		Char16* sitem = String.to_utf16(item.text).ptr!!;
+		Char16* sitem = String.to_new_utf16(item.text).ptr!!;
 		defer free(sitem);
         lvi.state = 0;
         lvi.stateMask = 0;
         lvi.iItem = item.index;
         lvi.iSubItem = 0;
         lvi.iImage = item.imageIndex;
-        lvi.pszText = sitem;// String.to_utf16(item.text).ptr!!;
+        lvi.pszText = sitem;// String.to_new_utf16(item.text).ptr!!;
         lvi.cchTextMax = item.text.len;
         // lvi.lParam = bitcast(item, Lparam);
        	this.sendMsg(LVM_INSERTITEMW, 0, &lvi);
@@ -403,7 +403,7 @@ enum ListViewStyle : char
         LVItem lvi;
         // # lvi.mask = con.LVIF_TEXT | con.LVIF_STATE
         // # lvi.iItem = item_index
-		Char16* sitem = String.to_utf16(subitem).ptr!!;
+		Char16* sitem = String.to_new_utf16(subitem).ptr!!;
 		defer free(sitem);
         lvi.iSubItem = subIndex;
         lvi.pszText = sitem;
@@ -429,7 +429,7 @@ enum ListViewStyle : char
 			@pool()
 			{
 				IntList iList;
-				iList.tinit(this.columns.len()); // Ensure we never need realloc
+				iList.init_temp(this.columns.len()); // Ensure we never need realloc
 				foreach (col: this.columns) {if (col.index > 0) iList.push(col.index);}
 				iList.push(0);
 				this.sendMsg(LVM_SETCOLUMNORDERARRAY, iList.len(), &iList[0]);
@@ -476,7 +476,7 @@ enum ListViewStyle : char
             nmcd.rc.left += 2;
             nmcd.rc.top += 2;
 		}
-		Char16* coltext = String.to_utf16(col.text).ptr!!;
+		Char16* coltext = String.to_new_utf16(col.text).ptr!!;
 		defer free(coltext);
         api_DrawText(nmcd.hdc, coltext, -1, &nmcd.rc, col._hdrTxtFlag);
 		return CDRF_SKIPDEFAULT;

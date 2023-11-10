@@ -36,10 +36,10 @@ enum ViewMode : int
 	// Calendar constructor
 	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, bool auto = false, Allocator* using = mem::heap())
 	{
-		Calendar* this = calloc(Calendar, .using = using);
+		Calendar* this = using.new_clear(Calendar);
 		this.kind = ControlType.CALENDAR;
 		this.name = dstring::new("Calendar_");
-		this.name.printf("%d", calNumber);
+		this.name.appendf("%d", calNumber);
 		this.className = "SysMonthCal32";
 		this._parent = parent;
 		this.font = parent.font;

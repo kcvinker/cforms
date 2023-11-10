@@ -30,10 +30,10 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 							int width = 140, int height = 27,
 							bool auto = false, Allocator* using = mem::heap())
 	{
-		TextBox* this = calloc(TextBox, .using = using);
+		TextBox* this = using.new_clear(TextBox);
 		this.kind = ControlType.TEXT_BOX;
 		this.name = dstring::new("TextBox_");
-		this.name.printf("%d", tbNumber);
+		this.name.appendf("%d", tbNumber);
 		this.className = "Edit";
 		this._parent = parent;
 		this.font = parent.font;
@@ -66,7 +66,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 			this.setFontInternal();
 			if (this._cueReady)
 			{
-				Char16* cuetext = String.to_utf16(this.cueStr.str_view()).ptr!!;
+				Char16* cuetext = String.to_new_utf16(this.cueStr.str_view()).ptr!!;
 				defer free(cuetext);
 				api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 			}
@@ -79,7 +79,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.cueStr = dstring::new(s);
 		if (this._isCreated)
 		{
-			Char16* cuetext = String.to_utf16(this.cueStr.str_view()).ptr!!;
+			Char16* cuetext = String.to_new_utf16(this.cueStr.str_view()).ptr!!;
 			defer free(cuetext);
 			api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 		}

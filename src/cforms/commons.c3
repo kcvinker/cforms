@@ -183,7 +183,7 @@ fn String makeStringFromAny(any* value)
 	switch (value)
 	{
 		case String: return *value;
-		default: return string::printf("%s", value);
+		default: return string::new_format("%s", value);
 	}
 }
 
@@ -200,9 +200,9 @@ fn String numeralsToString(any* value) @private
 	// DString ds = dstring::tnew_with_capacity(16);
 	switch (value)
 	{
-		case int: return string::printf("%d", value);
+		case int: return string::new_format("%d", value);
 		case float: nextcase;
-		case double: return string::printf("%.2f", *value);
+		case double: return string::new_format("%.2f", *value);
 		default: break;
 	}
 		// if (perc) {ds.printf("%d%%", *i);} else {ds.printf("%d", *i);}

@@ -31,10 +31,10 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 									int width = 200, int height = 25, bool perc = false,
 									bool auto = false, Allocator* using = mem::heap())
 	{
-		ProgressBar* this = calloc(ProgressBar, .using = using);
+		ProgressBar* this = using.new_clear(ProgressBar);
 		this.kind = ControlType.PROGRESS_BAR;
 		this.name = dstring::new("ProgressBar_");
-		this.name.printf("%d", pbNumber);
+		this.name.appendf("%d", pbNumber);
 		this.className = "msctls_progress32";
 		this._parent = parent;
 		this.font = parent.font;
@@ -164,7 +164,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 
 	macro String progressStr(value)
 	{
-		return string::printf("%s %%", value);
+		return string::new_format("%s %%", value);
 	}
 
 	// Setting control's style bits.
@@ -180,7 +180,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		Size ss;
 		// int value = (int)this.sendMsg(PBM_GETPOS, 0, 0);
 		String ptext = progressStr(this.value);
-		Char16* wtext = String.to_utf16(ptext).ptr!!;
+		Char16* wtext = String.to_new_utf16(ptext).ptr!!;
 		defer free(ptext);//
 		defer free(wtext);
 

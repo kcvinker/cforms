@@ -100,11 +100,11 @@ fn void GradDraw.dtor(GradDraw* g) @private
 							bool auto = false, EventHandler evtFn = null,
 							Allocator* using = mem::heap())
 	{
-		Button* this = calloc(Button, .using = using);
+		Button* this = using.new_clear(Button);
 		this.kind = ControlType.BUTTON;
 		this.className = "Button";
 		this.name = dstring::new("Button_");
-		this.name.printf("%d", btnNumber);
+		this.name.appendf("%d", btnNumber);
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = btnStyle;
@@ -192,7 +192,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		int ret = api_SetBkMode(ncd.hdc, TRANSPARENT);
 		api_SetTextColor(ncd.hdc, b.foreColor.ref);
 		api_SelectObject(ncd.hdc, (Hgdiobj)(b.font.handle));
-		Char16* btext = String.to_utf16(b.text).ptr!!;
+		Char16* btext =  String.to_new_utf16(b.text).ptr!!;
 		defer free(btext);
         api_DrawText(ncd.hdc, btext, -1, &ncd.rc, TXTFLAG);
         return CDRF_NOTIFYPOSTPAINT;

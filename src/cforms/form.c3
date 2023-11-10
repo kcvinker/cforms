@@ -127,7 +127,7 @@ struct Form
 			frmCreated = true;
 			dwc = colorFromRgb(230, 230, 230);
 			hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
-			Char16* clsN = String.to_utf16(className).ptr!!;
+			Char16* clsN = String.to_new_utf16(className).ptr!!;
 			defer free(clsN);
 			registerClass(hins, clsN);
 			screenWidth = api_GetSystemMetrics(0);
@@ -137,10 +137,10 @@ struct Form
 			icc.dwICC = ICC_STANDARD_CLASSES;
 			api_InitCommonControlsEx(&icc);
 		}
-		Form* this = calloc(Form, .using = using);
+		Form* this = using.new_clear(Form);
 		this.kind = ControlType.NONE;
 		this.name = dstring::new("Form_");
-		this.name.printf("%d", frmNumber);
+		this.name.appendf("%d", frmNumber);
 		this.text = title;
 		this.width = width;
 		this.height = height;
@@ -163,8 +163,8 @@ struct Form
 	{
 		this.setStyle();
 		this.setPosition();
-		Char16* title = String.to_utf16(this.text).ptr!!;
-		Char16* clsN = String.to_utf16(className).ptr!!;
+		Char16* title = String.to_new_utf16(this.text).ptr!!;
+		Char16* clsN = String.to_new_utf16(className).ptr!!;
 		defer {	free(title); free(clsN); }
 		this.handle = api_CreateWindowEx(this._exStyle,
 										clsN,

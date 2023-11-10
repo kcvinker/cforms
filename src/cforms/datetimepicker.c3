@@ -44,10 +44,10 @@ enum DTPFormat : int(String descrption, int value )
 	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10,
 											bool auto = false, Allocator* using = mem::heap())
 	{
-		DateTimePicker* this = calloc(DateTimePicker, .using = using);
+		DateTimePicker* this = using.new_clear(DateTimePicker);
 		this.kind = ControlType.DATE_TIME_PICKER;
 		this.name = dstring::new("DateTimePicker_");
-		this.name.printf("%d", dtpNumber);
+		this.name.appendf("%d", dtpNumber);
 		this.className = "SysDateTimePick32";
 		this._parent = parent;
 		this.font = parent.font;

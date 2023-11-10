@@ -3,6 +3,7 @@ import std::io;
 
 import libc;
 
+
 // import lib::form;
 // def ptf = printf;
 // import private apifns;
@@ -33,7 +34,7 @@ GroupBox* gb;
 ListView* lv;
 // MenuBar* mb;
 int cntr = 1;
-fn void makeWindow(TrackingAllocator* tar)
+fn void makeWindow()
 {
 
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
@@ -138,18 +139,10 @@ fn void makeWindow(TrackingAllocator* tar)
 }
 
 fn int main(String[] args) {
-	// Allocator* alloc = mem::heap();
-	// TrackingAllocator tal;
-	// mem::temp();
-	// tal.init(mem::heap());
-	TrackingAllocator tal = startTracking();
-	defer tal.free();
-	mem::@scoped(&tal) {
-		makeWindow(&tal);
+	mem::@report_heap_allocs_in_scope()
+	{
+		makeWindow();
 	};
-	// ptf("Window closed: allocated memory: %s, Allocation count: %s", tal.total_allocated(), tal.allocation_count());
-	printTrackReport(tal);
-	// log("Program ended");
 	return 0;
 }
 

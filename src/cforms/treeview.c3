@@ -61,10 +61,10 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 								int width = 200, int height = 200,
 								bool auto = false, Allocator* using = mem::heap())
 	{
-		TreeView* this = calloc(TreeView, .using = using);
+		TreeView* this = using.new_clear(TreeView);
 		this.kind = ControlType.TREE_VIEW;
 		this.name = dstring::new("TreeView_");
-		this.name.printf("%d", tvNumber);
+		this.name.appendf("%d", tvNumber);
 		this.className = "SysTreeView32";
 		this._parent = parent;
 		this.font = parent.font;
@@ -86,7 +86,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 	fn TreeNode* newTreeNode(String txt, int image_index = -1, int sel_image_index = -1, Allocator* using = mem::heap())
 	{
-		TreeNode* this = calloc(TreeNode, .using = using);
+		TreeNode* this = using.new_clear(TreeNode);
 		this.text = txt;
 		this.selImageIndex = -sel_image_index;
 		this.imageIndex = image_index;
@@ -174,7 +174,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	fn TreeNode* TreeView.addChildNode1(TreeView* this, String nodeTxt, TreeNode* parentNode,
 											Allocator* using = mem::heap()) @private
 	{
-			TreeNode* tn = newTreeNode(nodeTxt, .using = using);
+			TreeNode* tn = newTreeNode(nodeTxt);
 			this.addNodeInternal(NodeOps.ADDCHILD, tn, parentNode);
 			return tn;
 	}
@@ -229,7 +229,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 	fn TreeNode* TreeView.insertNode1(TreeView* this, String nodeTxt, int index, Allocator* using = mem::heap()) @private
 	{
-		TreeNode* node = newTreeNode(nodeTxt, .using = using);
+		TreeNode* node = newTreeNode(nodeTxt);
 		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
 		return node;
 	}
@@ -253,7 +253,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	fn TreeNode* TreeView.insertChildNode1(TreeView* this, String nodeTxt, TreeNode* parent,
 												int index, Allocator* using = mem::heap()) @private
 	{
-		TreeNode* tn = newTreeNode(nodeTxt, .using = using);
+		TreeNode* tn = newTreeNode(nodeTxt);
 		this.addNodeInternal(NodeOps.INSERTCHILD, tn, parent, index);
 		return tn;
 	}
@@ -458,7 +458,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		TVItemEx tvi;
 		tvi.mask = TVIF_TEXT | TVIF_PARAM;
 		// print($typeof(node.text).nameof);
-		Char16* nodtext = String.to_utf16(node.text).ptr!!;
+		Char16* nodtext = String.to_new_utf16(node.text).ptr!!;
 		// defer free(nodtext);
 		*newTxtPtr = nodtext;
 		tvi.pszText = nodtext;
