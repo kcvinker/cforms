@@ -41,7 +41,7 @@ struct Control
 	int xpos;
 	int ypos;
 	iptr ctlID;
-	// ContextMenu* contextMenu;
+	ContextMenu* contextMenu;
 	Dword _style;
 	Dword _exStyle;
 	uint _drawMode;

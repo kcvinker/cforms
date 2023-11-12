@@ -19,6 +19,8 @@ struct TextBox
 	Alignment textAlign;
 	DString cueStr;
 	bool _cueReady;
+
+	EventHandler onTextChanged;
 }
 
 enum TextType : char {NORMAL, NUMBERONLY, PASSWORDCHAR}
@@ -175,8 +177,11 @@ fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_KEYDOWN: this.keyDownHandler(wp);
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
-		// case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_EDIT: return (Lresult) this.colorMsgHandler(wp);
+		case MM_CTL_COMMAND:
+			Word ncode = hiWord(wp);
+			if ((ncode == EN_CHANGE) && this.onTextChanged) this.onTextChanged(this, &&EventArgs{});
 		case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
@@ -188,6 +193,7 @@ fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 	const Dword ES_LOWERCASE = 16;
 	const Dword ES_MULTILINE = 4;
 	const Dword ES_NOHIDESEL = 256;
+	const Dword EN_CHANGE = 0x0300;
 	// const Dword ES_NUMBER = 0x2000;
 	const Dword ES_OEMCONVERT = 0x400;
 	const Dword ES_PASSWORD = 32;

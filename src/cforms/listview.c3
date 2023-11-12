@@ -575,7 +575,7 @@ fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_CHAR: this.keyPressHandler(wp);
 
 		case WM_NOTIFY: return this.headerNotifyHandler(lp);
-		// case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 
 		case MM_RUNDTOR: this.dtor(); return 0;
 
