@@ -3,7 +3,7 @@ A simple GUI library for C3 programming language, based on Win32 API
 
 # Screenshots
 
-![image](Screenshot_302.jpg)
+![image](Screenshot_423.jpg)
 
 
 # Code sample
