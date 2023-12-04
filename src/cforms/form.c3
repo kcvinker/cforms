@@ -85,6 +85,7 @@ struct Form
 	CmbMap _comboMap;
 	MenuItemMap _menuItemMap;
 	bool _menuMapInited;
+	bool _menubarCreated;
 	Hinstance hinst;
 	Hwnd bhw;
 	Hbrush _bkBrush;
@@ -185,6 +186,7 @@ struct Form
 	fn void Form.show(Form* this) {
 		api_ShowWindow(this.handle, 5);
 		api_UpdateWindow(this.handle);
+		if (this._menuMapInited && !this._menubarCreated) this.menubar.createHandle();
 		if (!mainLoopStarted) {
 			mainLoopStarted = true;
 			this._isMainWindow = true;
@@ -201,6 +203,13 @@ struct Form
 		this._fDrawMode = FormDrawMode.FLAT_COLOR;
 		this._bkBrush = api_CreateSolidBrush(this.backColor.ref);
 		if (this._isCreated) api_InvalidateRect(this.handle, null, false);
+	}
+
+	fn MenuBar* Form.addMenubar(Form* this, String... items)
+	{
+		newMenuBar(this);
+		this.menubar.addItems(...items);
+		return this.menubar;
 	}
 
 	// A handy function to help find the points where we can place new controls.
@@ -599,17 +608,14 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 		case WM_MEASUREITEM:
 			MeasureItemStruct* pmi = (MeasureItemStruct*) lp;
 			MenuItem* mi = (MenuItem*) ((void*) pmi.itemData);
-			if (mi.kind == MenuType.BASE_MENU)
-			{
+			if (mi.kind == MenuType.BASE_MENU) {
 				Hdc hdc = api_GetDC(hw);
 				defer api_ReleaseDC(hw, hdc);
 				Size size;
 				api_GetTextExtentPoint32(hdc, mi._wideText, mi.text.len, &size);
 				pmi.itemWidth = size.cx + 3;
 				pmi.itemHeight = size.cy;
-			}
-			else
-			{
+			} else {
 				pmi.itemWidth = 100;
 				pmi.itemHeight = 25;
 			}
@@ -619,45 +625,32 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 			DrawItemStruct* dis = (DrawItemStruct*) lp;
 			MenuItem* mi = (MenuItem*) ((void*) dis.itemData);
 			Colorref txtClrRef = mi.fgColor.ref;
-			if (dis.itemState == 320 || dis.itemState == 257)
-			{
-				if (mi._isEnabled)
-				{
+			if (dis.itemState == 320 || dis.itemState == 257) {
+				if (mi._isEnabled) {
 					Rect rc = {dis.rcItem.left + 5, dis.rcItem.top + 1, dis.rcItem.right, dis.rcItem.bottom};
-					api_FillRect(dis.hDC, &rc, this._menuHotBgBrush);
-					api_FrameRect(dis.hDC, &rc, this._menuFrameBrush);
+					api_FillRect(dis.hDC, &rc, this.menubar._menuHotBgBrush);
+					api_FrameRect(dis.hDC, &rc, this.menubar._menuFrameBrush);
 					txtClrRef = 0x00000000;
+				} else {
+					api_FillRect(dis.hDC, &dis.rcItem, this.menubar._menuGrayBrush);
+					txtClrRef = this.menubar._menuGrayCref;
 				}
-				else
-				{
-					api_FillRect(dis.hDC, &dis.rcItem, this._menuGrayBrush);
-					txtClrRef = this._menuGrayCref;
-				}
-			}
-			else
-			{
-				api_FillRect(dis.hDC, &dis.rcItem, this._menuDefBgBrush);
-				if (!mi._isEnabled) txtClrRef = this._menuGrayCref;
+			} else {
+				api_FillRect(dis.hDC, &dis.rcItem, this.menubar._menuDefBgBrush);
+				if (!mi._isEnabled) txtClrRef = this.menubar._menuGrayCref;
 			}
 			api_SetBkMode(dis.hDC, 1);
-			if (mi.kind == MenuType.BASE_MENU)
-			{
-				dis.rcItem.left += 10;
-			}
-			else
-			{
-				dis.rcItem.left += 25;
-			}
-			api_SelectObject(dis.hDC, (Hgdiobj)this._menuFont.handle);
+			dis.rcItem.left = mi.kind == MenuType.BASE_MENU ? dis.rcItem.left + 10 : dis.rcItem.left + 25;
+			api_SelectObject(dis.hDC, (Hgdiobj)this.menubar.font.handle);
 			api_SetTextColor(dis.hDC, txtClrRef);
 			api_DrawText(dis.hDC, mi._wideText, -1, &dis.rcItem, DT_LEFT | DT_SINGLELINE | DT_VCENTER);
 			return 0;
 
-		case MM_MENU_ADDED:
-			// De-reference the pointer and put the menu item in our map
-			uint menuID = (uint)wp;
-			this._menuItemMap[menuID] = (MenuItem*)((void*) lp);
-			return 0;
+		// case MM_MENU_ADDED:
+		// 	// De-reference the pointer and put the menu item in our map
+		// 	uint menuID = (uint)wp;
+		// 	this._menuItemMap[menuID] = (MenuItem*)((void*) lp);
+		// 	return 0;
 
 		case WM_COMMAND:
             switch (hiWord(wp))

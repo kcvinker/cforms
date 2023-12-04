@@ -5,6 +5,7 @@ import std::io;
 import std::core::mem;
 import std::collections::list;
 import std::collections::map;
+// import std::sort;
 // import libc;
 
 def MenuItemList = List(<MenuItem*>);
@@ -14,29 +15,38 @@ def MenuEventHandler = fn void(MenuItem*, EventArgs*);
 uint menuNumber = 101;
 Hmenu nullMenu = (Hmenu)0;
 
+struct MenuBase
+{
+	Hmenu handle;
+	Font font;
+	uint _menuCount;
+	MenuMap menus;
+}
+
 // MenuBar structure
 struct MenuBar
 {
-	Hmenu handle;
-	MenuMap menus;
-	Font font;
+	inline MenuBase _base;
 	Hwnd _formHwnd;
-	Form* _parent;
-	uint _menuCount;
+	Form* _pForm;
+	Colorref _menuGrayCref;
+   	Hbrush _menuDefBgBrush ;
+    Hbrush _menuHotBgBrush ;
+    Hbrush _menuFrameBrush ;
+    Hbrush _menuGrayBrush ;
+	MenuItemList _menuList;
 }
 
 // MenuItem structure
 struct MenuItem
 {
-	Hmenu handle;
+	inline MenuBase _base;
 	Hmenu parentHandle;
 	Hwnd _formHwnd;
-	Font font;
-	Lpcwstr _wideText;
 	Color bgColor;
 	Color fgColor;
 	uint idNum;
-	uint _childCount;
+
 	uint _index;
 	uint _evtFlag;
 	int iLevel;
@@ -46,15 +56,17 @@ struct MenuItem
 	bool _popup;
 	bool _formMenu;
 	String text;
+	Char16* _wideText;
 	MenuType kind;
-	MenuMap menus;
 	MenuItem* _parent;
 	uint uFlag;
+	MenuBar* _mbar;
+
 	MenuEventHandler onClick;
 	MenuEventHandler onPopup;
 	MenuEventHandler onCloseup;
 	MenuEventHandler onFocus;
-	MenuBar* menubar;
+
 }
 
 // Menubar Constructor
@@ -62,15 +74,14 @@ fn MenuBar* newMenuBar(Form* frm, Allocator* using = mem::heap())
 {
 	MenuBar* this = using.new_clear(MenuBar);
 	this.handle = api_CreateMenu();
-	this._parent = frm;
-    // this.font = (menuFont == null) ? frm.font : menuFont;
-	frm._menuFont = newFont("Tahoma", 11);
-    frm._menuGrayBrush = getHbrush(0xced4da);
-    frm._menuGrayCref = getClrRef(0x979dac);
-	frm.menubar = this;
-	this.menus.init_new();
-	this._parent._menuItemMap.init_new();
-	this._parent._menuMapInited = true;
+	this._pForm = frm;
+	this.font = newFont("Tahoma", 11);
+    this._menuGrayBrush = getHbrush(0xced4da);
+    this._menuGrayCref = getClrRef(0x979dac);
+	this._pForm.menubar = this;
+	// this.menus.init_new();
+	// this._pForm._menuItemMap.init_new();
+	this._pForm._menuMapInited = true;
 	return this;
 }
 
@@ -97,62 +108,69 @@ fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint 
 }
 
 
-fn MenuItem* MenuBar.addMenu(MenuBar* this, String menuName, uint txtColor = 0x000000)
+fn MenuItem* MenuBar.addItem(MenuBar* this, String menuName, uint txtColor = 0x000000)
 {
 	MenuItem* mi = newMenuItem(menuName, MenuType.BASE_MENU, this.handle, this._menuCount);
-    mi._formHwnd = this._parent.handle;
+    mi._formHwnd = this._pForm.handle;
     mi.fgColor = newColor(txtColor);
     mi._formMenu = true;
+	mi._mbar = this;
     this._menuCount += 1;
     this.menus[menuName] = mi;
-    this._parent._menuItemMap[mi.idNum] = mi;
+	this._menuList.append(mi);
+    this._pForm._menuItemMap[mi.idNum] = mi;
 	return mi;
 }
 
 // Add more than one menu item to menu bar.
-fn void MenuBar.addMenus(MenuBar* this, String... menuNames)
+fn void MenuBar.addItems(MenuBar* this, String... menuNames)
 {
 	foreach (name: menuNames)
 	{
 		MenuItem* mi = newMenuItem(name, MenuType.BASE_MENU, this.handle, this._menuCount);
-		mi._formHwnd = this._parent.handle;
+		mi._formHwnd = this._pForm.handle;
 		mi._formMenu = true;
+		mi._mbar = this;
 		this._menuCount += 1;
 		this.menus[name] = mi;
-		this._parent._menuItemMap[mi.idNum] = mi;
+		this._menuList.append(mi);
+		this._pForm._menuItemMap[mi.idNum] = mi;
 	}
 }
 
 // Create menu handles and set menus in menubar. Must call this after creating menubar struct.
 fn void MenuBar.createHandle(MenuBar* this)
 {
-	this._parent._menuDefBgBrush = getHbrush(0xe9ecef);
-    this._parent._menuHotBgBrush = getHbrush(0x90e0ef);
-    this._parent._menuFrameBrush = getHbrush(0x0077b6);
-	if (this.font.handle)
-	{
-		this._parent._menuFont = this.font;
+	this._menuDefBgBrush = getHbrush(0xe9ecef);
+    this._menuHotBgBrush = getHbrush(0x90e0ef);
+    this._menuFrameBrush = getHbrush(0x0077b6);
+	if (!this.font.handle) this.font.createHandle(this._pForm.handle);
+
+	// If there are menus, we need to create the handles for them too.
+    if (this._menuCount > 0) {
+		// @pool() {
+			// MenuItem*[] mlist = this.menus.value_tlist();
+			// sort::quicksort(mlist, &sortMenuItemList);
+			foreach(menu: this._menuList) {menu.create();}
+		// };
+		this._menuList.free();
 	}
-	else
-	{
-		this._parent._menuFont.createHandle(this._parent.handle);
-	}
-    if (this._menuCount > 0)
-	{
-		@pool() { foreach(menu: this.menus.value_tlist()) {menu.create();} };
-	}
-    api_SetMenu(this._parent.handle, this.handle);
+    api_SetMenu(this._pForm.handle, this.handle);
+	this._pForm._menubarCreated = true;
+}
+
+fn bool sortMenuItemList(MenuItem* a, MenuItem* b) @private
+{
+	return a.idNum < b.idNum;
 }
 
 fn void MenuItem.insertMenuInternal(MenuItem* this, Hmenu parentHmenu)
 {
-	Char16* sText = String.to_new_utf16(this.text).ptr!!;
-	defer free(sText);
 	MenuItemInfoW mii;
     mii.cbSize = (uint) MenuItemInfoW.sizeof;
     mii.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA | MIIM_SUBMENU | MIIM_STATE;
     mii.fType = MF_OWNERDRAW;
-    mii.dwTypeData = sText;
+    mii.dwTypeData = this._wideText;
     mii.cch = (uint)this.text.len;
     mii.dwItemData = bitcast(this, Ulongptr);
     mii.wID = this.idNum;
@@ -166,15 +184,12 @@ fn void MenuItem.insertMenuInternal(MenuItem* this, Hmenu parentHmenu)
 // Create menu item and append the handle in parent menu.
 fn void MenuItem.create(MenuItem* this)
 {
-	switch (this.kind)
-	{
+	switch (this.kind) {
     	case MenuType.BASE_MENU: nextcase;
 		case MenuType.POPUP:
 			this.insertMenuInternal(this.parentHandle);
-			if (this.menus.count > 0)
-			{
-				@pool()
-				{
+			if (this.menus.count > 0) {
+				@pool() {
 					/*
 						This is a workaround. We faced a strange problem here. `value_tlist()
 						returns an array in reverse order. And there is no sort feature in c3 array.
@@ -183,11 +198,9 @@ fn void MenuItem.create(MenuItem* this)
 					MenuItem*[] menuArr = this.menus.value_tlist();
 					int indxVal = 0;
 					int counter = 0;
-					while (true)
-					{
+					while (true) {
 						MenuItem* mi = menuArr[indxVal];
-						if (mi._index == counter)
-						{
+						if (mi._index == counter) {
 							mi.create();
 							counter += 1;
 						}
@@ -205,7 +218,7 @@ fn void MenuItem.create(MenuItem* this)
 }
 
 // Add menu item to existing menu item. So the parent become a popup menu.
-fn MenuItem* MenuItem.addMenu(MenuItem* this, String menuName, uint txtColor = 0x000000)
+fn MenuItem* MenuItem.addItem(MenuItem* this, String menuName, uint txtColor = 0x000000)
 {
 	if (this.kind == MenuType.MENU_ITEM)
 	{
@@ -213,37 +226,36 @@ fn MenuItem* MenuItem.addMenu(MenuItem* this, String menuName, uint txtColor = 0
         this._popup = true;
 		this.menus.init_new();
 	}
-    MenuItem* result = newMenuItem(menuName, MenuType.MENU_ITEM, this.handle, this._childCount);
+    MenuItem* result = newMenuItem(menuName, MenuType.MENU_ITEM, this.handle, this._menuCount);
     result.fgColor = newColor(txtColor);
     result._formHwnd = this._formHwnd;
     result._formMenu = this._formMenu;
+	result._mbar = this._mbar;
     if (this.kind != MenuType.BASE_MENU) this.kind = MenuType.POPUP;
-    this._childCount += 1;
+    this._menuCount += 1;
     this.menus[menuName] = result;
-    Lparam lpm = (Lparam)((void*)result);
-    if (result._formMenu)api_SendMessage(result._formHwnd, MM_MENU_ADDED, (Wparam)result.idNum, lpm);
-	return result;
+	this._mbar._pForm._menuItemMap[result.idNum] = result;
+    return result;
 }
 
 //Add more than one menu item to existing menu item.
-fn void MenuItem.addMenus(MenuItem* this, String... menuNames )
+fn void MenuItem.addItems(MenuItem* this, String... menuNames )
 {
-	if (this.kind == MenuType.MENU_ITEM)
-	{
+	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
 		this.menus.init_new();
 	}
 	if (this.kind != MenuType.BASE_MENU) this.kind = MenuType.POPUP;
-	foreach (name: menuNames)
-	{
-		MenuItem* result = newMenuItem(name, MenuType.MENU_ITEM, this.handle, this._childCount);
-		result._formHwnd = this._formHwnd;
-		result._formMenu = this._formMenu;
-		this._childCount += 1;
-		this.menus[name] = result;
-		Lparam lpm = (Lparam)((void*)result);
-		if (result._formMenu)api_SendMessage(result._formHwnd, MM_MENU_ADDED, (Wparam)result.idNum, lpm);
+	foreach (name: menuNames) {
+		MenuType mtyp = name == "|" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;
+		MenuItem* menu = newMenuItem(name, mtyp, this.handle, this._menuCount);
+		menu._formHwnd = this._formHwnd;
+		menu._formMenu = this._formMenu;
+		menu._mbar = this._mbar;
+		this._menuCount += 1;
+		this.menus[name] = menu;
+		this._mbar._pForm._menuItemMap[menu.idNum] = menu;
 	}
 }
 
@@ -263,12 +275,9 @@ fn void MenuItem.addMenus(MenuItem* this, String... menuNames )
 
 fn MenuItem* MenuItem.getChildFromIndex(MenuItem* this, uint indx)
 {
-	if (this._childCount > 0)
-	{
-		@pool()
-		{
-			foreach (menu: this.menus.value_tlist())
-			{
+	if (this._menuCount > 0) {
+		@pool() {
+			foreach (menu: this.menus.value_tlist()) {
 				if (menu._index == indx) return menu;
 			}
 		};
@@ -279,25 +288,22 @@ fn MenuItem* MenuItem.getChildFromIndex(MenuItem* this, uint indx)
 // Freeing resources for a menu item
 fn void MenuItem.destroy(MenuItem* this)
 {
-	if (this._childCount > 0)
-	{
-		@pool()
-		{
+	if (this._menuCount > 0) {
+		@pool() {
 			foreach (menu: this.menus.value_tlist()) {menu.destroy();}
 			this.menus.free();
 		};
 	}
+	free(this._wideText);
 	free(this);
 }
 
 // Freeing resources for a menu bar
 fn void MenuBar.destroy(MenuBar* this)
 {
-	if (this._menuCount)
-	{
-		@pool()
-		{
-			foreach (menu: this.menus.value_tlist()) {menu.destroy();	}
+	if (this._menuCount) {
+		@pool() {
+			foreach (menu: this.menus.value_tlist()) {menu.destroy();}
 			this.menus.free();
 		};
 	}
@@ -308,15 +314,14 @@ fn void MenuBar.destroy(MenuBar* this)
 
 struct ContextMenu
 {
-	Hmenu handle;
-    Font font;
-    int width, height, _menuCount;
+	inline MenuBase _base;
+    int width, height;
     bool rightClick;
     Colorref _grayCref;
     Hwnd _dummyHwnd;
     Control* parent;
     Hbrush _defBgBrush, _hotBgBrush, _borderBrush, _grayBrush;
-    MenuMap menus;
+
 	// Events
     EventHandler onMenuShown, onMenuClose;
 }
@@ -339,18 +344,14 @@ fn ContextMenu* newContextMenu(Allocator* using = mem::heap())
 
 fn void ContextMenu.addMenus(ContextMenu* this, String[] menuNames)
 {
-	foreach (name: menuNames)
-	{
-		MenuType mtyp = name == "_" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;
+	foreach (name: menuNames) {
+		MenuType mtyp = name == "|" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;
 		MenuItem* mi = newMenuItem(name, mtyp, this.handle, this._menuCount);
 		this._menuCount += 1;
-		if (mtyp == MenuType.MENU_ITEM)
-		{
+		if (mtyp == MenuType.MENU_ITEM) {
 			mi.insertMenuInternal(this.handle);
 			this.menus[name] = mi;
-		}
-		else if (mtyp == MenuType.SEPRATOR)
-		{
+		} else if (mtyp == MenuType.SEPRATOR) {
 			api_AppendMenu(this.handle, MF_SEPARATOR, 0, null);
 		}
 	}
@@ -361,13 +362,10 @@ fn MenuItem* ContextMenu.addMenu(ContextMenu* this, String menuText)
 	MenuType mtyp = menuText == "_" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;
 	MenuItem* mi = newMenuItem(menuText, mtyp, this.handle, this._menuCount);
 	this._menuCount += 1;
-	if (mtyp == MenuType.MENU_ITEM)
-	{
+	if (mtyp == MenuType.MENU_ITEM) {
 		mi.insertMenuInternal(this.handle);
 		this.menus[menuText] = mi;
-	}
-	else if (mtyp == MenuType.SEPRATOR)
-	{
+	} else if (mtyp == MenuType.SEPRATOR) {
 		api_AppendMenu(this.handle, MF_SEPARATOR, 0, null);
 	}
 	return mi;
@@ -378,13 +376,10 @@ fn bool ContextMenu.isWindow(ContextMenu* this) {return this.parent.kind == Cont
 fn void ContextMenu.setDummyControl(ContextMenu* this) { // This will be get called when user called `setContextMenu` function
 	Hwnd pHwnd;
 	Hinstance hinsta;
-	if (this.isWindow())
-	{
+	if (this.isWindow()) {
 		pHwnd = this.parent.handle;
 		((Form*)this.parent).hinst;
-	}
-	else
-	{
+	} else {
 		pHwnd = this.parent._parent.handle;
 		hinsta = this.parent._parent.hinst;
 	}
@@ -398,12 +393,8 @@ fn void ContextMenu.setDummyControl(ContextMenu* this) { // This will be get cal
 
 fn MenuItem* ContextMenu.getMenuItem(ContextMenu* this, uint id) @private
 {
-	@pool()
-	{
-		foreach (menu: this.menus.value_tlist())
-		{
-			if (menu.idNum == id) return menu;
-		}
+	@pool() {
+		foreach (menu: this.menus.value_tlist()) { if (menu.idNum == id) return menu; }
 	};
 	return null;
 }
@@ -414,8 +405,7 @@ fn MenuItem* ContextMenu.getMenuItem(ContextMenu* this, uint id) @private
 fn void ContextMenu.showMenu(ContextMenu* this, Lparam lpm)
 {
 	Point pt = getMousePoints(lpm);
-	if (pt.x == -1 && pt.y == -1)
-	{
+	if (pt.x == -1 && pt.y == -1) {
 		// ContextMenu message generated by keybord shortcut.
 		// So we need to find the mouse position.
 		pt = getMousePosOnMsg();
@@ -426,10 +416,8 @@ fn void ContextMenu.showMenu(ContextMenu* this, Lparam lpm)
 
 fn void ContextMenu.destroy(ContextMenu* this)
 {
-	if (this._menuCount > 0)
-	{
-		@pool()
-		{
+	if (this._menuCount > 0) {
+		@pool() {
 			foreach (menu: this.menus.value_tlist()) { menu.destroy();}
 		};
 		this.menus.free();
@@ -457,23 +445,17 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, D
 			DrawItemStruct* dis = (DrawItemStruct*)lp;
 			MenuItem* mi = (MenuItem*)((void*)dis.itemData);
 			Colorref txtClrRef = mi.fgColor.ref;
-			if (dis.itemState == 257)
-			{
-				if (mi._isEnabled)
-				{
+			if (dis.itemState == 257) {
+				if (mi._isEnabled) {
 					Rect rc = {dis.rcItem.left + 4, dis.rcItem.top + 2, dis.rcItem.right, dis.rcItem.bottom - 2};
 					api_FillRect(dis.hDC, &rc, this._hotBgBrush);
 					api_FrameRect(dis.hDC, &rc, this._borderBrush);
 					txtClrRef = 0x00000000;
-				}
-				else
-				{
+				} else {
 					api_FillRect(dis.hDC, &dis.rcItem, this._grayBrush);
 					txtClrRef = this._grayCref;
 				}
-			}
-			else
-			{
+			} else {
 				api_FillRect(dis.hDC, &dis.rcItem, this._defBgBrush);
 				if (!mi._isEnabled) txtClrRef = this._grayCref;
 			}
@@ -494,22 +476,18 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, D
 		case WM_MENUSELECT:
 			int idNum = (int) loWord(wp);
 			Hmenu hMenu = (Hmenu) lp;
-			if (hMenu && idNum > 0)
-			{
+			if (hMenu && idNum > 0) {
 				MenuItem* menu = this.getMenuItem(idNum);
-				if (menu && menu._isEnabled)
-				{
+				if (menu && menu._isEnabled) {
 					if (menu.onFocus) menu.onFocus(menu, &&EventArgs{});
 				}
 			}
 
 		case WM_COMMAND:
 			uint idNum = (uint) loWord(wp);
-			if (idNum > 0)
-			{
+			if (idNum > 0) {
 				MenuItem* menu = this.getMenuItem(idNum);
-				if (menu && menu._isEnabled)
-				{
+				if (menu && menu._isEnabled) {
 					if (menu.onClick) menu.onClick(menu, &&EventArgs{});
 				}
 			}

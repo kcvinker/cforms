@@ -44,6 +44,11 @@ fn void makeWindow(TrackingAllocator* tar)
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	frm.createHandle();
 
+	MenuBar* mb = frm.addMenubar("Windows", "Linux", "MacOS", "ReactOS");
+	mb.menus["Windows"]!!.addItems("Windows8",  "Windows10", "|", "Windows11" );
+	mb.menus["Linux"]!!.addItems("Debian",  "Fedora", "Ubuntu" );
+	mb.menus["Windows"]!!.menus["Windows11"]!!.onClick = &onMenuClick;
+
 	b1 = newButton(frm, "Normal Btn", 10, 10, .auto = true);
 	// b1.onMouseClick = &btnClick;
 	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10, .auto = true);

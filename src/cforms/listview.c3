@@ -214,30 +214,24 @@ enum ListViewStyle : char
 	macro void ListView.addColumns(ListView* this, params...)
 	{
 		any* p1 = params[0]; // This may be the column count or a ListViewColumn pointer
-		switch (p1)
-		{
+		switch (p1) {
 			case String:
 				StrList colnames;
 				IntList widths;
 				defer {colnames.free(); widths.free();}
-				foreach(item: params)
-				{
-					switch (item)
-					{
+				foreach(item: params) {
+					switch (item) {
 						case String: colnames.append(*item);
 						case int: widths.append(*item);
 					}
-					if (colnames.len() == widths.len())
-					{
-						foreach (i, name : colnames)
-						{
+					if (colnames.len() == widths.len()) {
+						foreach (i, name : colnames) {
 							this.addColumnStr(name, widths[i]);
 						}
 					}
 				}
 			case ListViewColumn*:
-				foreach(vp: params)
-				{
+				foreach(vp: params) {
 					ListViewColumn* col = *(ListViewColumn**) vp.ptr;
 					this.addColumnInternal(col);
 				}
@@ -263,10 +257,8 @@ enum ListViewStyle : char
 		this.addItemInternal(item);
 
 		// We will add sub items too. But only for Report View style.
-		if (item.subItems.len() && this.viewStyle == ListViewStyle.REPORT_VIEW)
-		{
-			foreach (i, sitem: item.subItems)
-			{
+		if (item.subItems.len() && this.viewStyle == ListViewStyle.REPORT_VIEW) {
+			foreach (i, sitem: item.subItems) {
 				this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);
 			}
 		}
@@ -288,8 +280,7 @@ enum ListViewStyle : char
 	fn void ListView.addRow(&this, String itemtxt, subitems...)
 	{
 		ListViewItem* lvitem = newListViewItem(itemtxt);
-		foreach (sitem: subitems)
-		{
+		foreach (sitem: subitems) {
 			lvitem.subItems.append(makeStringFromAny(sitem));
 		}
 		this.addItem2(lvitem);
@@ -305,8 +296,7 @@ enum ListViewStyle : char
 	// Add  sub items to a ListViewItem.
 	fn void ListView.addSubItems(ListView* this, ListViewItem* item, String... subitems)
 	{
-		foreach (i, subitem: subitems)
-		{
+		foreach (i, subitem: subitems) {
 			this.addSubItemInternal(item, subitem, (int)i + 1);
 		}
 	}
