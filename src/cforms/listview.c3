@@ -72,6 +72,7 @@ struct ListViewColumn
 	int imgIndex;
 	int _order;
 	Dword _hdrTxtFlag;
+	Char16* _wideText;
 	LVColumn* lvc;
 }
 
@@ -135,6 +136,7 @@ enum ListViewStyle : char
 		this.textAlign = Alignment.LEFT;
 		this.index = -1;
 		this.hdrTextAlign = Alignment.CENTER;
+		this._wideText = String.to_new_utf16(txt)!!;
 		this._hdrTxtFlag = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX;
 		return this;
 	}
@@ -351,14 +353,14 @@ enum ListViewStyle : char
 	// Adding column to ListView.
 	fn void ListView.addColumnInternal(ListView* this, ListViewColumn* lvcol) @private
 	{
-		Char16* coltxt = String.to_new_utf16(lvcol.text).ptr!!;
-		defer free(coltxt);
+		// Char16* coltxt = String.to_new_utf16(lvcol.text).ptr!!;
+		// defer free(coltxt);
 		lvcol.index = this._colIndex;
         LVColumn lvc;
         lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT | LVCF_SUBITEM;
         lvc.fmt = (int)lvcol.textAlign;
         lvc.cx = lvcol.width;
-        lvc.pszText = coltxt;//  String.to_new_utf16(lvcol.text).ptr!!;
+        lvc.pszText = lvcol._wideText;//  String.to_new_utf16(lvcol.text).ptr!!;
         // # lvc.iOrder = lvcol.index
 
         if (lvcol.hasImage)
@@ -448,27 +450,20 @@ enum ListViewStyle : char
         ListViewColumn* col = this.columns[nmcd.dwItemSpec]; // Get our column struct
         api_SetBkMode(nmcd.hdc, TRANSPARENT);
 
-        if (nmcd.uItemState & CDIS_SELECTED)
-        {
+        if (nmcd.uItemState & CDIS_SELECTED) {
 			api_FillRect(nmcd.hdc, &nmcd.rc, this._hdrBkBrush);
-		}
-        else
-		{
+		} else {
             // We will draw with a different color if mouse is over this hdr.
-            if (nmcd.dwItemSpec == this._hotHdrIndex)
-            {
+            if (nmcd.dwItemSpec == this._hotHdrIndex) {
 				api_FillRect(nmcd.hdc, &nmcd.rc, this._hdrHotBrush);
-			}
-            else
-            {
+			} else {
 				api_FillRect(nmcd.hdc, &nmcd.rc, this._hdrBkBrush);
 			}
 		}
 
         api_SelectObject(nmcd.hdc, (Hgdiobj)(this.headerFont.handle));
         api_SetTextColor(nmcd.hdc, this.headerForeColor.ref);
-        if (this.headerClickable && (nmcd.uItemState & CDIS_SELECTED))
-		{
+        if (this.headerClickable && (nmcd.uItemState & CDIS_SELECTED)) {
             /* We are mimicing the dotnet listview header's nature here.
              * They did not resize the overall header item. They just reduce...
              * it for drawing text. That means, text is drawing in a small rect.
@@ -476,9 +471,7 @@ enum ListViewStyle : char
             nmcd.rc.left += 2;
             nmcd.rc.top += 2;
 		}
-		Char16* coltext = String.to_new_utf16(col.text).ptr!!;
-		defer free(coltext);
-        api_DrawText(nmcd.hdc, coltext, -1, &nmcd.rc, col._hdrTxtFlag);
+        api_DrawText(nmcd.hdc, col._wideText, -1, &nmcd.rc, col._hdrTxtFlag);
 		return CDRF_SKIPDEFAULT;
 	}
 
@@ -522,6 +515,13 @@ enum ListViewStyle : char
 		return null;
 	}
 
+	// Destructor for ListViewColumn
+	fn void ListViewColumn.destroy(ListViewColumn* this) @private
+	{
+		free(this._wideText);
+		free(this);
+	}
+
 	// Destructor for ListViewItem
 	fn void ListViewItem.destroy(ListViewItem* this) @private
 	{
@@ -541,7 +541,7 @@ enum ListViewStyle : char
 		}
 		if (this.columns.len())
 		{
-			foreach (col: this.columns) {free(col);}
+			foreach (col: this.columns) {col.destroy();}
 		}
 		this.columns.free();
 		this.items.free();
