@@ -135,6 +135,11 @@ fn void onTrackChange(Control* m, EventArgs* e)
 	pb.setValue(tk.value); // Progress bar will show the updates of track change.
 }
 
+fn void onMenuClick(MenuItem* m, EventArgs* e)
+{
+	ptf("menu text %s", m.text);
+}
+
 ```
 
 
