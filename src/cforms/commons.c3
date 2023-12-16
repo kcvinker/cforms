@@ -31,6 +31,7 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const uint MM_NODE_ADDED = 9012;
 	const uint MM_NODE_INSERTED = 9013;
 	const uint MM_NODE_DELETED = 9014;
+	const uint MM_THREAD_MSG = 9015;
 
 	const HDM_FIRST = 4608;
 	const HDM_LAYOUT = (HDM_FIRST + 5);
@@ -330,5 +331,14 @@ fn void printTrackReport(TrackingAllocator tal)
 			print("No memory leaks found....");
 		}
 	};
+}
+
+// You can use this function to update ui components from another thread.
+// There is a 'onThreadMsg' property for Form struct. It is a function ptr.
+// Assign a function with this signature - fn void(Wparam, Lparam)
+// Now, if you call 'sendThreadMsg' from different thread, Cforms will call your onThreadMsg hndler.
+fn Lresult sendThreadMsg(Hwnd formHwnd, Wparam wpm, Lparam lpm)
+{
+	return api_SendNotifyMessage(formHwnd, MM_THREAD_MSG, wpm, lpm);
 }
 

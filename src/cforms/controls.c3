@@ -141,19 +141,31 @@ fault StringFault {
 	// 	return "";
 	// }
 
-	// fn void Control.setContextMenu(Control* this, ContextMenu* cmenu) { 261023
-	// 	this.contextMenu = cmenu;
-	// 	if (!cmenu.parent) this.contextMenu.parent = this;
-	// 	this.contextMenu.setDummyControl();
-	// }
+	macro void Control.addContextMenu(&self, ...)
+	{
+		$if $vacount == 1 && @typeis($vaarg(0), ContextMenu*):
+			return self.setContextMenu1($vaarg(0));
+		$else
+			return self.setContextMenu2($vasplat());
+		$endif
+	}
 
-	// fn void Control.setContextMenuEx(Control* this, String... menuNames) { 261023
-	// 	ContextMenu* cmenu = newContextMenu();
-	// 	cmenu.addMenus(menuNames);
-	// 	cmenu.parent = this;
-	// 	this.contextMenu = cmenu;
-	// 	this.contextMenu.setDummyControl();
-	// }
+
+	fn void Control.setContextMenu1(&this, ContextMenu* cmenu) @private
+	{
+		this.contextMenu = cmenu;
+		if (!cmenu.parent) this.contextMenu.parent = this;
+		this.contextMenu.setDummyControl();
+	}
+
+	fn void Control.setContextMenu2(Control* this, String... menuNames) @private
+	{
+		ContextMenu* cmenu = newContextMenu();
+		cmenu.addMenus(menuNames);
+		cmenu.parent = this;
+		this.contextMenu = cmenu;
+		this.contextMenu.setDummyControl();
+	}
 
 	// fn void Control.setProperty(&this, any* prop, any* value)
 	// {

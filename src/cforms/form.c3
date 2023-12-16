@@ -112,6 +112,7 @@ struct Form
 	// MouseEventHandler onMouseHover;
 	SizeEventHandler onSizing;
 	SizeEventHandler onSized;
+	ThreadMsgHandler onThreadMsg;
 }
 
 // Managing menu events;
@@ -123,8 +124,7 @@ struct Form
 // Public Functions
 	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = mem::heap())
 	{
-		if (!frmCreated)
-		{
+		if (!frmCreated) {
 			frmCreated = true;
 			dwc = colorFromRgb(230, 230, 230);
 			hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
@@ -183,7 +183,8 @@ struct Form
 		}
 	}
 
-	fn void Form.show(Form* this) {
+	fn void Form.show(Form* this)
+	{
 		api_ShowWindow(this.handle, 5);
 		api_UpdateWindow(this.handle);
 		if (this._menuMapInited && !this._menubarCreated) this.menubar.createHandle();
@@ -572,6 +573,8 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 
 		case WM_HSCROLL: return api_SendMessage((Hwnd) lp, MM_HSCROLL, wp, lp);
         case WM_VSCROLL: return api_SendMessage((Hwnd) lp, MM_VSCROLL, wp, lp);
+
+		case MM_THREAD_MSG: if (this.onThreadMsg) this.onThreadMsg(wp, lp);
 
 		case WM_ERASEBKGND :
 			if (this._fDrawMode != FormDrawMode.DEFAULT) {

@@ -23,6 +23,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Hdc api_GetDC(Hwnd) @extern("GetDC");
 	extern fn int api_ReleaseDC(Hwnd, Hdc) @extern("ReleaseDC");
 	extern fn Lresult api_SendMessage(Hwnd, uint, Wparam, Lparam) @extern("SendMessageW");
+	extern fn Lresult api_SendNotifyMessage(Hwnd, uint, Wparam, Lparam) @extern("SendNotifyMessageW");
+
 	extern fn Lresult api_PostMessage(Hwnd, uint, Wparam, Lparam) @extern("PostMessageW");
 	extern fn Longptr api_SetWindowLongPtr(Hwnd, int, Longptr) @extern("SetWindowLongPtrW");
 	extern fn Longptr api_GetWindowLongPtr(Hwnd, int) @extern("GetWindowLongPtrW");

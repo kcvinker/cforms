@@ -6,6 +6,7 @@ def MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
 def SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
 def KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
 def DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
+def ThreadMsgHandler = fn void(Wparam wpm, Lparam lpm);
 
 struct Area {
 	int width;

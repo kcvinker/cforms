@@ -22,7 +22,8 @@ const OFN_EXPLORER = 0x00080000;
 def FileList = List(<String>);
 
 // Base class for all dialogs
-struct DialogBase {
+struct DialogBase
+{
     String title;
     String initFolder;
     String filter;
@@ -31,19 +32,22 @@ struct DialogBase {
     int extStart;
 }
 
-struct FileOpenDialog {
+struct FileOpenDialog
+{
     inline DialogBase base;
     bool multiSelection;
     bool showHiddenFiles;
     FileList fileNames; // Must use deleteFileNames function after using this property.
 }
 
-struct FileSaveDialog {
+struct FileSaveDialog
+{
     inline DialogBase base;
     String defaultExt;
 }
 
-struct FolderBrowserDialog {
+struct FolderBrowserDialog
+{
     inline DialogBase base;
     bool newFolderButton;
     bool showFiles;
@@ -52,7 +56,8 @@ struct FolderBrowserDialog {
 // Constructor for FileOpenDialog struct
 fn FileOpenDialog newFileOpenDialog(String title = "Select a file",
                                     String initialFolder = "",
-                                    String typeFilter = "All files\0*.*\0") {
+                                    String typeFilter = "All files\0*.*\0")
+{
     FileOpenDialog this;
     this.title = title;
     this.initFolder = initialFolder;
@@ -61,7 +66,10 @@ fn FileOpenDialog newFileOpenDialog(String title = "Select a file",
 }
 
 // Constructor for FileSaveDialog struct
-fn FileSaveDialog newFileSaveDialog(String title = "Save file", String initialFolder = "", String typeFilter = "All files\0*.*\0") {
+fn FileSaveDialog newFileSaveDialog(String title = "Save file",
+                                    String initialFolder = "",
+                                    String typeFilter = "All files\0*.*\0")
+{
     FileSaveDialog this;
     this.title = title;
     this.initFolder = initialFolder;
@@ -70,7 +78,8 @@ fn FileSaveDialog newFileSaveDialog(String title = "Save file", String initialFo
 }
 
 // Constructor for FolderBrowserDialog struct
-fn FolderBrowserDialog newFolderBrowserDialog(String title = "Save file", String initialFolder = "") {
+fn FolderBrowserDialog newFolderBrowserDialog(String title = "Save file", String initialFolder = "")
+{
     FolderBrowserDialog this;
     this.title = title;
     this.initFolder = initialFolder;
@@ -78,7 +87,8 @@ fn FolderBrowserDialog newFolderBrowserDialog(String title = "Save file", String
 }
 
 // Use this function after using the `fileNames` property.
-fn void FileOpenDialog.deleteFileNames(FileOpenDialog* this) {
+fn void FileOpenDialog.deleteFileNames(FileOpenDialog* this)
+{
     if (this.multiSelection) this.fileNames.free();
 }
 
@@ -106,17 +116,20 @@ fn void FileOpenDialog.extractFileNames(FileOpenDialog* this, Char16* buffer, in
 }
 
 // Show a dialog to user for open a file
-fn bool FileOpenDialog.showDialog(FileOpenDialog* this, Hwnd hwnd = null) {
+fn bool FileOpenDialog.showDialog(FileOpenDialog* this, Hwnd hwnd = null)
+{
     return showDialogMacro(this, hwnd);
 }
 
 // Show a dialog to user for selecting a file path to save
-fn bool FileSaveDialog.showDialog(FileSaveDialog* this, Hwnd hwnd = null) {
+fn bool FileSaveDialog.showDialog(FileSaveDialog* this, Hwnd hwnd = null)
+{
     return showDialogMacro(this, hwnd);
 }
 
 // Show a dialog to user to select a folder
-fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = null) {
+fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = null)
+{
     Char16[MAX_PATH] buffer;
     Char16* titleBuff = String.to_new_utf16(this.title)!!;
     defer free(titleBuff);
@@ -156,7 +169,8 @@ fn void FileOpenDialog.setFilters(FileOpenDialog* this, String description, Stri
 
 
 // Helper macro to manage file open & save dialogs.
-macro showDialogMacro(this, Hwnd hwnd = null) @private {
+macro showDialogMacro(this, Hwnd hwnd = null) @private
+{
     OpenFileNameW ofn;
     ofn.hwndOwner = hwnd;
     Char16[NEW_MAX_PATH] buffer;
