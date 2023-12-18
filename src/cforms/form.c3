@@ -12,7 +12,7 @@ def ptf = io::printfn;
 def log = io::printn;
 def cptf = libc::printf;
 def ControlList = List(<Control*>);
-def TimerList = List(<Timer>);
+def TimerList = List(<Timer*>);
 def CmbMap = std::collections::map::HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
 def MenuItemMap = std::collections::map::HashMap(<uint, MenuItem*>);
 
@@ -87,6 +87,13 @@ int frmNumber = 1;
 	{
 		api_KillTimer(this._parent.handle, this._idNum);
 		this._isEnabled = false;
+	}
+
+	fn void Timer.dtor(&this)
+	{
+		if (this._isEnabled) api_KillTimer(this._parent.handle, this._idNum);
+		free(this);
+		print("timer freed");
 	}
 
 // End Helper types & Enums
@@ -241,16 +248,20 @@ struct Form
 		return this.menubar;
 	}
 
-	fn Timer Form.addTimer(&this, uint interval = 100, TimerTickHandler tickHandler = null)
+	fn Timer* Form.addTimer(&this, uint interval = 100, TimerTickHandler tickHandler = null, Allocator* using = mem::heap())
 	{
 		if (this._staticTimerID > 0) {
 			this._staticTimerID += 1;
 		} else {
 			this._staticTimerID = this._formID * 1000;
 		}
-		Timer tmr = Timer{interval, tickHandler, this._staticTimerID, this, false};
-		this._timerList.append(tmr);
-		return tmr;
+		Timer* tm = using.new_clear(Timer);
+		tm.interval = interval;
+		tm.onTick = tickHandler;
+		tm._idNum = this._staticTimerID;
+		tm._parent = this;
+		this._timerList.append(tm);
+		return tm;
 	}
 
 	// A handy function to help find the points where we can place new controls.
@@ -536,14 +547,14 @@ struct Form
 
 	fn void Form.timerHandler(&this, Wparam wpm)
 	{
+		Timer* tm = null;
 		foreach (tmr: this._timerList) {
 			if (tmr._idNum == (Uintptr)(wpm)) {
-				if (tmr.onTick) {
-					tmr.onTick(this, &&EventArgs{});
-					break;
-				}
+				tm = tmr;
+				break;
 			}
 		}
+		if (tm && tm.onTick) tm.onTick(this, &&EventArgs{});
 	}
 
 	fn void Form.formDestroyHandler(Form* this) @private {
@@ -584,9 +595,7 @@ struct Form
 			free(this.menubar);
 		}
 		if (this._timerList.len()) {
-			foreach (tmr: this._timerList) {
-				if (tmr._isEnabled) tmr.stop();
-			}
+			foreach (tmr: this._timerList) tmr.dtor();
 			this._timerList.free();
 		}
 		if (this._menuMapInited) this._menuItemMap.free();

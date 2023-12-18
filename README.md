@@ -35,7 +35,7 @@ TrackBar* tk;
 TreeView* tv;
 GroupBox* gb;
 ListView* lv;
-Timer tm;
+Timer* tm;
 // MenuBar* mb;
 
 
