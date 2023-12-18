@@ -7,6 +7,7 @@ def SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
 def KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
 def DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
 def ThreadMsgHandler = fn void(Wparam wpm, Lparam lpm);
+def TimerTickHandler = fn void(Form* frm, EventArgs* e);
 
 struct Area {
 	int width;

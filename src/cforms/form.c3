@@ -12,6 +12,7 @@ def ptf = io::printfn;
 def log = io::printn;
 def cptf = libc::printf;
 def ControlList = List(<Control*>);
+def TimerList = List(<Timer>);
 def CmbMap = std::collections::map::HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
 def MenuItemMap = std::collections::map::HashMap(<uint, MenuItem*>);
 
@@ -66,6 +67,28 @@ int frmNumber = 1;
 
 	enum MenuEvents : char {MENU_CLICK, }
 
+
+
+	struct Timer {
+		uint interval;
+		TimerTickHandler onTick;
+		Uintptr _idNum;
+		Form* _parent;
+		bool _isEnabled;
+	}
+
+	fn void Timer.start(&this)
+	{
+		this._isEnabled = true;
+		api_SetTimer(this._parent.handle, this._idNum, this.interval, null);
+	}
+
+	fn void Timer.stop(&this)
+	{
+		api_KillTimer(this._parent.handle, this._idNum);
+		this._isEnabled = false;
+	}
+
 // End Helper types & Enums
 
 struct Form
@@ -97,6 +120,9 @@ struct Form
 	Hbrush _menuHotBgBrush;
 	Hbrush _menuFrameBrush;
 	Colorref _menuGrayCref;
+	TimerList _timerList;
+	int _formID;
+	int _staticTimerID;
 
 	EventHandler onLoad;
 	EventHandler onActivate;
@@ -142,6 +168,7 @@ struct Form
 		this.kind = ControlType.NONE;
 		this.name = dstring::new("Form_");
 		this.name.appendf("%d", frmNumber);
+		this._formID = frmNumber;
 		this.text = title;
 		this.width = width;
 		this.height = height;
@@ -199,7 +226,8 @@ struct Form
 		}
 	}
 
-	fn void Form.setBackColor(Form* this, uint clr) {
+	fn void Form.setBackColor(Form* this, uint clr)
+	{
 		this.backColor.updateColor(clr);
 		this._fDrawMode = FormDrawMode.FLAT_COLOR;
 		this._bkBrush = api_CreateSolidBrush(this.backColor.ref);
@@ -211,6 +239,18 @@ struct Form
 		newMenuBar(this);
 		this.menubar.addItems(...items);
 		return this.menubar;
+	}
+
+	fn Timer Form.addTimer(&this, uint interval = 100, TimerTickHandler tickHandler = null)
+	{
+		if (this._staticTimerID > 0) {
+			this._staticTimerID += 1;
+		} else {
+			this._staticTimerID = this._formID * 1000;
+		}
+		Timer tmr = Timer{interval, tickHandler, this._staticTimerID, this, false};
+		this._timerList.append(tmr);
+		return tmr;
 	}
 
 	// A handy function to help find the points where we can place new controls.
@@ -494,6 +534,18 @@ struct Form
 		if (this.onClosing) this.onClosing(this, &&EventArgs{});
 	}
 
+	fn void Form.timerHandler(&this, Wparam wpm)
+	{
+		foreach (tmr: this._timerList) {
+			if (tmr._idNum == (Uintptr)(wpm)) {
+				if (tmr.onTick) {
+					tmr.onTick(this, &&EventArgs{});
+					break;
+				}
+			}
+		}
+	}
+
 	fn void Form.formDestroyHandler(Form* this) @private {
 		if (this.onClosed) this.onClosed(this, &&EventArgs{});
 		this.dtor();
@@ -530,6 +582,12 @@ struct Form
 		if (this.menubar) {
 			this.menubar.destroy();
 			free(this.menubar);
+		}
+		if (this._timerList.len()) {
+			foreach (tmr: this._timerList) {
+				if (tmr._isEnabled) tmr.stop();
+			}
+			this._timerList.free();
 		}
 		if (this._menuMapInited) this._menuItemMap.free();
 		if (!noComboUsed) this._comboMap.free();
@@ -573,6 +631,8 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 
 		case WM_HSCROLL: return api_SendMessage((Hwnd) lp, MM_HSCROLL, wp, lp);
         case WM_VSCROLL: return api_SendMessage((Hwnd) lp, MM_VSCROLL, wp, lp);
+
+		case WM_TIMER: this.timerHandler(wp);
 
 		case MM_THREAD_MSG: if (this.onThreadMsg) this.onThreadMsg(wp, lp);
 

@@ -45,6 +45,7 @@ def Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
 def Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
 def OfnHookProc = fn Uintptr(Hwnd, uint, Wparam, Lparam);
 def BrowserCbProc = fn int(Hwnd, uint, Lparam, Lparam);
+def TimerProc = fn Uintptr(Hwnd, uint, Uintptr, Dword);
 
 struct Size {
 	Long cx;

@@ -281,14 +281,14 @@ fn void GradDraw.dtor(GradDraw* g) @private
 fn void Control.leftMouseClickHandler(&self)
 {
 
-	if ($defined(self.onleftClick))
-	{
-		self.onleftClick(&&EventArgs{});
-	}
-	else
-	{
-		print("not defined");
-	}
+	// if ($defined(self.onleftClick))
+	// {
+	// 	self.onleftClick(&&EventArgs{});
+	// }
+	// else
+	// {
+	// 	print("not defined");
+	// }
 
 }
 

@@ -59,6 +59,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_TrackPopupMenu(Hmenu, uint, int, int, int, Hwnd, Rect*) @extern("TrackPopupMenu");
 	extern fn Bool api_DestroyMenu(Hmenu) @extern("DestroyMenu");
 	extern fn int api_MapWindowPoints(Hwnd, Hwnd, LpPoint, uint) @extern("MapWindowPoints");
+	extern fn int api_SetTimer(Hwnd, Uintptr, uint, TimerProc) @extern("SetTimer");
+	extern fn int api_KillTimer(Hwnd, Uintptr) @extern("KillTimer");
 
 
 

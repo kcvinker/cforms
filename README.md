@@ -35,6 +35,7 @@ TrackBar* tk;
 TreeView* tv;
 GroupBox* gb;
 ListView* lv;
+Timer tm;
 // MenuBar* mb;
 
 
@@ -44,6 +45,10 @@ fn void makeWindow(TrackingAllocator* tar)
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	frm.createHandle();
 
+	// Let's add a timer. 400 is the ticking interval in ms.
+	// onTimerTick is the tick event handler
+	tm = frm.addTimer(400, &onTimerTick);
+
 	MenuBar* mb = frm.addMenubar("Windows", "Linux", "MacOS", "ReactOS");
 	mb.menus["Windows"]!!.addItems("Windows8",  "Windows10", "|", "Windows11" );
 	mb.menus["Linux"]!!.addItems("Debian",  "Fedora", "Ubuntu" );
@@ -51,9 +56,11 @@ fn void makeWindow(TrackingAllocator* tar)
 
 	b1 = newButton(frm, "Normal Btn", 10, 10, .auto = true);
 	// b1.onMouseClick = &btnClick;
+
 	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10, .auto = true);
-	// b2.onMouseClick = &btnClick2;
+	b2.onMouseClick = &onB2Click; // Start the timer in button click.
 	b2.setBackColor(0xa663cc);
+
 	b3 = newButton(frm, "Gradient", b2.right() + 10, 10, .auto = true);
 	// // b3.setForeColor(0x1f7a1f);
 	b3.setGradientColor(0xeeef20, 0x70e000);
@@ -138,6 +145,17 @@ fn void onTrackChange(Control* m, EventArgs* e)
 fn void onMenuClick(MenuItem* m, EventArgs* e)
 {
 	ptf("menu text %s", m.text);
+}
+
+fn void onB2Click(Control* s, EventArgs* e)
+{
+	print("Button pressed");
+	tm.start();
+}
+
+// This is our timer's tick event handling function.
+fn void onTimerTick(Form* f, EventArgs* e) {
+	print("Timer ticked...");
 }
 
 ```
