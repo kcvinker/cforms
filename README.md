@@ -8,7 +8,7 @@ A simple GUI library for C3 programming language, based on Win32 API
 
 # Code sample
 
-```c
+```c#
 module cforms;
 import std::io;
 import libc;
@@ -149,12 +149,12 @@ fn void onMenuClick(MenuItem* m, EventArgs* e)
 
 fn void onB2Click(Control* s, EventArgs* e)
 {
-	print("Button pressed");
+	print("Timer Strted");
 	tm.start();
 }
 
 // This is our timer's tick event handling function.
-fn void onTimerTick(Form* f, EventArgs* e) {
+fn void onTimerTick(Control* f, EventArgs* e) {
 	print("Timer ticked...");
 }
 
