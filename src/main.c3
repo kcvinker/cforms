@@ -161,16 +161,6 @@ fn void onTimerTick(Control* f, EventArgs* e) {
 }
 
 
-// fn void btnClick(Control* c, EventArgs* e) {
-// 	// pb.setMarqueeAnimation(false);
-// 	// log("134");
-// 	@pool() {
-// 		Char16* wMsg = toChar16p("സി 3 ഭാഷ");
-// 		Char16* wcap = toChar16p("Caption");
-// 		_msgBox(null, wMsg, wcap, 0);
-// 	};
-// }
-
 fn void btnClick(Control* c, EventArgs* e) {
 	// tv.getNode(0).deleteNode("Win 7");
 	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
@@ -186,10 +176,6 @@ fn void btnClick(Control* c, EventArgs* e) {
 	fod.destroy();
 }
 
-// fn void btnClick3(Control* c, EventArgs* e) {
-
-// 	ptf("tk.Value %s", tk.value);
-// }
 
 fn void onMenuClick(MenuItem* m, EventArgs* e) {
 	ptf("menu text %s", m.text);
