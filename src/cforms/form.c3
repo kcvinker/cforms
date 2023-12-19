@@ -12,9 +12,10 @@ def ptf = io::printfn;
 def log = io::printn;
 def cptf = libc::printf;
 def ControlList = List(<Control*>);
-def TimerList = List(<Timer*>);
+
 def CmbMap = std::collections::map::HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
 def MenuItemMap = std::collections::map::HashMap(<uint, MenuItem*>);
+def TimerMap = std::collections::map::HashMap(<Uintptr, Timer*>);
 
 // Important static data
 bool frmCreated = false;
@@ -71,27 +72,27 @@ int frmNumber = 1;
 
 	struct Timer {
 		uint interval;
-		TimerTickHandler onTick;
+		EventHandler onTick;
 		Uintptr _idNum;
-		Form* _parent;
+		Hwnd _parentHwnd;
 		bool _isEnabled;
 	}
 
 	fn void Timer.start(&this)
 	{
 		this._isEnabled = true;
-		api_SetTimer(this._parent.handle, this._idNum, this.interval, null);
+		api_SetTimer(this._parentHwnd, this._idNum, this.interval, null);
 	}
 
 	fn void Timer.stop(&this)
 	{
-		api_KillTimer(this._parent.handle, this._idNum);
+		api_KillTimer(this._parentHwnd, this._idNum);
 		this._isEnabled = false;
 	}
 
 	fn void Timer.dtor(&this)
 	{
-		if (this._isEnabled) api_KillTimer(this._parent.handle, this._idNum);
+		if (this._isEnabled) api_KillTimer(this._parentHwnd, this._idNum);
 		free(this);
 		print("timer freed");
 	}
@@ -127,9 +128,9 @@ struct Form
 	Hbrush _menuHotBgBrush;
 	Hbrush _menuFrameBrush;
 	Colorref _menuGrayCref;
-	TimerList _timerList;
+	TimerMap _timerMap;
 	int _formID;
-	int _staticTimerID;
+
 
 	EventHandler onLoad;
 	EventHandler onActivate;
@@ -248,19 +249,14 @@ struct Form
 		return this.menubar;
 	}
 
-	fn Timer* Form.addTimer(&this, uint interval = 100, TimerTickHandler tickHandler = null, Allocator* using = mem::heap())
+	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null, Allocator* using = mem::heap())
 	{
-		if (this._staticTimerID > 0) {
-			this._staticTimerID += 1;
-		} else {
-			this._staticTimerID = this._formID * 1000;
-		}
 		Timer* tm = using.new_clear(Timer);
 		tm.interval = interval;
 		tm.onTick = tickHandler;
-		tm._idNum = this._staticTimerID;
-		tm._parent = this;
-		this._timerList.append(tm);
+		tm._idNum = (Uintptr)tm;
+		tm._parentHwnd = this.handle;
+		this._timerMap[tm._idNum] = tm;
 		return tm;
 	}
 
@@ -547,14 +543,9 @@ struct Form
 
 	fn void Form.timerHandler(&this, Wparam wpm)
 	{
-		Timer* tm = null;
-		foreach (tmr: this._timerList) {
-			if (tmr._idNum == (Uintptr)(wpm)) {
-				tm = tmr;
-				break;
-			}
-		}
-		if (tm && tm.onTick) tm.onTick(this, &&EventArgs{});
+		Uintptr key = (Uintptr)wpm;
+		Timer*! tm = this._timerMap.get(key);
+		if (try tm && tm.onTick) tm.onTick(this, &&EventArgs{});
 	}
 
 	fn void Form.formDestroyHandler(Form* this) @private {
@@ -594,9 +585,11 @@ struct Form
 			this.menubar.destroy();
 			free(this.menubar);
 		}
-		if (this._timerList.len()) {
-			foreach (tmr: this._timerList) tmr.dtor();
-			this._timerList.free();
+		if (this._timerMap.len()) {
+			@pool() {
+				foreach (tmr: this._timerMap.value_tlist()) tmr.dtor();
+			};
+			this._timerMap.free();
 		}
 		if (this._menuMapInited) this._menuItemMap.free();
 		if (!noComboUsed) this._comboMap.free();
