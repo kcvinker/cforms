@@ -34,6 +34,7 @@ GroupBox* gb;
 ListView* lv;
 // MenuBar* mb;
 int cntr = 1;
+Timer* tm;
 fn void makeWindow()
 {
 
@@ -45,21 +46,24 @@ fn void makeWindow()
 	frm.createHandle();
 	// ptf("form handle %d, form hinst: %d", frm.handle, frm.hinst );
 
-	// mb = newMenuBar(frm);
-	// mb.addMenus("File", "Edit", "Format");
-	// mb.menus["File"].addMenus("New Work", "Finish Work",  "Simple" );
-	// // mb.menus["File"].addMenu("New Work");
-	// // mb.menus["File"].addMenu("Finish Work");
-	// // mb.menus["File"].addMenu( "Simple" );
-	// mb.createHandle();
+	// Let's add a timer. 400 is the ticking interval in ms.
+	// onTimerTick is the tick event handler
+	tm = frm.addTimer(400, &onTimerTick);
 
+
+
+	MenuBar* mb = frm.addMenubar("Windows", "Linux", "MacOS", "ReactOS");
+	mb.menus["Windows"]!!.addItems("Windows8",  "Windows10", "|", "Windows11" );
+	mb.menus["Linux"]!!.addItems("Debian",  "Fedora", "Ubuntu" );
+	mb.menus["Windows"]!!.menus["Windows11"]!!.onClick = &onMenuClick;
 
 	b1 = newButton(frm, "Normal Btn", 10, 10, .auto = true);
-	// b1.onMouseClick = &btnClick;
+	b1.onMouseClick = &btnClick;
 
 	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10, .auto = true);
 	// b2.onMouseClick = &btnClick2;
 	b2.setBackColor(0xa663cc);
+	b2.onMouseClick = &onB2Click;
 
 	b3 = newButton(frm, "Gradient", b2.right() + 10, 10, .auto = true);
 	// // b3.setForeColor(0x1f7a1f);
@@ -86,13 +90,7 @@ fn void makeWindow()
 	gb2.setForeColor(0xe63946);
 	lb = newLabel(frm, "Line Space", 20, gb2.ypos + 30, .auto = true);
 
-
 	np1 = newNumberPicker(frm, lb.right() + 30, gb2.ypos + 30, .auto = true);
-	// setProperty(np1, "deciprec", 3);
-	// setProperty(np1, "step", 0.25);
-
-	// setProperty(np1, "value", 4.050);
-
 
 	Label* lb2 = newLabel(frm, "Thread Count", 20, np1.bottom() + 14, .auto = true);
 	np2 = newNumberPicker(frm, lb2.right() + 10, np1.bottom() + 10, .auto = true, .btnLeft = true);
@@ -100,12 +98,7 @@ fn void makeWindow()
 	// setProperty(np2, "buttonleft", true);
 
 	lbx = newListBox(frm, gb.right() + 10, b1.bottom() + 10, .auto = true);
-	// // lbx.setForeColor(0x2d00f7);
 	lbx.addItems("Windows", "MacOS", "Linux", "ReactOS");
-	// // lbx.setBackColor(0x52b788);
-	// // lbx.setForeColor(0xf94144);
-
-
 
 	lv = newListView(frm, lbx.right() + 10, b3.bottom() + 10, .width = 330, .height = 150, .auto = true);
 	lv.addColumns("Windows", "Linux", "MacOS", 100, 120, 100);
@@ -114,13 +107,16 @@ fn void makeWindow()
 	lv.addRow("Win10", "Fedora", "Big Sur");
 	lv.addRow("Win11", "Ubuntu", "Monterey");
 
+	lv.addContextMenu("Windows", "Linux", "MacOS");
+	lv.contextMenu.menus["Windows"]!!.onClick = &onMenuClick;
+
 	pb = newProgressBar(frm, 15, np2.bottom() + 15, .auto = true);
 	pb.showPercentage = true;
 
 	rb1 = newRadioButton(frm, "Console App", 20, cb2.bottom() + 10, .auto = true);
 	rb2 = newRadioButton(frm, "Gui App", 20, rb1.bottom() + 10, .auto = true);
 
-	tb = newTextBox(frm, "Enter text", gb2.right() + 10, lbx.bottom() + 10, .auto = true);
+	tb = newTextBox(frm, "Enter some text", gb2.right() + 10, lbx.bottom() + 10, .auto = true);
 	tk = newTrackBar(frm, gb2.right() + 10, tb.bottom() + 40, .auto = true, .evtFn = &onTrackChange );
 	tv = newTreeView(frm, tk.right() + 40, lv.bottom() + 20, .height = 250, .auto = true);
 	tv.addNodeWithChilds("Windows", "Vista", "Win7", "Win8", "Win10", "Win11");
@@ -129,7 +125,7 @@ fn void makeWindow()
 
 	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10, .auto = true);
 
-	// lv.setContextMenuEx("Select Work", "Give Work", "Finish Work");
+
 
 
 	// ptf("Total allocated memory: %s, Allocation count: %s", tar.total_allocated(), tar.allocation_count())!!;
@@ -154,10 +150,16 @@ fn void frmMouseDown(Control* c, MouseEventArgs* e) {
 	cptf("Mouse hovered %d, %d \n", e.x, e.y);
 }
 
-fn void Control.onleftClick(&self, EventArgs* e)
+fn void onB2Click(Control* s, EventArgs* e)
 {
 	print("Button pressed");
+	tm.start();
 }
+
+fn void onTimerTick(Control* f, EventArgs* e) {
+	print("Timer ticked...");
+}
+
 
 // fn void btnClick(Control* c, EventArgs* e) {
 // 	// pb.setMarqueeAnimation(false);
@@ -169,27 +171,29 @@ fn void Control.onleftClick(&self, EventArgs* e)
 // 	};
 // }
 
-// fn void btnClick2(Control* c, EventArgs* e) {
-// 	// tv.getNode(0).deleteNode("Win 7");
-// 	FileOpenDialog fod = newFileOpenDialog();
-// 	// FileSaveDialog fod = newFileSaveDialog();
-// 	// FolderBrowserDialog fod = newFolderBrowserDialog();
-// 	fod.multiSelection = true;
-// 	fod.showDialog(frm.handle);
-// 	ptf("%s", fod.selectedPath);
-// 	foreach (path: fod.fileNames) {print(path);}
-// 	fod.deleteFileNames();
-// }
+fn void btnClick(Control* c, EventArgs* e) {
+	// tv.getNode(0).deleteNode("Win 7");
+	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
+	FileOpenDialog fod = newFileOpenDialog(.initialFolder = inf, .typeFilter = "PDF Files\0*.pdf\0");
+	// FileSaveDialog fod = newFileSaveDialog();
+	// FolderBrowserDialog fod = newFolderBrowserDialog();
+	// fod.multiSelection = true;
+
+	fod.showDialog(frm.handle);
+	ptf("Sel Path : %s", fod.selectedPath);
+	// foreach (path: fod.fileNames) {ptf("Path # : %s", path);}
+	// ptf("Path count %d", fod.fileNames.len());
+	fod.destroy();
+}
 
 // fn void btnClick3(Control* c, EventArgs* e) {
 
 // 	ptf("tk.Value %s", tk.value);
 // }
 
-// fn void onMenuClick(MenuItem* m, EventArgs* e) {
-
-// 	ptf("menu text %s", m.text);
-// }
+fn void onMenuClick(MenuItem* m, EventArgs* e) {
+	ptf("menu text %s", m.text);
+}
 
 fn void onTrackChange(Control* m, EventArgs* e) {
 
@@ -207,37 +211,3 @@ fn void onTrackChange1( any* m, any* e) {
 
 
 
-
-//======================================
-
-// module cforms;
-
-// fn int main(char[][] args)
-// {
-// 	Form frm;
-// 	MenuBar mb;
-
-// 	frm = newForm("Cforms gui library");
-// 	frm.createHandle();
-
-// 	mb = newMenuBar(&frm);
-// 	MenuItem mFile = newBaseMenu("File");
-// 	MenuItem mEdit = newBaseMenu("Edit");
-
-// 	mb.addMenus(&mFile, &mEdit); // Add two main menus
-
-// 	MenuItem mStart = newMenu("Start");
-// 	MenuItem mExit = newMenu("Exit");
-
-// 	MenuItem mFormat = newMenu("Format");
-// 	MenuItem mDel = newMenu("Delete");
-
-// 	mFile.addMenus(&mStart, &mExit); // Add 2 submenus to File menu
-// 	mEdit.addMenus(&mFormat, &mDel); // Add 2 submenus to Edit menu
-
-// 	mStart.addClickHandler(fn(m,e) {ptf("Start menu click %s", m.text );});
-// 	mFormat.addClickHandler(fn(m,e) {ptf("Format menu click %s", m.text );});
-
-// 	frm.show();
-// 	return 0;
-// }
