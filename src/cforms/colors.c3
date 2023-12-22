@@ -11,29 +11,34 @@ macro clip(x) {
 
 // Type Color-----------------------------------------
 
-	struct Color {
+	struct Color
+	{
 		uint value;
 		Colorref ref;
 	}
 
-	fn Color newColor(uint value) {
+	fn Color newColor(uint value)
+	{
 		Color c;
 		c.value = value;
 		c.ref = getClrRef(value);
 		return c;
 	}
 
-	fn void Color.updateColor(Color* c, uint value) {
+	fn void Color.updateColor(Color* c, uint value)
+	{
 		c.value = value;
 		c.ref = getClrRef(value);
 	}
 
-	fn Hbrush Color.getHotBrush(Color* c, double adj) {
+	fn Hbrush Color.getHotBrush(Color* c, double adj)
+	{
 		Colorref crf = c.changeShadeRef(adj);
 		return api_CreateSolidBrush(crf);
 	}
 
-	fn Colorref Color.changeShadeRef(Color* c, double adj) {
+	fn Colorref Color.changeShadeRef(Color* c, double adj)
+	{
 		RgbColor rc = c.makeRgbColor();
 		// rc.printRGB();
 		bool x = rc.isDark();
@@ -44,7 +49,8 @@ macro clip(x) {
 		return (Colorref)(((math::clamp(b, 0, 255) << 16) | (math::clamp(g, 0, 255) << 8)) | (math::clamp(r, 0, 255)));
 	}
 
-	fn Colorref Color.getDarkRef(Color* c, int adj) {
+	fn Colorref Color.getDarkRef(Color* c, int adj)
+	{
 		RgbColor rc = c.makeRgbColor();
 		rc.red -= adj;
 		rc.green -= adj;
@@ -53,7 +59,8 @@ macro clip(x) {
 		//return (Colorref)(((math::clamp(b, 0, 255) << 16) | (math::clamp(g, 0, 255) << 8)) | (math::clamp(r, 0, 255)));
 	}
 
-	fn RgbColor Color.makeRgbColor(Color* c) {
+	fn RgbColor Color.makeRgbColor(Color* c)
+	{
 		RgbColor rc;
 		rc.red = c.value >> 16;
 		rc.green = (c.value & 0x00ff00) >> 8;
@@ -61,7 +68,8 @@ macro clip(x) {
 		return rc;
 	}
 
-	fn double Color.checkDark(Color* c) {
+	fn double Color.checkDark(Color* c)
+	{
 		RgbColor rc = c.makeRgbColor();
 		double x = ((rc.red * 0.2126) + (rc.green * 0.7152) + (rc.blue * 0.0722));
 		return x;
@@ -76,7 +84,8 @@ macro clip(x) {
 
 
 // Type RgbColor---------------------------------------
-	struct RgbColor {
+	struct RgbColor
+	{
 		uint red;
 		uint green;
 		uint blue;
@@ -84,7 +93,8 @@ macro clip(x) {
 	}
 
 
-	fn RgbColor rgbFromUint(uint value) {
+	fn RgbColor rgbFromUint(uint value)
+	{
 		RgbColor rc;
 		rc.red = value >> 16;
 		rc.green = (value & 0x00ff00) >> 8;
@@ -93,7 +103,8 @@ macro clip(x) {
 		return rc;
 	}
 
-	fn void RgbColor.changeShade(RgbColor* self, double adj) {
+	fn void RgbColor.changeShade(RgbColor* self, double adj)
+	{
 		self.red = clip((uint)((double)self.red * adj));
 		self.green = clip((uint)((double)self.green * adj));
 		self.blue = clip((uint)((double)self.blue * adj));
@@ -101,7 +112,8 @@ macro clip(x) {
 
 	}
 
-	fn RgbColor RgbColor.changeShadeRGB(RgbColor* self, double adj) {
+	fn RgbColor RgbColor.changeShadeRGB(RgbColor* self, double adj)
+	{
 		RgbColor rc = RgbColor{};
 		rc.red = clip((uint)((double)self.red * adj));
 		rc.green = clip((uint)((double)self.green * adj));
@@ -111,7 +123,8 @@ macro clip(x) {
 
 	}
 
-	fn Colorref RgbColor.changeShadeCREF(RgbColor* self, double adj) {
+	fn Colorref RgbColor.changeShadeCREF(RgbColor* self, double adj)
+	{
 		RgbColor rc = RgbColor{};
 		rc.red = clip((uint)((double)self.red * adj));
 		rc.green = clip((uint)((double)self.green * adj));
@@ -121,25 +134,29 @@ macro clip(x) {
 
 	}
 
-	fn Color RgbColor.makeColor(RgbColor* rc) {
+	fn Color RgbColor.makeColor(RgbColor* rc)
+	{
 		Color c;
 		c.value = (uint)(((rc.red << 16) | (rc.green << 8)) | (rc.blue));
 		c.ref = (Colorref)(((rc.blue << 16) | (rc.green << 8)) | (rc.red));
 		return c;
 	}
 
-	fn Colorref RgbColor.makeColorRef(RgbColor* rc) {
+	fn Colorref RgbColor.makeColorRef(RgbColor* rc)
+	{
 		return (Colorref)(((rc.blue << 16) | (rc.green << 8)) | (rc.red));
 	}
 
-	fn bool RgbColor.isDark(RgbColor* rc) {
+	fn bool RgbColor.isDark(RgbColor* rc)
+	{
 		double x = ((rc.red * 0.2126) + (rc.green * 0.7152) + (rc.blue * 0.0722));
 		return x < 40;
 	}
 
 
 
-	fn void RgbColor.printRGB(RgbColor* rc) {
+	fn void RgbColor.printRGB(RgbColor* rc)
+	{
 		ptf("Red: %d, Green: %d, Blue: %d\n", rc.red, rc.green, rc.blue);
 	}
 
@@ -147,39 +164,48 @@ macro clip(x) {
 
 
 
-fn Color colorFromUint(uint clr) {
+fn Color colorFromUint(uint clr)
+{
 	Color c;
 	c.value = clr;
 	c.ref = getClrRef(clr);
 	return c;
 }
 
-fn Color colorFromRgb(uint red, uint green, uint blue) {
+fn Color colorFromRgb(uint red, uint green, uint blue)
+{
 	Color c;
 	c.value = (uint)(((red << 16) | (green << 8)) | (blue));
 	c.ref = (Colorref)(((blue << 16) | (green << 8)) | (red));
 	return c;
 }
 
-fn void setColorRGB(Color* clr, uint red, uint green, uint blue) {
+fn void setColorRGB(Color* clr, uint red, uint green, uint blue)
+{
 	clr.value = (uint)(((red << 16) | (green << 8)) | (blue));
 	clr.ref = (Colorref)(((blue << 16) | (green << 8)) | (red));
 }
 
-fn Colorref getClrRef(uint clr) {
+fn Colorref getClrRef(uint clr)
+{
 	uint red = clr >> 16;
     uint green = (clr & 0x00ff00) >> 8;
     uint blue = clr & 0x0000ff;
     return (Colorref)(((blue << 16) | (green << 8)) | (red));
 }
 
-fn Hbrush getHbrush(uint clr) {
+fn Hbrush getHbrush(uint clr)
+{
 	return api_CreateSolidBrush(getClrRef(clr));
 }
 
-fn Colorref clrRefFromRGB(uint red, uint green, uint blue) @inline {return (Colorref)(((blue << 16) | (green << 8)) | (red));}
+fn Colorref clrRefFromRGB(uint red, uint green, uint blue) @inline
+{
+	return (Colorref)(((blue << 16) | (green << 8)) | (red));
+}
 
-fn Hbrush createGradientBrush(Hdc dc, Rect rct, RgbColor c1, RgbColor c2, bool isRtL = false ) {
+fn Hbrush createGradientBrush(Hdc dc, Rect rct, RgbColor c1, RgbColor c2, bool isRtL = false )
+{
     Hbrush tBrush;
     Hdc memHDC = api_CreateCompatibleDC(dc);
     Hbitmap hBmp = api_CreateCompatibleBitmap(dc, rct.right, rct.bottom);

@@ -28,7 +28,7 @@ struct MenuBar
 {
 	inline MenuBase _base;
 	Hwnd _formHwnd;
-	Form* _pForm;	
+	Form* _pForm;
 	Colorref _menuGrayCref;
    	Hbrush _menuDefBgBrush ;
     Hbrush _menuHotBgBrush ;
@@ -125,8 +125,7 @@ fn MenuItem* MenuBar.addItem(MenuBar* this, String menuName, uint txtColor = 0x0
 // Add more than one menu item to menu bar.
 fn void MenuBar.addItems(MenuBar* this, String... menuNames)
 {
-	foreach (name: menuNames)
-	{
+	foreach (name: menuNames) {
 		MenuItem* mi = newMenuItem(name, MenuType.BASE_MENU, this.handle, this._menuCount);
 		mi._formHwnd = this._pForm.handle;
 		mi._formMenu = true;
@@ -220,8 +219,7 @@ fn void MenuItem.create(MenuItem* this)
 // Add menu item to existing menu item. So the parent become a popup menu.
 fn MenuItem* MenuItem.addItem(MenuItem* this, String menuName, uint txtColor = 0x000000)
 {
-	if (this.kind == MenuType.MENU_ITEM)
-	{
+	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
 		this.menus.init_new();

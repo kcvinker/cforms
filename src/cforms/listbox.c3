@@ -60,8 +60,7 @@ struct ListBox
 	{
 		this.setLbxStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&lbxWndProc);
 			this.setFontInternal();
 			this.manageItems();
@@ -72,8 +71,7 @@ struct ListBox
 	fn void ListBox.addItem(ListBox* this, String item)
 	{
 		this.items.append(item);
-		if (this._isCreated)
-		{
+		if (this._isCreated) {
 			Char16* lbtext = String.to_new_utf16(item).ptr!!;
 			defer free(lbtext);
 			this.sendMsg(LB_ADDSTRING, 0, lbtext);
@@ -83,10 +81,8 @@ struct ListBox
 	// Add multiple items to listbox
 	fn void ListBox.addItems(ListBox* this, String... items)
 	{
-		foreach (item: items)
-		{
-			if (this._isCreated)
-			{
+		foreach (item: items) {
+			if (this._isCreated) {
 				Char16* sitem = String.to_new_utf16(item).ptr!!;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
@@ -99,8 +95,7 @@ struct ListBox
 	fn void ListBox.insertItem(ListBox* this, String item, int index)
 	{
 		this.items.insert_at(index, item);
-		if (this._isCreated)
-		{
+		if (this._isCreated) {
 			Char16* sitem = String.to_new_utf16(item).ptr!!;
 			defer free(sitem);
 			this.sendMsg(LB_INSERTSTRING, index, sitem);
@@ -110,8 +105,7 @@ struct ListBox
 	// Remove an item with given index
 	fn void ListBox.removeItem(ListBox* this, int index)
 	{
-		if (this.items.len())
-		{
+		if (this.items.len()) {
 			this.clearAllInternal();
 			this.items.remove_at(index);
 			this.manageItems();
@@ -122,8 +116,7 @@ struct ListBox
 	// Delete all items from listbox
 	fn void ListBox.clearItems(ListBox* this)
 	{
-		if (this.items.len())
-		{
+		if (this.items.len()) {
 			this.clearAllInternal();
 			this.items.clear();
 		}
@@ -132,17 +125,13 @@ struct ListBox
 	// Returns the selected item from ListBox. Don't forget to free the string.
 	fn String ListBox.selectedItem(ListBox* this)
 	{
-		if (this._isCreated && !this.multiSelection)
-		{
+		if (this._isCreated && !this.multiSelection) {
 			int indx = (int)this.sendMsg(LB_GETCURSEL, 0, 0);
-            if (indx != LB_ERR)
-			{
+            if (indx != LB_ERR) {
 				this.selectedIndex = indx;
 				String selItem = this.getItemInternal(this.selectedIndex);
 				return selItem;
-			}
-			else
-			{
+			} else {
 				return "";
 			}
 		}
@@ -153,13 +142,10 @@ struct ListBox
 	fn StrList ListBox.selectedItems(ListBox* this)
 	{
 		StrList sItems;
-		if (this._isCreated && this.multiSelection)
-		{
+		if (this._isCreated && this.multiSelection) {
 			int selCount = (int)this.sendMsg(LB_GETSELCOUNT, 0, 0);
-			if (selCount != LB_ERR)
-			{
-				@pool()
-				{
+			if (selCount != LB_ERR) {
+				@pool() {
 					int[] buffer = mem::temp_array(int, selCount);
 					this.sendMsg(LB_GETSELITEMS, selCount, &buffer[0]);
 					foreach (indx: buffer) { sItems.append(this.getItemInternal(indx));}
@@ -178,8 +164,7 @@ struct ListBox
 	// Clear the selection from listbox
 	fn void ListBox.clearSelection(ListBox* this)
 	{
-		if (this._isCreated)
-		{
+		if (this._isCreated) {
 			uint msg = this.multiSelection ? LB_SETSEL : LB_SETCURSEL;
 			int lpm = this.multiSelection ? -1 : 0;
 			this.sendMsg(msg, false, lpm);
@@ -204,8 +189,7 @@ struct ListBox
 	// Returns item which is under mouse. Don't forget to free the string
 	fn String ListBox.hotItem(ListBox* this)
 	{
-		if (this.multiSelection)
-		{
+		if (this.multiSelection) {
 			int hindex =  (int) this.sendMsg(LB_GETCARETINDEX, 0, 0);
 			if (hindex != LB_ERR) return this.getItemInternal(hindex);
 		}
@@ -231,10 +215,8 @@ struct ListBox
 
 	fn void ListBox.manageItems(ListBox* this) @private
 	{
-		if (this.items.len() > 0)  // We need to add those items to list box
-		{
-            foreach (item: this.items)
-			{
+		if (this.items.len() > 0)  {// We need to add those items to list box
+            foreach (item: this.items) {
 				Char16* sitem = String.to_new_utf16(item).ptr!!;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
@@ -256,10 +238,8 @@ struct ListBox
 	fn String ListBox.getItemInternal(ListBox* this, int index) @private
 	{
 		int sLen = (int)this.sendMsg(LB_GETTEXTLEN, index, 0);
-		if (sLen)
-		{
-			@pool()
-			{
+		if (sLen) {
+			@pool() {
 				Char16[] buffer = mem::temp_array(Char16, sLen);
 				Lresult res =this.sendMsg(LB_GETTEXT, index, &buffer[0]);
 				String x = string::new_from_utf16(buffer)!!;
@@ -273,8 +253,7 @@ struct ListBox
 	fn void ListBox.wmCommandHandler(ListBox* this, Wparam wpm) @private
 	{
 		Word ncode = hiWord(wpm);
-		switch (ncode)
-		{
+		switch (ncode) {
 			case LBN_DBLCLK: if (this.onDoubleClick) this.onDoubleClick(this, &&EventArgs{});
 			case LBN_KILLFOCUS: if (this.onLostFocus) this.onLostFocus(this, &&EventArgs{});
 			case LBN_SELCHANGE: if (this.onSelectionChanged) this.onSelectionChanged(this, &&EventArgs{});
@@ -312,8 +291,7 @@ fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 {
 	ListBox* this = bitcast(refData, ListBox*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbxWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);

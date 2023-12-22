@@ -29,6 +29,7 @@ struct GroupBox
 		this.name.appendf("%d", gbNumber);
 		this.className = "Button";
 		this.text = text == "" ? this.name.str_view() : text;
+		this._wideText = String.to_new_utf16(this.text).ptr!!;
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_GROUPBOX | BS_NOTIFY | BS_TEXT | BS_TOP;
@@ -54,8 +55,7 @@ struct GroupBox
 		this._pen = api_CreatePen(PS_SOLID, 1, this.backColor.ref);
 		this._drawMode = 2;
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&gbWndProc);
 			this.setFontInternal();
 			this.getTextBounds();
@@ -67,11 +67,9 @@ struct GroupBox
 
 	fn void GroupBox.getTextBounds(GroupBox* this) @private
 	{
-		Char16* gbtext = String.to_new_utf16(this.text).ptr!!;
-		defer free(gbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
 		api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
-		api_GetTextExtentPoint32(hdc, gbtext, this.text.len, &this._txtSize );
+		api_GetTextExtentPoint32(hdc, this._wideText, this.text.len, &this._txtSize );
 		api_ReleaseDC(this.handle, hdc) ;
 		this._txtSize.cx += 8;
 		this._txtWidth = this._txtSize.cx;
@@ -79,9 +77,6 @@ struct GroupBox
 
 	fn Lresult GroupBox.drawText(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 	{
-		// log("paint");
-		Char16* gbtext = String.to_new_utf16(this.text).ptr!!;
-		defer free(gbtext);
 		Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
 		Hdc hdc = api_GetDC(hw);
 		defer api_ReleaseDC(hw, hdc);
@@ -92,52 +87,53 @@ struct GroupBox
 		api_SetBkMode(hdc, TRANSPARENT);
         api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
         api_SetTextColor(hdc, this.foreColor.ref);
-		api_TextOut(hdc, 10, 0, gbtext, this.text.len );
-		return 1;
+		api_TextOut(hdc, 10, 0, this._wideText, this.text.len );
+		return ret;
 	}
 
-	fn Lresult GroupBox.drawTextDB(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
-	{
-		Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
-		Rect rc;
-		int yp = 9;
-		Hdc hdc = api_GetDC(hw);
-		Char16* gbtext = String.to_new_utf16(this.text).ptr!!;
-		defer free(gbtext);
+	// fn Lresult GroupBox.drawTextDB(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
+	// {
+	// 	print("text draw");
+	// 	Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
+	// 	Rect rc;
+	// 	int yp = 9;
+	// 	Hdc hdc = api_GetDC(hw);
+	// 	Char16* gbtext = String.to_new_utf16(this.text).ptr!!;
+	// 	defer free(gbtext);
 
-		Hdc dcMem = api_CreateCompatibleDC(hdc);
-		int ndcMem = api_SaveDC(dcMem);
-		Hbitmap hbm = api_CreateCompatibleBitmap(hdc, this._txtSize.cx, this._txtSize.cy);
-		defer
-		{
-			api_RestoreDC(dcMem, ndcMem);
-			api_DeleteObject((Hgdiobj)hbm);
-			api_DeleteDC(dcMem);
-			api_ReleaseDC(hw, hdc);
-		}
-		api_SelectObject(dcMem, (Hgdiobj)hbm);
-		api_BitBlt(dcMem, 0, 0, this._txtSize.cx, this._txtSize.cy, hdc, 10, 0, SRCCOPY);
+	// 	Hdc dcMem = api_CreateCompatibleDC(hdc);
+	// 	int ndcMem = api_SaveDC(dcMem);
+	// 	Hbitmap hbm = api_CreateCompatibleBitmap(hdc, this._txtSize.cx, this._txtSize.cy);
+	// 	defer
+	// 	{
+	// 		api_RestoreDC(dcMem, ndcMem);
+	// 		api_DeleteObject((Hgdiobj)hbm);
+	// 		api_DeleteDC(dcMem);
+	// 		api_ReleaseDC(hw, hdc);
+	// 	}
+	// 	api_SelectObject(dcMem, (Hgdiobj)hbm);
+	// 	api_BitBlt(dcMem, 0, 0, this._txtSize.cx, this._txtSize.cy, hdc, 10, 0, SRCCOPY);
 
-		api_SelectObject(dcMem, (Hgdiobj)this._pen);
-		api_MoveToEx(dcMem, 10, yp, null);
-		api_LineTo(dcMem, this._txtSize.cx, yp);
-		api_SetRect(&rc, 10, 0, this._txtSize.cx, this._txtSize.cy);
-		api_SetBkMode(dcMem, TRANSPARENT);
-		api_SelectObject(dcMem, (Hgdiobj)(this.font.handle));
-		api_SetTextColor(dcMem, this.foreColor.ref);
-		api_DrawText(dcMem, gbtext, -1, &rc, DT_CENTER|DT_SINGLELINE );
-		// TextOutW(dcMem, 10, 0, this.mTmpText.toUTF16z, this.mTmpText.length);
-		api_BitBlt(hdc, 10, 0, this._txtSize.cx, this._txtSize.cy, dcMem, 0, 0, SRCCOPY);
-		return 1;
-	}
+	// 	api_SelectObject(dcMem, (Hgdiobj)this._pen);
+	// 	api_MoveToEx(dcMem, 10, yp, null);
+	// 	api_LineTo(dcMem, this._txtSize.cx, yp);
+	// 	api_SetRect(&rc, 10, 0, this._txtSize.cx, this._txtSize.cy);
+	// 	api_SetBkMode(dcMem, TRANSPARENT);
+	// 	api_SelectObject(dcMem, (Hgdiobj)(this.font.handle));
+	// 	api_SetTextColor(dcMem, this.foreColor.ref);
+	// 	api_DrawText(dcMem, gbtext, -1, &rc, DT_CENTER|DT_SINGLELINE );
+	// 	// TextOutW(dcMem, 10, 0, this.mTmpText.toUTF16z, this.mTmpText.length);
+	// 	api_BitBlt(hdc, 10, 0, this._txtSize.cx, this._txtSize.cy, dcMem, 0, 0, SRCCOPY);
+	// 	return 1;
+	// }
 
 
 	fn void GroupBox.textSetter(GroupBox* this, String value) @private
 	{
+		if (this._wideText) free(this._wideText);
+		this._wideText = String.to_new_utf16(value).ptr!!;
 		this.getTextBounds();
-		Char16* gbtext = String.to_new_utf16(value).ptr!!;
-		defer free(gbtext);
-		api_SetWindowText(this.handle, gbtext);
+		api_SetWindowText(this.handle, this._wideText);
 		api_InvalidateRect(this.handle, null, false);
 	}
 
@@ -148,6 +144,7 @@ struct GroupBox
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._pen) api_DeleteObject((Hgdiobj)this._pen);
+		free(this._wideText);
 		free(this);
 	}
 // End of Private functions
@@ -157,8 +154,7 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {
 	GroupBox* this = bitcast(refData, GroupBox*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &gbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
@@ -177,14 +173,12 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_KEYUP: this.keyUpHandler(wp);
 		case WM_CHAR: this.keyPressHandler(wp);
 		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case WM_PAINT: return this.drawTextDB(hw, msg, wp, lp); //this.drawText(hw, msg, wp, lp);
+		case WM_PAINT: return this.drawText(hw, msg, wp, lp); //this.drawTextDB(hw, msg, wp, lp); //this.drawText(hw, msg, wp, lp);
 		case WM_GETTEXTLENGTH:  return 0;
 
 		case WM_ERASEBKGND:
-			if (this._parent._isSizing) return 1;
-			// log("erase");
-			if (this._drawMode & 2)
-			{
+			if (this._parent._isSizing)	return 1;
+			if (this._drawMode & 2) {
 				api_FillRect((Hdc)wp, &&this.clientRect(), this._bkBrush);
 				return 0;
 			}

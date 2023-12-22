@@ -39,6 +39,7 @@ struct Label
 		this.width = width;
 		this.height = height;
 		this.text = text;
+		this._wideText = String.to_new_utf16(text).ptr!!;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
@@ -55,8 +56,7 @@ struct Label
 	{
 		this.checkForAutoSize();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			if (this.autoSize) this.calculateAutoSize();
 			this.setSubClass(&lbWndProc);
 			this.setFontInternal();
@@ -70,8 +70,7 @@ struct Label
 	fn void Label.checkForAutoSize(Label* lb) @private
 	{
 		if (lb.multiLine || (lb.width != 0) || (lb.height != 0 )) lb.autoSize = false ;
-		if (!lb.autoSize)
-		{
+		if (!lb.autoSize) {
 			if (lb.width == 0) lb.width = 100;
 			if (lb.height == 0) lb.height = 30;
 		}
@@ -80,12 +79,10 @@ struct Label
 
 	fn void Label.calculateAutoSize(Label* this) @private
 	{
-		Char16* lbtext = String.to_new_utf16(this.text).ptr!!;
-		defer free(lbtext);
 		Hdc hdc = api_GetDC(this.handle) ;
 		Size ss;
 		api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
-		api_GetTextExtentPoint32(hdc, lbtext, this.text.len, &ss );
+		api_GetTextExtentPoint32(hdc, this._wideText, this.text.len, &ss );
 		api_ReleaseDC(this.handle, hdc) ;
 		this.width = ss.cx + 3 ;
 		this.height = ss.cy  ;
@@ -106,6 +103,7 @@ struct Label
 	{
 		this.name.free();
 		api_DeleteObject((Hgdiobj)this._bkBrush);
+		free(this._wideText);
 		free(this);
 	}
 // End of Private functions
@@ -115,8 +113,7 @@ fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {
 	Label* this = bitcast(refData, Label*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbWndProc, scID);
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);

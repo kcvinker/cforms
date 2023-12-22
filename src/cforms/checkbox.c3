@@ -39,6 +39,7 @@ struct CheckBox
 		this.width = width;
 		this.height = height;
 		this.text = text;
+		this._wideText = String.to_new_utf16(text).ptr!!;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
@@ -54,8 +55,7 @@ struct CheckBox
 	{
 		this.setCbStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&cbWndProc);
 			this.setFontInternal();
 			this.setIdealSize();
@@ -79,8 +79,7 @@ struct CheckBox
 
 	fn void CheckBox.setCbStyle(CheckBox* this) @private
 	{
-		if (this.rightAlign)
-		{
+		if (this.rightAlign) {
 			this._style |= BS_RIGHTBUTTON ;
 			this._textStyle |= DT_RIGHT ;
 		}
@@ -99,16 +98,13 @@ struct CheckBox
 	fn Lresult CheckBox.wmNotifyHandler(CheckBox* this, Lparam lp) @private
 	{
 			NMCustomDraw* nmc = (NMCustomDraw*)lp;
-			switch (nmc.dwDrawStage)
-			{
+			switch (nmc.dwDrawStage) {
 				case CDDS_PREERASE:	return CDRF_NOTIFYPOSTERASE;
 				case CDDS_PREPAINT:
 					// Adjusing rect. Otherwise, text will be drawn upon the check area
 					if (!this.rightAlign) {nmc.rc.left += 18;} else {nmc.rc.right -= 18;}
 					if (this._drawMode & 1) api_SetTextColor(nmc.hdc, this.foreColor.ref);
-					Char16* cbtext = String.to_new_utf16(this.text).ptr!!;
-					defer free(cbtext);
-					api_DrawText(nmc.hdc, cbtext, -1, &nmc.rc, this._textStyle);
+					api_DrawText(nmc.hdc, this._wideText, -1, &nmc.rc, this._textStyle);
 					return CDRF_SKIPDEFAULT;
 			}
 		return CDRF_DODEFAULT;
@@ -122,6 +118,7 @@ struct CheckBox
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
+		free(this._wideText);
 		free(this);
 	}
 // End of Private functions
@@ -131,8 +128,7 @@ fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {
 	CheckBox* this = bitcast(refData, CheckBox*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &cbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);

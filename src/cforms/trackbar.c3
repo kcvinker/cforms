@@ -105,8 +105,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	{
 		this.setTKBStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&tkbWndProc);
 			if (this.customDraw) this.prepareForCustDraw();
 			this.sendInitialMessages();
@@ -134,8 +133,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 				print("Unknown type");
 		$endswitch
 		if ((this._drawMode & 2) != 2) this._drawMode += 2;
-		if (this._isCreated)
-		{
+		if (this._isCreated) {
 			this._bkBrush = this.backColor.getBrush();
 			// Here, we need to send this message.
             // otherwise we won't see the color change until next paint
@@ -151,22 +149,17 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	// Setting control's style bits.
 	fn void TrackBar.setTKBStyle(TrackBar* this) @private
 	{
-		if (this.vertical)
-		{
+		if (this.vertical) {
 			this._style |= TBS_VERT;
-			switch (this.ticPos)
-			{
+			switch (this.ticPos) {
 				case TicPosition.RIGHTSIDE: this._style |= TBS_RIGHT; break;
 				case TicPosition.LEFTSIDE: this._style |= TBS_LEFT; break;
 				case TicPosition.BOTHSIDE: this._style |= TBS_BOTH; break;
 				default: break;
 			}
-		}
-		else
-		{
+		} else {
 			// this._style |= TBS_;
-			switch (this.ticPos)
-			{
+			switch (this.ticPos) {
 				case TicPosition.DOWNSIDE: this._style |= TBS_BOTTOM; break;
 				case TicPosition.UPSIDE: this._style |= TBS_TOP; break;
 				case TicPosition.BOTHSIDE: this._style |= TBS_BOTH; break;
@@ -192,13 +185,11 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 	fn void TrackBar.sendInitialMessages(TrackBar* this) @private
 	{
-		if (this.reversed)
-		{
+		if (this.reversed) {
 			this.sendMsg(TBM_SETRANGEMIN, 1, (this.maxRange * -1));
 			this.sendMsg(TBM_SETRANGEMAX, 1, this.minRange);
-		}
-		else
-		{
+
+		} else {
 			this.sendMsg(TBM_SETRANGEMIN, 1, (this.minRange));
 			this.sendMsg(TBM_SETRANGEMAX, 1, this.maxRange);
 		}
@@ -225,12 +216,9 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.sendMsg(TBM_GETCHANNELRECT, 0, &this._chnRc); // Get the channel rect
 
 		//2. Calculate thumb offset
-		if (this.vertical)
-		{
+		if (this.vertical) {
 			twidth = this._tmbRc.bottom - this._tmbRc.top;
-		}
-		else
-		{
+		} else {
 			twidth = this._tmbRc.right - this._tmbRc.left;
 		}
 		this._tmbHalf = (int) twidth / 2;
@@ -246,18 +234,15 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 		tic = this.minRange + this.frequency;
 		this._tdList.append(TicData{stPos, 0}); // Very first tic
-		for (int i = 0; i < numTics; i++)
-		{
+		for (int i = 0; i < numTics; i++) {
 			this._tdList.append(TicData{(int)(tic * pFactor) + stPos, tic}); // Middle tics
 			tic += this.frequency;
 		}
 		this._tdList.append(TicData{enPos, (int)range}); // Last tic
 
 		// Now, set up single point (x/y) for tics.
-		if (this.vertical)
-		{
-			switch (this.ticPos)
-			{
+		if (this.vertical) {
+			switch (this.ticPos) {
 				case TicPosition.LEFTSIDE: this._p1 = this._tmbRc.left - 5;
 				case TicPosition.RIGHTSIDE: this._p1 = this._tmbRc.right + 2;
 				case TicPosition.BOTHSIDE:
@@ -265,11 +250,8 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 					this._p2 = this._tmbRc.left - 5;
 				default: break;
 			}
-		}
-		else
-		{
-			switch (this.ticPos)
-			{
+		} else {
+			switch (this.ticPos) {
 				case TicPosition.DOWNSIDE: this._p1 = this._tmbRc.bottom + 1;
 				case TicPosition.UPSIDE: this._p1 = this._tmbRc.top - 4;
 				case TicPosition.BOTHSIDE:
@@ -296,31 +278,23 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		bool result = false;
 		Rect rct;
 
-		if (this.vertical)
-		{
+		if (this.vertical) {
 			rct.left = nm.rc.left;
 			rct.right = nm.rc.right;
-			if (this.reversed)
-			{
+			if (this.reversed) {
 				rct.top = trc.bottom;
 				rct.bottom = nm.rc.bottom;
-			} else
-			{
+			} else {
 				rct.top = nm.rc.top;
 				rct.bottom = trc.top;
 			}
-		}
-		else
-		{
+		} else {
 			rct.top = nm.rc.top;
 			rct.bottom = nm.rc.bottom;
-			if (this.reversed)
-			{
+			if (this.reversed) {
 				rct.left = trc.right;
 				rct.right = nm.rc.right;
-			}
-			else
-			{
+			} else {
 				rct.left = nm.rc.left;
 				rct.right = trc.left;
 			}
@@ -358,33 +332,26 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	fn void TrackBar.drawTics(TrackBar* this, Hdc hdc) @private
 	{
 		api_SelectObject(hdc, (Hgdiobj)this._ticPen);
-		if (this.vertical)
-		{
-			switch (this.ticPos)
-			{
+		if (this.vertical) {
+			switch (this.ticPos) {
 				case TicPosition.RIGHTSIDE:
 				case TicPosition.LEFTSIDE:
 					foreach (p: this._tdList) this.drawVerticalTics(hdc, this._p1, p.phyPoint);
 				case TicPosition.BOTHSIDE:
-					foreach (p: this._tdList)
-					{
+					foreach (p: this._tdList) {
 						this.drawVerticalTics(hdc, this._p1, p.phyPoint);
 						this.drawVerticalTics(hdc, this._p2, p.phyPoint);
 					}
 				default: break;
 			}
 
-		}
-		else
-		{
-			switch (this.ticPos)
-			{
+		} else {
+			switch (this.ticPos) {
 				case TicPosition.UPSIDE:
 				case TicPosition.DOWNSIDE:
 					foreach (p: this._tdList) this.drawHorizontalTicsDown(hdc, p.phyPoint, this._p1);
 				case TicPosition.BOTHSIDE:
-					foreach (p: this._tdList)
-					{
+					foreach (p: this._tdList) {
 						this.drawHorizontalTicsDown(hdc, p.phyPoint, this._p1);
 						this.drawHorizontalTicsUpper(hdc, p.phyPoint, this._p2);
 					}
@@ -396,12 +363,10 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	fn void TrackBar.scrollHandler(TrackBar* this, Hwnd hw, Wparam wpm) @private
 	{
 		Word lwp = loWord(wpm);
-		switch (lwp)
-		{
+		switch (lwp) {
 			case TB_THUMBPOSITION:
 				this.setupValueInternal((int)hiWord(wpm));
-				if (!this.freeMove)
-				{
+				if (!this.freeMove) {
 					int pos = this.value;
 					double half = (double)(this.frequency / 2);
 					int diff = pos % this.frequency;
@@ -454,43 +419,34 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	fn Lresult TrackBar.wmNotifyHandler(TrackBar* this, Hwnd hw, Lparam lpm) @private
 	{
 		NMHdr* nmh = (NMHdr*) lpm;
-		switch (nmh.code)
-		{
+		switch (nmh.code) {
 			case NM_CUSTOMDRAW:
-				if (this.customDraw)
-				{
+				if (this.customDraw) {
 					NMCustomDraw* nmcd = (NMCustomDraw*) lpm;
 					if (nmcd.dwDrawStage == CDDS_PREPAINT) return CDRF_NOTIFYITEMDRAW;
 
-					if (nmcd.dwDrawStage ==  CDDS_ITEMPREPAINT)
-					{
-						if (nmcd.dwItemSpec == TBCD_TICS)
-						{
-							if (!this.noTics)
-							{
+					if (nmcd.dwDrawStage ==  CDDS_ITEMPREPAINT) {
+						if (nmcd.dwItemSpec == TBCD_TICS) {
+							if (!this.noTics) {
 								this.drawTics(nmcd.hdc);
 								return CDRF_SKIPDEFAULT;
 							}
 						}
 
-						if (nmcd.dwItemSpec == TBCD_CHANNEL)
-						{
+						if (nmcd.dwItemSpec == TBCD_CHANNEL) {
 							/* Python proect is using EDGE_SUNKEN style without BF_FLAT.
 							But D gives a strange outline in those flags. So I decided to use...
 							these flags. But in this case, we don't need to reduce 1 point from...
 							the coloring rect. It looks perfect without changing rect. */
-							if (this.channelStyle == ChannelStyle.CLASSIC)
-							{
+
+							if (this.channelStyle == ChannelStyle.CLASSIC) {
 								api_DrawEdge(nmcd.hdc, &nmcd.rc, BDR_SUNKENOUTER, this._chnFlag);
-							}
-							else
-							{
+							} else {
 								api_SelectObject(nmcd.hdc, (Hgdiobj)this._chanPen);
 								api_Rectangle(nmcd.hdc, nmcd.rc.left, nmcd.rc.top, nmcd.rc.right, nmcd.rc.bottom );
 							}
 
-							if (this.selRange)
-							{ // Fill the selection range
+							if (this.selRange) { // Fill the selection range
 								Rect rc = this.getThumbRect();
 								if (this.fillChannelRect(nmcd, rc)) api_InvalidateRect(hw, &nmcd.rc, false);
 							}
@@ -498,9 +454,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 							return CDRF_SKIPDEFAULT;
 						}
 					}
-				}
-				else
-				{
+				} else {
 					return CDRF_DODEFAULT;
 				}
 
@@ -527,8 +481,7 @@ fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 {
 	TrackBar* this = bitcast(refData, TrackBar*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &tkbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);

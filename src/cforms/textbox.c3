@@ -62,12 +62,10 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	{
 		this.setTbStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&tbWndProc);
 			this.setFontInternal();
-			if (this._cueReady)
-			{
+			if (this._cueReady) {
 				Char16* cuetext = String.to_new_utf16(this.cueStr.str_view()).ptr!!;
 				defer free(cuetext);
 				api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
@@ -79,14 +77,11 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	fn void TextBox.setCue(TextBox* this, String s)
 	{
 		this.cueStr = dstring::new(s);
-		if (this._isCreated)
-		{
+		if (this._isCreated) {
 			Char16* cuetext = String.to_new_utf16(this.cueStr.str_view()).ptr!!;
 			defer free(cuetext);
 			api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
-		}
-		else
-		{
+		} else {
 			this._cueReady = true;
 		}
 	}
@@ -101,30 +96,21 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		if (this.hideSelection) this._style |= ES_NOHIDESEL;
 		if (this.readOnly) this._style |= ES_READONLY;
 
-		if (this.textCase == TextCase.LOWERCASE)
-		{
+		if (this.textCase == TextCase.LOWERCASE) {
 			this._style |= ES_LOWERCASE;
-		}
-		else if (this.textCase == TextCase.UPPERCASE)
-		{
+		} else if (this.textCase == TextCase.UPPERCASE) {
 			this._style |= ES_UPPERCASE;
 		}
 
-		if (this.textType == TextType.NUMBERONLY)
-		{
+		if (this.textType == TextType.NUMBERONLY) {
 			this._style |= ES_NUMBER;
-		}
-		else if (this.textType == TextType.PASSWORDCHAR)
-		{
+		} else if (this.textType == TextType.PASSWORDCHAR) {
 			this._style |= ES_PASSWORD;
 		}
 
-		if (this.textAlign == Alignment.CENTER)
-		{
+		if (this.textAlign == Alignment.CENTER) {
 			this._style |= ES_CENTER;
-		}
-		else if (this.textAlign == Alignment.RIGHT)
-		{
+		} else if (this.textAlign == Alignment.RIGHT) {
 			this._style |= ES_RIGHT;
 		}
 		this._bkBrush = this.backColor.getBrush();
@@ -133,8 +119,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	// Handling back & fore color changing in WndProc function
 	fn Hbrush TextBox.colorMsgHandler(TextBox* this, Wparam wpm) @private
 	{
-		if (this._drawMode)
-		{
+		if (this._drawMode) {
 			Hdc hdc = (Hdc)wpm;
 			if (this._drawMode & 1) api_SetTextColor(hdc, this.foreColor.ref);
 			if (this._drawMode & 2) api_SetBkColor(hdc, this.backColor.ref);
@@ -158,8 +143,7 @@ fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {
 	TextBox* this = bitcast(refData, TextBox*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(this.handle, &tbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);

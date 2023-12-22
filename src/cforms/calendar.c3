@@ -63,8 +63,7 @@ enum ViewMode : int
 	{
 		this.setCalStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&calWndProc);
 			this.setFontInternal();
 			this.postCreationTasks();
@@ -120,8 +119,7 @@ enum ViewMode : int
 	fn Lresult Calendar.wmNotifyHandler(Calendar* this, Lparam lpm) @private
 	{
 		NMHdr* nm = (NMHdr*)lpm;
-		switch (nm.code)
-		{
+		switch (nm.code) {
 			case MCN_SELECT:
 				NMSelchange* nms = (NMSelchange*)lpm;
 				this.setValueInternal(nms.stSelStart);
@@ -157,8 +155,7 @@ fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 {
 	Calendar* this = bitcast(refData, Calendar*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &calWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);

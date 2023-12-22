@@ -9,16 +9,19 @@ def DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
 def ThreadMsgHandler = fn void(Wparam wpm, Lparam lpm);
 
 
-struct Area {
+struct Area
+{
 	int width;
 	int height;
 }
 
-struct EventArgs {
+struct EventArgs
+{
 	bool handled;
 }
 
-struct MouseEventArgs {
+struct MouseEventArgs
+{
 	inline EventArgs eventArgs;
 	MouseButton button;
 	bool isShiftPressed;
@@ -28,14 +31,16 @@ struct MouseEventArgs {
 	int delta;
 }
 
-struct SizeEventArgs {
+struct SizeEventArgs
+{
 	inline EventArgs eventArgs;
 	Rect formRect;
 	SizedPosition sizedOn;
 	Area clientArea;
 }
 
-struct KeyEventArgs {
+struct KeyEventArgs
+{
 	inline EventArgs eventArgs;
 	Keys keyCode;
 	Keys modifier;
@@ -46,13 +51,15 @@ struct KeyEventArgs {
 	bool supressKey;
 }
 
-struct DateTimeEventArgs {
+struct DateTimeEventArgs
+{
     inline EventArgs eventArgs;
     Lpcwstr dateString;
     SystemTime dateStruct;
 }
 
-fn MouseEventArgs newMouseEventArgs(uint msg, Wparam wpm, Lparam lpm) {
+fn MouseEventArgs newMouseEventArgs(uint msg, Wparam wpm, Lparam lpm)
+{
 	Word fwKeys = getKeyStateWparam(wpm);
 	MouseEventArgs m;
 	m.delta = (int)(hiWord(wpm));
@@ -84,7 +91,8 @@ fn MouseEventArgs newMouseEventArgs(uint msg, Wparam wpm, Lparam lpm) {
 	return m;
 }
 
-fn SizeEventArgs newSizeEventArgs(uint msg, Wparam wpm, Lparam lpm) {
+fn SizeEventArgs newSizeEventArgs(uint msg, Wparam wpm, Lparam lpm)
+{
 	SizeEventArgs sea;
 	if (msg == WM_SIZING) {
 		sea.sizedOn = (SizedPosition) wpm;
@@ -96,7 +104,8 @@ fn SizeEventArgs newSizeEventArgs(uint msg, Wparam wpm, Lparam lpm) {
 	return sea;
 }
 
-fn KeyEventArgs newKeyEventArgs(Wparam wpm) {
+fn KeyEventArgs newKeyEventArgs(Wparam wpm)
+{
 	// log("93");
 	KeyEventArgs this;
 	this.keyCode = (Keys) wpm;
@@ -116,7 +125,8 @@ fn KeyEventArgs newKeyEventArgs(Wparam wpm) {
 	return this;
 }
 
-fn DateTimeEventArgs newDateTimeEventArgs(Lpcwstr dtpStr) {
+fn DateTimeEventArgs newDateTimeEventArgs(Lpcwstr dtpStr)
+{
     DateTimeEventArgs this;
     this.dateString = dtpStr;
     return this;
@@ -131,7 +141,8 @@ fn int yFromLparam(Lparam lpm) @inline { return (int)((short)hiWord(lpm));}
 
 fn Word getKeyStateWparam(Wparam wp) {return (Word)loWordWparam(wp);}
 
-enum MouseButton : int (int value) {
+enum MouseButton : int (int value)
+{
 	NONE(0),
 	RIGHT(2097152),
 	MIDDLE(4194304),
@@ -140,7 +151,8 @@ enum MouseButton : int (int value) {
 	XBUTTON2(16777216)
 }
 
-enum SizedPosition : int {
+enum SizedPosition : int
+{
     NONE,
 	LEFTEDGE,
     RIGHTEDGE,

@@ -70,7 +70,8 @@ int frmNumber = 1;
 
 
 
-	struct Timer {
+	struct Timer
+	{
 		uint interval;
 		EventHandler onTick;
 		Uintptr _idNum;
@@ -261,7 +262,8 @@ struct Form
 	}
 
 	// A handy function to help find the points where we can place new controls.
-	fn void Form.printPoint(Form* this, MouseEventArgs* m) {
+	fn void Form.printPoint(Form* this, MouseEventArgs* m)
+	{
 		cptf("X : %d,  Y : %d\n", m.x, m.y);
 	}
 
@@ -347,10 +349,11 @@ struct Form
 // End Constants
 
 // Private Functions
-	fn void registerClass(Hinstance hinst, Char16* clsName) @private {
+	fn void registerClass(Hinstance hinst, Char16* clsName) @private
+	{
 		WndClassEx wc;
 		wc.cbSize = WndClassEx.sizeof;
-		wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		wc.style = CS_OWNDC; // CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 		wc.lpfnWndProc = &window_proc;
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
@@ -360,11 +363,11 @@ struct Form
 		wc.hbrBackground = api_CreateSolidBrush(0x00E6E6E6); //cast(Hbrush) (cast(uintptr) Color_Window + 1)
 		wc.lpszMenuName = (Lpcwstr)0;
 		wc.lpszClassName = clsName;
-
 		api_RegisterClassEx(&wc);
 	}
 
-	fn void Form.setStyle(Form* f) @private {
+	fn void Form.setStyle(Form* f) @private
+	{
 		switch (f.formStyle) {
 			case FormStyle.FIXED_3D:
 				f._exStyle = FIXED3DEXSTYLE ;
@@ -407,7 +410,8 @@ struct Form
         if (f.formState == FormState.MAXIMIZED) f._style = f._style | WS_MAXIMIZE;
 	}
 
-	fn void Form.setPosition(Form* f) @private {
+	fn void Form.setPosition(Form* f) @private
+	{
 		switch (f.formPos) {
 			case CENTER:
 				f.xpos = (screenWidth - f.width) / 2  ;
@@ -429,7 +433,8 @@ struct Form
 		}
 	}
 
-	fn void Form.setBackColorInternal(Form* f, Hdc hdc) @private {
+	fn void Form.setBackColorInternal(Form* f, Hdc hdc) @private
+	{
 		Rect rc = f.clientRect();
 		// defer(api_DeleteObject((Hgdiobj)hbr));
 		// if (f._fDrawMode == FormDrawMode.FLAT_COLOR) {
@@ -440,7 +445,8 @@ struct Form
 		api_FillRect(hdc, &rc, f._bkBrush);
 	}
 
-	fn void trackMouseMove(Hwnd hw) @private {
+	fn void trackMouseMove(Hwnd hw) @private
+	{
 		TrackMOUSEEVENT tme;
 		tme.cbSize = TrackMOUSEEVENT.sizeof;
 		tme.dwFlags = TME_HOVER|TME_LEAVE;
@@ -449,14 +455,16 @@ struct Form
 		api_TrackMouseEvent(&tme);
 	}
 
-	fn void Form.formShownHandler(Form* f) @private {
+	fn void Form.formShownHandler(Form* f) @private
+	{
 		if (!f._isLoaded) {
 			f._isLoaded = true;
 			if (f.onLoad) f.onLoad(f, &&EventArgs{});
 		}
 	}
 
-	fn void Form.formActivateHandler(Form* f, Wparam wp) @private {
+	fn void Form.formActivateHandler(Form* f, Wparam wp) @private
+	{
 		if (f.onActivate || f.onDeActivate) {
 			bool flag = (bool) wp;
 			if (!flag) {
@@ -467,7 +475,8 @@ struct Form
 		}
 	}
 
-	fn void Form.formMouseMoveHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private {
+	fn void Form.formMouseMoveHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private
+	{
 		// if (!f._isMouseTracking) {
 		// 	f._isMouseTracking = true;
 		// 	trackMouseMove(f.handle);
@@ -482,12 +491,14 @@ struct Form
 		}
 	}
 
-	fn void Form.formMouseLeaveHandler(Form* f) @private {
+	fn void Form.formMouseLeaveHandler(Form* f) @private
+	{
 		if (f._isMouseEntered) f._isMouseEntered = false;
 		if (f.onMouseLeave) f.onMouseLeave(f, &&EventArgs{});
 	}
 
-	fn Lresult Form.formSizingHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private {
+	fn Lresult Form.formSizingHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private
+	{
 		f._isSizing = true;
 		SizeEventArgs sea = newSizeEventArgs(msg, wp, lp);
 		f.width = sea.formRect.right - sea.formRect.left;
@@ -499,7 +510,8 @@ struct Form
 		return 0;
 	}
 
-	fn Lresult Form.formSizedHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private {
+	fn Lresult Form.formSizedHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private
+	{
 		// f.mSizingStarted = false;
 		f._isSizing = false;
 		if (f.onSized) {
@@ -510,7 +522,8 @@ struct Form
    		return 0;
 	}
 
-	fn Lresult Form.formMovingHandler(Form* f, Lparam lp) @private {
+	fn Lresult Form.formMovingHandler(Form* f, Lparam lp) @private
+	{
 		Rect rct = *(Rect*)lp;
 		f.xpos = rct.left;
 		f.ypos = rct.top;
@@ -521,14 +534,16 @@ struct Form
    		return 0;
 	}
 
-	fn Lresult Form.formMovedHandler(Form* f, Lparam lp) @private {
+	fn Lresult Form.formMovedHandler(Form* f, Lparam lp) @private
+	{
 		f.xpos = xFromLparam(lp);
 		f.ypos = yFromLparam(lp);
 		if (f.onMoved) f.onMoved(f, &&EventArgs{});
    		return 0;
 	}
 
-	fn void Form.formSysCommandHandler(Form* f, Wparam wp) @private {
+	fn void Form.formSysCommandHandler(Form* f, Wparam wp) @private
+	{
 		uint uMsg = (uint) (wp & 0xFFF0);
 		switch (uMsg) {
 			case SC_MINIMIZE: if (f.onMinimized) f.onMinimized(f, &&EventArgs{});
@@ -537,7 +552,8 @@ struct Form
 		}
 	}
 
-	fn void Form.formCloseHandler(Form* this) @private {
+	fn void Form.formCloseHandler(Form* this) @private
+	{
 		if (this.onClosing) this.onClosing(this, &&EventArgs{});
 	}
 
@@ -548,7 +564,8 @@ struct Form
 		if (try tm && tm.onTick) tm.onTick(this, &&EventArgs{});
 	}
 
-	fn void Form.formDestroyHandler(Form* this) @private {
+	fn void Form.formDestroyHandler(Form* this) @private
+	{
 		if (this.onClosed) this.onClosed(this, &&EventArgs{});
 		this.dtor();
 	}
@@ -568,7 +585,8 @@ struct Form
 	fault MenuEventError {MED_NOT_FOUND}
 
 	// This will execute when a Form destroyed
-	fn void Form.dtor(Form* this) @private {
+	fn void Form.dtor(Form* this) @private
+	{
 		if (this._bkBrush) {
 			api_DeleteObject((Hgdiobj)this._bkBrush);
 		}
@@ -599,7 +617,8 @@ struct Form
 
 // End Private Functions
 
-fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
+fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
+{
 	// ptf("WIn Message %s", msg);
 	// Form* this = (Form*)(api_GetWindowLongPtr(hw, GWLP_USERDATA));
 	Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
@@ -661,12 +680,9 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 
 		case WM_CTLCOLORLISTBOX:
 			Hwnd hc = (Hwnd)lp;
-			if (try cmbHwn = this._comboMap[hc])
-			{
+			if (try cmbHwn = this._comboMap[hc]) {
 				return api_SendMessage(cmbHwn, MM_COLOR_LBOX, wp, lp);
-			}
-			else
-			{
+			} else {
 				return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);
 			}
 
@@ -718,12 +734,10 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 		// 	return 0;
 
 		case WM_COMMAND:
-            switch (hiWord(wp))
-			{
+            switch (hiWord(wp)) {
 				case 0:  // menu click commands
 					uint menuID = (uint) loWord(wp);
-					if (try menu = this._menuItemMap[menuID])
-					{
+					if (try menu = this._menuItemMap[menuID]) {
 						if (menu.onClick) menu.onClick(menu, &&EventArgs{});
 					}
 					return 0;
@@ -738,11 +752,9 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private {
 			MenuItem* pmenu = this.getMenuFromHmenu((Hmenu) lp);
 			uint mid = (uint)(loWord(wp)); // Could be an id of a child menu or an index of a child menu
 			Word hwwpm = hiWord(wp);
-			if (pmenu)
-			{
+			if (pmenu) {
 				MenuItem* menu;
-				switch (hwwpm)
-				{
+				switch (hwwpm) {
 					case 33152: // A normal child menu. We can use mid ad menu id.
 						menu = this._menuItemMap[mid]!!;
 					case 33168: // A popup child menu. We can use mid as index.

@@ -103,8 +103,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	{
 		this.setTVStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&tvWndProc);
 			this.setFontInternal();
 			if (this.backColor.value != 0xFFFFFF) this.sendMsg(TVM_SETBKCOLOR, 0, this.backColor.ref);
@@ -152,11 +151,9 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	macro void TreeView.addNodes(TreeView* this, params...)
 	{
 		any p1 = params[0]; // This may be a node text or a TreeNode pointer
-		switch (p1)
-		{
+		switch (p1) {
 			case String:
-				foreach (txt: params)
-				{
+				foreach (txt: params) {
 					TreeNode* node = newTreeNode(txt);
 					this.addNodeInternal(NodeOps.ADDNODE, node);
 				}
@@ -200,8 +197,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 	fn void TreeView.addChildNodes1(TreeView* this, TreeNode* parent, nodeTexts...) @private
 	{
-		foreach (txt: nodeTexts)
-		{
+		foreach (txt: nodeTexts) {
 			String* nodeTxt = (String*)txt;
 			TreeNode* node = newTreeNode(*nodeTxt);
 			this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
@@ -219,8 +215,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	macro void TreeView.addChildNodes(TreeView* this, TreeNode* parent, childs...)
 	{
 		any p1 = chlds[0];
-		switch (p1)
-		{
+		switch (p1) {
 			case String: this.addChildNodes1(parent, childs);
 			case TreeNode*: this.addChildNodes2(parent, childs);
 			default: print("Unknown type");
@@ -279,8 +274,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	{
 		TreeNode* tn = newTreeNode(makeStringFromAny(items[0]));
 		this.addNode2(tn);
-		for (int i = 1; i < items.len; i++)
-		{
+		for (int i = 1; i < items.len; i++) {
 			this.addChildNode1(makeStringFromAny(items[i]), tn);
 		}
 	}
@@ -291,13 +285,11 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	{
 		$switch ($typeof(txtOrIndex))
 			$case String:
-				if (parent.nodes.len() > 0)
-				{
+				if (parent.nodes.len() > 0) {
 					foreach (node: parent.nodes) {if (node.text == txtOrIndex) return node;}
 				}
 			$case int:
-				if (parent.nodes.len() > 0)
-				{
+				if (parent.nodes.len() > 0) {
 					foreach (node: parent.nodes) {if (node.index == txtOrIndex) return node;}
 				}
 			$default: return null;
@@ -311,24 +303,18 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		TreeNode* theNode;
 		$switch ($typeof(txtOrIndex))
 			$case String:
-				if (parent.nodes.len() > 0)
-				{
-					foreach (node: parent.nodes)
-					{
-						if (node.text == txtOrIndex)
-						{
+				if (parent.nodes.len() > 0) {
+					foreach (node: parent.nodes) {
+						if (node.text == txtOrIndex) {
 							theNode = node;
 							break;
 						}
 					}
 				}
 			$case int:
-				if (parent.nodes.len() > 0)
-				{
-					foreach (node: parent.nodes)
-					{
-						if (node.index == txtOrIndex)
-						{
+				if (parent.nodes.len() > 0) {
+					foreach (node: parent.nodes) {
+						if (node.index == txtOrIndex) {
 							theNode = node;
 							break;
 						}
@@ -336,8 +322,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 				}
 			$default: print("Unknown type");
 		$endswitch
-		if (theNode)
-		{
+		if (theNode) {
 			$switch ($typeof(parent))
 				$case TreeView*:
 					api_SendMessage(parent.handle, TVM_DELETEITEM, 0, (Lparam) theNode.handle);
@@ -346,9 +331,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 				$case TreeNode*:
 					api_SendMessage(parent.treeHwnd, MM_NODE_DELETED, 0, theNode.toWpm());
 			$endswitch
-		}
-		else
-		{
+		} else {
 			print("The node is null");
 		}
 	}
@@ -492,8 +475,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		bool isRootNode = false;
 		String errMsg = "Can't Add";
 
-		switch(nop)
-		{
+		switch(nop) {
 			case NodeOps.ADDNODE:
 				tis.hParent = TVI_ROOT;
 				tis.hInsertAfter = this.nodeCount > 0 ? this.nodes[(usz)this.nodeCount - 1].handle : TVI_FIRST;
@@ -524,23 +506,17 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 		Lresult hItem = this.sendMsg(TVM_INSERTITEMW, 0, &tis);
 
-		if (hItem)
-		{
+		if (hItem) {
 			node.handle = (Htreeitem)hItem;
 			this.uniqNodeID += 1;
-			if (isRootNode)
-			{
+			if (isRootNode) {
 				this.nodes.append(node);
 				this.nodeCount += 1;
-			}
-			else
-			{
+			} else {
 				pnode.nodes.append(node);
 				pnode.nodeCount += 1;
 			}
-		}
-		else
-		{
+		} else {
 			ptf("%s node!, Error - %s", errMsg, api_GetLastError());
 		}
 	}
@@ -564,8 +540,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
-		if (this.nodeCount > 0)
-		{
+		if (this.nodeCount > 0) {
 			foreach (node: this.nodes) { node.destroy();} // Recursive destruction
 		}
 		this.nodes.free();
@@ -578,8 +553,7 @@ fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {
 	TreeView* this = bitcast(refData, TreeView*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &tvWndProc, scID);
 		case MM_NODE_ADDED:
 			TreeNode* node = (TreeNode*)((void*) wp);

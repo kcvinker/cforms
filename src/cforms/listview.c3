@@ -170,8 +170,7 @@ enum ListViewStyle : char
 	{
 		this.setLVStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setLVExStyle();
 			this.setSubClass(&lvWndProc);
 			this.setFontInternal();
@@ -308,8 +307,7 @@ enum ListViewStyle : char
 	// Setting control's style bits.
 	fn void ListView.setLVStyle(ListView* this) @private
 	{
-		switch (this.viewStyle)
-		{
+		switch (this.viewStyle) {
             case ListViewStyle.LARGE_ICON: this._style |= LVS_ICON;
             case ListViewStyle.REPORT_VIEW: this._style |= LVS_REPORT;
             case ListViewStyle.SMALL_ICON: this._style |= LVS_SMALLICON;
@@ -353,8 +351,7 @@ enum ListViewStyle : char
         lvc.pszText = lvcol._wideText;//  String.to_new_utf16(lvcol.text).ptr!!;
         // # lvc.iOrder = lvcol.index
 
-        if (lvcol.hasImage)
-		{
+        if (lvcol.hasImage) {
             lvc.mask |= LVCF_IMAGE;
             lvc.fmt |= LVCFMT_COL_HAS_IMAGES | LVCFMT_IMAGE;
             lvc.iImage = lvcol.imgIndex;
@@ -416,10 +413,8 @@ enum ListViewStyle : char
 	fn void ListView.postCreationTasks(ListView* this) @private
 	{
 		if (this.backColor.value != 0xFFFFFF) this.sendMsg(LVM_SETBKCOLOR, 0, this.backColor.ref);
-		if (this.checkBoxLast)
-		{
-			@pool()
-			{
+		if (this.checkBoxLast) {
+			@pool() {
 				IntList iList;
 				iList.init_temp(this.columns.len()); // Ensure we never need realloc
 				foreach (col: this.columns) {if (col.index > 0) iList.push(col.index);}
@@ -469,11 +464,9 @@ enum ListViewStyle : char
 	fn Lresult ListView.headerNotifyHandler(ListView* this, Lparam lpm) @private
 	{
 		NMHdr* nmh = (NMHdr*) lpm;
-		if (nmh.code == NM_CUSTOMDRAW)
-		{
+		if (nmh.code == NM_CUSTOMDRAW) {
 			NMCustomDraw* nmcd = (NMCustomDraw*) lpm;
-			switch (nmcd.dwDrawStage)
-			{
+			switch (nmcd.dwDrawStage) {
 				case CDDS_PREPAINT: return CDRF_NOTIFYITEMDRAW;
 				case CDDS_ITEMPREPAINT: return this.drawHeader(nmcd);
 			}
@@ -483,10 +476,8 @@ enum ListViewStyle : char
 
 	fn ListViewItem* ListView.findLvItemStr(&this, String itemTxt)
 	{
-		if (this.items.len() > 0)
-		{
-			foreach (item: this.items)
-			{
+		if (this.items.len() > 0) {
+			foreach (item: this.items) {
 				if (item.text == itemTxt) return item;
 			}
 		}
@@ -495,10 +486,8 @@ enum ListViewStyle : char
 
 	fn ListViewItem* ListView.findLvItemInt(&this, int indx)
 	{
-		if (this.items.len() > 0)
-		{
-			foreach (item: this.items)
-			{
+		if (this.items.len() > 0) {
+			foreach (item: this.items) {
 				if (item.index == indx) return item;
 			}
 		}
@@ -525,12 +514,10 @@ enum ListViewStyle : char
 	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
-		if (this._itemIndex > -1)
-		{
+		if (this._itemIndex > -1) {
 			foreach (item: this.items) {item.destroy();}
 		}
-		if (this.columns.len())
-		{
+		if (this.columns.len()) {
 			foreach (col: this.columns) {col.destroy();}
 		}
 		this.columns.free();
@@ -544,8 +531,7 @@ fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {
 	ListView* this = bitcast(refData, ListView*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lvWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
@@ -577,8 +563,7 @@ fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 {
 	ListView* this = bitcast(refData, ListView*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &hdrWndProc, scID);
 		case WM_MOUSEMOVE:
 			Point mp = getMousePoints(lp);

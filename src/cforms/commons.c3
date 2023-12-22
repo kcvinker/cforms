@@ -150,12 +150,6 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 	const Dword MCS_NOTODAY = 0x10;
 	const Dword MCS_NOTRAILINGDATES = 0x40;
 	const Dword MCS_SHORTDAYSOFWEEK = 0x80;
-
-
-
-
-
-
 // End of Common Constants
 fn Point getMousePoints(Lparam lpm) {return Point{loWord(lpm), hiWord(lpm)};}
 
@@ -181,14 +175,14 @@ macro isStrLiteral(x)
 
 fn String makeStringFromAny(any* value)
 {
-	switch (value)
-	{
+	switch (value) {
 		case String: return *value;
 		default: return string::new_format("%s", value);
 	}
 }
 
-fn void printWchars(Char16* txt, int count) {
+fn void printWchars(Char16* txt, int count)
+{
 	cptf("wchar codes in font name 'Tahoma' : ", null);
 	for (int i = 0; i < count + 1; i++ ) {
 		cptf(" %d, ", txt[i]);
@@ -199,8 +193,7 @@ fn void printWchars(Char16* txt, int count) {
 fn String numeralsToString(any* value) @private
 {
 	// DString ds = dstring::tnew_with_capacity(16);
-	switch (value)
-	{
+	switch (value) {
 		case int: return string::new_format("%d", value);
 		case float: nextcase;
 		case double: return string::new_format("%.2f", *value);
@@ -219,12 +212,14 @@ fn String numeralsToString(any* value) @private
 // 	};
 // }
 
-fn double strToDouble(String s) @private {
+fn double strToDouble(String s) @private
+{
 	char* cp;
 	return libc::strtod(&s[0], &cp);
 }
 
-macro String toStr(x) {
+macro String toStr(x)
+{
 	var $Type = $typeof(x);
 	$switch ($Type)
 		$case int: return int_to_string(x);
@@ -248,16 +243,11 @@ fn void concatNum(char* s, char* name,  int i)
 
 fn int getNumLength(int num)
 {
-	if (num < 10)
-	{
+	if (num < 10) {
 		return 1;
-	}
-	else if (num < 100)
-	{
+	} else if (num < 100) {
 		return 2;
-	}
-	else if (num < 1000)
-	{
+	} else if (num < 1000) {
 		return 3;
 	}
 	return 1;
@@ -316,18 +306,13 @@ fn TrackingAllocator startTracking()
 
 fn void printTrackReport(TrackingAllocator tal)
 {
-	@pool()
-	{
-		if (tal.map.len() > 0)
-		{
+	@pool() {
+		if (tal.map.len() > 0) {
 			print("Showing memory tracking reports....");
-			foreach (k: tal.map.key_tlist())
-			{
+			foreach (k: tal.map.key_tlist()) {
 				ptf("map key: %p, map value: %d bytes", k, tal.map.get(k))!!;
 			}
-		}
-		else
-		{
+		} else {
 			print("No memory leaks found....");
 		}
 	};

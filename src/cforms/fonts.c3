@@ -22,7 +22,8 @@ const int FIXED_PITCH = 1;
 const int VARIABLE_PITCH = 2;
 const int DEFAULT_CHARSET = 1;
 
-enum FontWeight : int {
+enum FontWeight : int
+{
 	THIN,
     EXTRA_LIGHT,
     LIGHT,
@@ -34,7 +35,8 @@ enum FontWeight : int {
     THICK
 }
 
-struct Font {
+struct Font
+{
 	String name;
 	int size;
 	FontWeight weight;
@@ -47,7 +49,8 @@ struct Font {
 
 fn Font newFont(String fontName, int fontSize,
 				FontWeight fontWeight = FontWeight.NORMAL,
-				bool italic = false, bool underLine = false, bool strike = false) {
+				bool italic = false, bool underLine = false, bool strike = false)
+{
 
 	Font f;
 	f.name = fontName;
@@ -63,7 +66,8 @@ fn Font newFont(String fontName, int fontSize,
 
 // }
 
-fn void Font.createHandle(Font* f, Hwnd hwnd) {
+fn void Font.createHandle(Font* f, Hwnd hwnd)
+{
 	Hdc hdc = api_GetDC(hwnd);
 	int iHeight = -api_MulDiv(f.size, api_GetDeviceCaps(hdc, LOGPIXELSY), 72);
 	api_ReleaseDC(hwnd, hdc);

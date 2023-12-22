@@ -63,8 +63,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	{
 		this.setPbStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&pbWndProc);
 			this.setFontInternal();
 			this.sendMsg(PBM_SETRANGE32, this.minValue, this.maxValue);
@@ -75,13 +74,10 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// Set the value of this progress bar
 	fn void ProgressBar.setValue(ProgressBar* this, int ivalue)
 	{
-		if (ivalue >= this.minValue && ivalue <= this.maxValue)
-		{
+		if (ivalue >= this.minValue && ivalue <= this.maxValue) {
 			this.value = ivalue;
 			if (this._isCreated) this.sendMsg(PBM_SETPOS, ivalue, 0);
-		}
-		else
-		{
+		} else {
 			log("ivalue is not in between minValue & maxValue");
 		}
 	}
@@ -89,14 +85,10 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// Increment the value of this progress bar as per step value. Default step = 1
 	fn void ProgressBar.increment(ProgressBar* this)
 	{
-		if (this._isCreated)
-		{
-			if (this.value == this.maxValue)
-			{
+		if (this._isCreated) {
+			if (this.value == this.maxValue) {
 				this.value = this.step;
-			}
-			else
-			{
+			} else {
 				this.value += this.step;
 			}
 			Lresult ret = this.sendMsg(PBM_STEPIT, 0, 0);
@@ -107,13 +99,10 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// Set the step value for this progressbar
 	fn void ProgressBar.setStep(ProgressBar* this, int value)
 	{
-		if (value >= this.minValue && value <= this.maxValue)
-		{
+		if (value >= this.minValue && value <= this.maxValue) {
 			this.step = value;
 			if (this._isCreated) this.sendMsg(PBM_SETSTEP, this.step, 0);
-		}
-		else
-		{
+		} else {
 			log("ivalue is not in between minValue & maxValue");
 		}
 	}
@@ -129,16 +118,12 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	fn void ProgressBar.setStyle(ProgressBar* this, ProgressBarStyle style, int marqueeSpeed = 0)
 	{
 		// Changing progress bar's visual style.
-		if (this.barStyle != style && this._isCreated)
-		{
+		if (this.barStyle != style && this._isCreated) {
 			this.value = 0;
-			if (style == ProgressBarStyle.BLOCK_STYLE)
-			{
+			if (style == ProgressBarStyle.BLOCK_STYLE) {
 				this._style ^= PBS_MARQUEE;
 				this._style |= PBS_SMOOTH;
-			}
-			else
-			{
+			} else {
 				this._style ^= PBS_SMOOTH;
 				this._style |= PBS_MARQUEE;
 			}
@@ -152,8 +137,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// Start/Pause the marquee animation of this progressbar. True = Start, False = Pause
 	fn void ProgressBar.setMarqueeAnimation(ProgressBar* this, bool value)
 	{
-		if (this._isCreated && this.barStyle == ProgressBarStyle.MARQUEE_STYLE)
-		{
+		if (this._isCreated && this.barStyle == ProgressBarStyle.MARQUEE_STYLE) {
 			this.sendMsg(PBM_SETMARQUEE, value, this.marqueeSpeed);
 		}
 	}
@@ -212,8 +196,7 @@ fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {
 	ProgressBar* this = bitcast(refData, ProgressBar*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &pbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
@@ -233,13 +216,10 @@ fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_CHAR: this.keyPressHandler(wp);
 		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case WM_PAINT:
-			if (this.showPercentage && this.barStyle != ProgressBarStyle.MARQUEE_STYLE)
-			{
+			if (this.showPercentage && this.barStyle != ProgressBarStyle.MARQUEE_STYLE) {
 				api_DefSubclassProc(hw, msg, wp, lp);
 				return this.paintHandler();
-			}
-			else
-			{
+			} else {
 				return api_DefSubclassProc(hw, msg, wp, lp);
 			}
 

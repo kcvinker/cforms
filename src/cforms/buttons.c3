@@ -105,6 +105,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		this.className = "Button";
 		this.name = dstring::new("Button_");
 		this.name.appendf("%d", btnNumber);
+		this._wideText = String.to_new_utf16(text).ptr!!;
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = btnStyle;
@@ -127,8 +128,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	fn void Button.createHandle(Button* this)
 	{
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&btnWndProc);
 			this.setFontInternal();
 		}
@@ -167,11 +167,9 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	fn Lresult Button.wmNotifyHandler(Button* b, Lparam lpm) @private
 	{
 		Lresult ret = CDRF_DODEFAULT;
-		if (b._drawMode)
-		{
+		if (b._drawMode) {
 			NMCustomDraw* nmcd = (NMCustomDraw*)lpm;
-			switch (b._drawMode)
-			{
+			switch (b._drawMode) {
 				case 1: ret = b.drawTextColor(nmcd); // ForeColor only
 				case 2: ret = b.drawBackColor(nmcd); // BackColor only
 				case 3:
@@ -187,35 +185,31 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	}
 
 	// Drawing button's text with our foreColor.
-	fn Lresult Button.drawTextColor(Button* b, NMCustomDraw* ncd) @private
+	fn Lresult Button.drawTextColor(Button* this, NMCustomDraw* ncd) @private
 	{
 		int ret = api_SetBkMode(ncd.hdc, TRANSPARENT);
-		api_SetTextColor(ncd.hdc, b.foreColor.ref);
-		api_SelectObject(ncd.hdc, (Hgdiobj)(b.font.handle));
-		Char16* btext =  String.to_new_utf16(b.text).ptr!!;
-		defer free(btext);
-        api_DrawText(ncd.hdc, btext, -1, &ncd.rc, TXTFLAG);
+		api_SetTextColor(ncd.hdc, this.foreColor.ref);
+		api_SelectObject(ncd.hdc, (Hgdiobj)(this.font.handle));
+		// Char16* btext =  String.to_new_utf16(b.text).ptr!!;
+		// defer free(btext);
+        api_DrawText(ncd.hdc, this._wideText, -1, &ncd.rc, TXTFLAG);
         return CDRF_NOTIFYPOSTPAINT;
 	}
 
 	// Drawing flat color bkg on a button.
 	fn Lresult Button.drawBackColor(Button* b, NMCustomDraw* nmcd) @private
 	{
-		switch (nmcd.dwDrawStage)
-		{
+		switch (nmcd.dwDrawStage) {
 			case CDDS_PREERASE:	// Note: This return value is critical. Otherwise we don't get below notifications.
 				return  CDRF_NOTIFYPOSTERASE;
 			case CDDS_PREPAINT:
-				if ((nmcd.uItemState & BTN_CLICKED) == BTN_CLICKED)
-				{
+				if ((nmcd.uItemState & BTN_CLICKED) == BTN_CLICKED) {
 					b.paintFlatColor(nmcd, b._fdraw.defBrush, b._fdraw.hotPen);
-				}
-				else if ((nmcd.uItemState & BTN_FOCUSED) == BTN_FOCUSED)
-				{
+
+				} else if ((nmcd.uItemState & BTN_FOCUSED) == BTN_FOCUSED) {
 					b.paintFlatColor(nmcd, b._fdraw.hotBrush, b._fdraw.hotPen);
-				}
-				else
-				{
+
+				} else {
 					b.paintFlatColor(nmcd, b._fdraw.defBrush, b._fdraw.defPen);
 				}
 		}
@@ -225,21 +219,17 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	// Drawing gradient bkg on a button.
 	fn Lresult Button.drawGradientBackColor(Button* b, NMCustomDraw* nmcd) @private
 	{
-		switch (nmcd.dwDrawStage)
-		{
+		switch (nmcd.dwDrawStage) {
 			case CDDS_PREERASE:	// Note: This return value is critical. Otherwise we don't get below notifications.
 				return  CDRF_NOTIFYPOSTERASE;
 			case CDDS_PREPAINT:
-				if ((nmcd.uItemState & BTN_CLICKED) == BTN_CLICKED)
-				{
+				if ((nmcd.uItemState & BTN_CLICKED) == BTN_CLICKED) {
 					b.paintGradientRound(nmcd.hdc, nmcd.rc, b._gdraw.defClr, b._gdraw.hotPen);
-				}
-				else if ((nmcd.uItemState & BTN_FOCUSED) == BTN_FOCUSED)
-				{
+
+				} else if ((nmcd.uItemState & BTN_FOCUSED) == BTN_FOCUSED) {
 					b.paintGradientRound(nmcd.hdc, nmcd.rc, b._gdraw.hotClr, b._gdraw.hotPen);
-				}
-				else
-				{
+
+				} else {
 					b.paintGradientRound(nmcd.hdc, nmcd.rc, b._gdraw.defClr, b._gdraw.defPen);
 				}
 		}
@@ -274,6 +264,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 			case 4..5: this._gdraw.dtor();
 		}
 		this.name.free();
+		free(this._wideText);
 		free(this);
 	}
 // End of Private functions
@@ -310,8 +301,7 @@ fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 {
 	Button* this = bitcast(refData, Button*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &btnWndProc, scID);;
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);

@@ -72,8 +72,7 @@ enum DTPFormat : int(String descrption, int value )
 	{
 		this.seDTPStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&dtpWndProc);
 			this.setFontInternal();
 			this.postCreationTasks();
@@ -87,8 +86,7 @@ enum DTPFormat : int(String descrption, int value )
 	// Setting control's style bits.
 	fn void DateTimePicker.seDTPStyle(DateTimePicker* this) @private
 	{
-		switch (this.format)
-		{
+		switch (this.format) {
 			case DTPFormat.CUSTOM: this._style |= DTS_LONGDATEFORMAT | DTS_APPCANPARSE;
 			case DTPFormat.LONG_DATE: this._style |= DTS_LONGDATEFORMAT;
 			case DTPFormat.SHORT_DATE: this._style |= this.fourDigitYear ? DTS_SHORTDATECENTURYFORMAT : DTS_SHORTDATEFORMAT;
@@ -108,8 +106,7 @@ enum DTPFormat : int(String descrption, int value )
 
 	fn void DateTimePicker.postCreationTasks(DateTimePicker* this) @private
 	{
-		if (this.format == DTPFormat.CUSTOM)
-		{
+		if (this.format == DTPFormat.CUSTOM) {
 			/*  Here, we have a strange situation. Since, we are working with unicode string, we need...
 				to use the W version functions & messages. So, here DTM_SETFORMATW is the candidate.
 				But it won't work. For some unknown reason, only DTM_SETFORMATA is working here. So we need...
@@ -128,11 +125,9 @@ enum DTPFormat : int(String descrption, int value )
 	fn void DateTimePicker.wmNotifyHandler(DateTimePicker* this, Lparam lpm) @private
 	{
 		NMHdr* nm = (NMHdr*)lpm;
-		switch (nm.code)
-		{
+		switch (nm.code) {
 			case DTN_USERSTRING:
-				if (this.onTextChanged)
-				{
+				if (this.onTextChanged) {
 					NMDateTimeString* dts = (NMDateTimeString*)lpm;
 					DateTimeEventArgs dtea = newDateTimeEventArgs(dts.pszUserString);
 					this.onTextChanged(this, &dtea);
@@ -140,15 +135,13 @@ enum DTPFormat : int(String descrption, int value )
 				}
 			case DTN_DROPDOWN: if (this.onCalendarOpened) this.onCalendarOpened(this, &&EventArgs{});
 			case DTN_DATETIMECHANGE:
-				if (this._ddCount == 0)
-				{
+				if (this._ddCount == 0) {
 					this._ddCount = 1;
 					NMDateTimeChange* nmd = (NMDateTimeChange*) lpm;
 					this.value = dateTimeFromSysTime(nmd.st);
 					if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
-				}
-				else if (this._ddCount == 1)
-				{
+
+				} else if (this._ddCount == 1) {
 					this._ddCount = 0;
 				}
 			case DTN_CLOSEUP: if (this.onCalendarClosed) this.onCalendarClosed(this, &&EventArgs{});
@@ -170,8 +163,7 @@ fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 {
 	DateTimePicker* this = bitcast(refData, DateTimePicker*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &dtpWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);

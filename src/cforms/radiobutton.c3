@@ -14,6 +14,7 @@ struct RadioButton
 	bool rightAlign;
 	bool checkOnClick;
 	uint _textStyle;
+	// Char16* _wtxt;
 	EventHandler onCheckedChanged;
 }
 
@@ -38,6 +39,7 @@ struct RadioButton
 		this.width = width;
 		this.height = height;
 		this.text = text;
+		this._wideText = String.to_new_utf16(text).ptr!!;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
@@ -54,8 +56,7 @@ struct RadioButton
 	{
 		this.setRBStyle();
 		this.createInternal();
-		if (this.handle)
-		{
+		if (this.handle) {
 			this.setSubClass(&rbWndProc);
 			this.setFontInternal();
 			this.setIdealSize();
@@ -76,8 +77,7 @@ struct RadioButton
 	// Setting control's style bits.
 	fn void RadioButton.setRBStyle(RadioButton* this) @private
 	{
-		if (this.rightAlign)
-		{
+		if (this.rightAlign) {
 			this._style |= BS_RIGHTBUTTON ;
 			this._textStyle |= DT_RIGHT ;
 		}
@@ -87,8 +87,7 @@ struct RadioButton
 
 	fn void RadioButton.wmCommandHandler(RadioButton* this, Wparam wpm) @private
 	{
-		if (hiWord(wpm) == 0)
-		{
+		if (hiWord(wpm) == 0) {
 			this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);
             if (this.onCheckedChanged) this.onCheckedChanged(this, &&EventArgs{});
 		}
@@ -105,19 +104,17 @@ struct RadioButton
 
 	fn Lresult RadioButton.wmNotifyHandler(RadioButton* this, Lparam lp) @private
 	{
-			NMCustomDraw* nmc = (NMCustomDraw*)lp;
-			switch (nmc.dwDrawStage)
-			{
-				case CDDS_PREERASE:	return CDRF_NOTIFYPOSTERASE;
-				case CDDS_PREPAINT:
-					// Adjusing rect. Otherwise, text will be drawn upon the check area
-					if (!this.rightAlign) {nmc.rc.left += 18;} else {nmc.rc.right -= 18;}
-					if (this._drawMode & 1) api_SetTextColor(nmc.hdc, this.foreColor.ref);
-					Char16* rbtext = String.to_new_utf16(this.text).ptr!!;
-					defer free(rbtext);
-					api_DrawText(nmc.hdc, rbtext, -1, &nmc.rc, this._textStyle);
-					return CDRF_SKIPDEFAULT;
-			}
+		NMCustomDraw* nmc = (NMCustomDraw*)lp;
+		switch (nmc.dwDrawStage) {
+			case CDDS_PREERASE:	return CDRF_NOTIFYPOSTERASE;
+			case CDDS_PREPAINT:
+				// Adjusing rect. Otherwise, text will be drawn upon the check area
+				if (!this.rightAlign) {nmc.rc.left += 18;} else {nmc.rc.right -= 18;}
+				if (this._drawMode & 1) api_SetTextColor(nmc.hdc, this.foreColor.ref);
+				// this._wtxt = String.to_new_utf16(this.text).ptr!!;
+				api_DrawText(nmc.hdc, this._wideText, -1, &nmc.rc, this._textStyle);
+				return CDRF_SKIPDEFAULT;
+		}
 		return CDRF_DODEFAULT;
 	}
 
@@ -126,6 +123,7 @@ struct RadioButton
 	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
+		free(this._wideText);
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		free(this);
 	}
@@ -136,8 +134,7 @@ fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {
 	RadioButton* this = bitcast(refData, RadioButton*);
 	// io::printfn("message %s", msg);
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_DESTROY: api_RemoveWindowSubclass(hw, &rbWndProc, scID);
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
