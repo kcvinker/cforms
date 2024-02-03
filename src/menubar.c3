@@ -1,8 +1,8 @@
 // menubar module - Created on 19-Feb-2023 07:58
 
 module cforms;
-import std::io;
-import std::core::mem;
+// import std::io;
+// import std::core::mem;
 import std::collections::list;
 import std::collections::map;
 // import std::sort;
@@ -79,8 +79,8 @@ fn MenuBar* newMenuBar(Form* frm, Allocator* using = mem::heap())
     this._menuGrayBrush = getHbrush(0xced4da);
     this._menuGrayCref = getClrRef(0x979dac);
 	this._pForm.menubar = this;
-	// this.menus.init_new();
-	// this._pForm._menuItemMap.init_new();
+	// this.menus.new_init();
+	// this._pForm._menuItemMap.new_init();
 	this._pForm._menuMapInited = true;
 	return this;
 }
@@ -222,7 +222,7 @@ fn MenuItem* MenuItem.addItem(MenuItem* this, String menuName, uint txtColor = 0
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
-		this.menus.init_new();
+		this.menus.new_init();
 	}
     MenuItem* result = newMenuItem(menuName, MenuType.MENU_ITEM, this.handle, this._menuCount);
     result.fgColor = newColor(txtColor);
@@ -242,7 +242,7 @@ fn void MenuItem.addItems(MenuItem* this, String... menuNames )
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
-		this.menus.init_new();
+		this.menus.new_init();
 	}
 	if (this.kind != MenuType.BASE_MENU) this.kind = MenuType.POPUP;
 	foreach (name: menuNames) {

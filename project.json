@@ -1,0 +1,58 @@
+{
+  // language version of C3
+  "langrev": "1",
+  // warnings used for all targets
+  "warnings": [ "no-unused" ],
+  // directories where C3 library files may be found
+  "dependency-search-paths": [],
+  // libraries to use for all targets
+  "dependencies": [ ],
+
+  "linked-libraries": ["user32.lib", "kernel32.lib", "gdi32.lib", "Comctl32.lib", "Comdlg32", "Shell32", "Ole32"],
+  // authors, optionally with email
+  "authors": [ "Vinod Chandran <kcvinu82@gmail.com>" ],
+  // Version using semantic versioning
+  "version": "0.1.0",
+  // sources compiled for all targets
+  "sources": [ "./**" ],
+  // Targets
+  "targets": {
+    "cforms": {
+      // executable or library
+      "type": "executable"
+      // additional libraries, sources
+      // and overrides of global settings here
+    },
+  }
+  /*
+  // Debug information, may be 'none', 'full' and 'line-tables'
+  "debug-info": "full",
+  // Architecture and OS target:
+  "target": "windows-x64",
+  // The size of the symtab, which limits the amount
+  // of symbols that can be used. Should usually not
+  // be changed.
+  "symtab": 4194304,
+  // "none", "pic", "PIC", "pie", "PIE"
+  "reloc": "none",
+  // Trap on signed and unsigned integer wrapping
+  // for testing
+  "trap-on-wrap": false,
+  // Use / don't use soft float, value is otherwise target default
+  "soft-float": false,
+  // Vector settings on x86: none/native/mmx/sse/avx/avx512
+  "x86vec": "sse",
+  // CPU name, used for optimizations in the LLVM backend
+  "cpu": "generic",
+  // Output location, relative to project file
+  "output": "../build",
+  // C compiler if the project also compiles c sources
+  // defaults to 'cc'
+  "cc": "cc",
+  // c sources if the project also compiles c sources
+  // relative to the project file
+  "c-sources": [
+    "csource/**"
+  ]
+  */
+}

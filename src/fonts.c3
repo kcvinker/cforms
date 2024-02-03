@@ -1,7 +1,7 @@
 //font module - Created on 26-Jan-2023 06:20
 
 module cforms;
-import std::io;
+
 
 const int LOGPIXELSX = 88;
 const int LOGPIXELSY = 90;
