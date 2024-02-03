@@ -6,6 +6,8 @@ import std::math;
 // import libc;
 
 int npNumber = 1;
+Wstring npClass = {'m', 's', 'c', 't', 'l', 's', '_', 'u', 'p', 'd', 'o', 'w', 'n', '3', '2', 0};
+
 const NPSTYLE = WS_VISIBLE | WS_CHILD | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_AUTOBUDDY | UDS_HOTTRACK;
 const NPTXTFLAG = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX ;
 const NPBUDDYSTYLE = WS_CHILD | WS_VISIBLE | ES_NUMBER | WS_TABSTOP| WS_BORDER ;
@@ -54,7 +56,7 @@ struct NumberPicker
 		NumberPicker* this = using.new_clear(NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
 		this.name = dstring::new("NumberPicker_");
-		this.className = "msctls_updown32";
+		this.className = &npClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = NPSTYLE;
@@ -437,34 +439,5 @@ fn Lresult buddyWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, D
 }
 
 
-// Constants
-	// const UDS_ALIGNRIGHT const UDS_ARROWKEYS const UDS_AUTOBUDDY const UDS_HOTTRACK;
-	const UDS_WRAP = 1;
-	const UDS_SETBUDDYINT = 2;
-	const UDS_ALIGNRIGHT = 4;
-	const UDS_ALIGNLEFT = 8;
-	const UDS_AUTOBUDDY = 16;
-	const UDS_ARROWKEYS = 32;
-	const UDS_HORZ = 64;
-	const UDS_NOTHOUSANDS = 128;
-	const UDS_HOTTRACK = 256;
 
-	const UDN_FIRST = -721u;
-	const UDM_SETRANGE = (WM_USER+101);
-	const UDM_GETRANGE = (WM_USER+102);
-	const UDM_SETPOS = (WM_USER+103);
-	const UDM_GETPOS = (WM_USER+104);
-	const UDM_SETBUDDY = (WM_USER+105);
-	const UDM_GETBUDDY = (WM_USER+106);
-	const UDM_SETACCEL = (WM_USER+107);
-	const UDM_GETACCEL = (WM_USER+108);
-	const UDM_SETBASE = (WM_USER+109);
-	const UDM_GETBASE = (WM_USER+110);
-	const UDM_SETRANGE32 = (WM_USER+111);
-	const UDM_GETRANGE32 = (WM_USER+112);
-	const UDN_DELTAPOS = (UDN_FIRST - 1u);
-	const EM_SETSEL = 0x00B1;
-
-
-// End Constants
 

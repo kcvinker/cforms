@@ -4,6 +4,8 @@ module cforms;
 // import std::io;
 
 int tbNumber = 1;
+Wstring tbClass = {'E', 'd', 'i', 't', 0};
+
 
 // TextBox control struct
 struct TextBox
@@ -36,7 +38,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.kind = ControlType.TEXT_BOX;
 		this.name = dstring::new("TextBox_");
 		this.name.appendf("%d", tbNumber);
-		this.className = "Edit";
+		this.className = &tbClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = 0x50010080;
@@ -171,21 +173,3 @@ fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
-// Constants
-	// const Dword ES_CENTER = 1;
-	// const Dword ES_LEFT	= 0;
-	const Dword ES_LOWERCASE = 16;
-	const Dword ES_MULTILINE = 4;
-	const Dword ES_NOHIDESEL = 256;
-	const Dword EN_CHANGE = 0x0300;
-	// const Dword ES_NUMBER = 0x2000;
-	const Dword ES_OEMCONVERT = 0x400;
-	const Dword ES_PASSWORD = 32;
-	const Dword ES_READONLY = 0x800;
-	// const Dword ES_RIGHT = 2;
-	const Dword ES_UPPERCASE = 8;
-	const Dword ES_WANTRETURN = 4096;
-	const Dword ECM_FIRST = 0x1500;
-	const Dword EM_SETCUEBANNER = (ECM_FIRST + 1);
-
-// End Constants

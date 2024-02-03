@@ -9,6 +9,7 @@ import std::collections::map;
 import libc;
 
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
+def print = io::printn;
 def ptf = io::printfn;
 def log = io::printn;
 def cptf = libc::printf;
@@ -19,57 +20,20 @@ def MenuItemMap = std::collections::map::HashMap(<uint, MenuItem*>);
 def TimerMap = std::collections::map::HashMap(<Uintptr, Timer*>);
 
 // Important static data
-bool frmCreated = false;
-bool mainLoopStarted = false;
-String className = "Cforms_Window_in_C3";
-Hinstance hins;
-int screenWidth;
-int screenHeight;
-Color dwc; // Default window color
+AppData app;
+Wstring className = {'C', 'f', 'o', 'r', 'm', 's', '_', 'W', 'i', 'n', 'd', 'o', 'w', '_', 'i', 'n', '_', 'C', '3', 0};
 int frmNumber = 1;
 
-// Helper types & Enums
-	enum FormPos : int
+
+// Helper types
+	struct AppData
 	{
-		CENTER,
-		TOP_LEFT,
-		TOP_MID,
-		TOP_RIGHT,
-		MID_LEFT,
-		MID_RIGHT,
-		BOTTOM_LEFT,
-		BOTTOM_MID,
-		BOTTOM_RIGHT,
-		MANUAL
+		bool mainLoopOn;
+		Hinstance hins;
+		int screenWidth;
+		int screenHeight;
+		Color defWinColor;
 	}
-
-	enum FormStyle : int
-	{
-		NONE,
-		FIXED_SINGLE,
-		FIXED_3D,
-		FIXED_DIALOG,
-		NORMAL_WINDOW,
-		FIXED_TOOL,
-		SIZABLE_TOOL,
-		HIDDEN
-	}
-
-	enum FormState : int {
-		NORMAL,
-		MAXIMIZED,
-		MINIMIZED
-	}
-
-	enum FormDrawMode : int {
-		DEFAULT,
-		FLAT_COLOR,
-		GRADIENT
-	}
-
-	enum MenuEvents : char {MENU_CLICK, }
-
-
 
 	struct Timer
 	{
@@ -157,23 +121,22 @@ struct Form
 // 	MenuItem* menu;
 // }
 
+fn void startup_job() @init
+{
+	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
+	app.defWinColor = colorFromRgb(230, 230, 230);
+	app.screenWidth = api_GetSystemMetrics(0);
+	app.screenHeight = api_GetSystemMetrics(1);
+	registerClass();
+	InitCommonControls icc;
+	icc.dwSize = InitCommonControls.sizeof;
+	icc.dwICC = ICC_STANDARD_CLASSES;
+	api_InitCommonControlsEx(&icc);
+}
+
 // Public Functions
 	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = mem::heap())
 	{
-		if (!frmCreated) {
-			frmCreated = true;
-			dwc = colorFromRgb(230, 230, 230);
-			hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
-			Char16* clsN = String.to_new_utf16(className).ptr!!;
-			defer free(clsN);
-			registerClass(hins, clsN);
-			screenWidth = api_GetSystemMetrics(0);
-			screenHeight = api_GetSystemMetrics(1);
-			InitCommonControls icc;
-			icc.dwSize = InitCommonControls.sizeof;
-			icc.dwICC = ICC_STANDARD_CLASSES;
-			api_InitCommonControlsEx(&icc);
-		}
 		Form* this = using.new_clear(Form);
 		this.kind = ControlType.NONE;
 		this.name = dstring::new("Form_");
@@ -191,8 +154,8 @@ struct Form
 		this.maximizeBox = true;
 		this.minimizeBox = true;
 		this.font = newFont("Tahoma", 11);
-		this.hinst = hins;
-		this.backColor = dwc;
+		this.hinst = app.hins;
+		this.backColor = app.defWinColor;
 		frmNumber += 1;
 		return this;
 	}
@@ -202,17 +165,16 @@ struct Form
 		this.setStyle();
 		this.setPosition();
 		Char16* title = String.to_new_utf16(this.text).ptr!!;
-		Char16* clsN = String.to_new_utf16(className).ptr!!;
-		defer {	free(title); free(clsN); }
+		defer free(title);
 		this.handle = api_CreateWindowEx(this._exStyle,
-										clsN,
+										&className[0],
 										title,
 										this._style,
 										this.xpos, this.ypos,
 										this.width, this.height,
 										(Hwnd)0,
 										(Hmenu)0,
-										hins, null);
+										app.hins, null);
 		if (this.handle) {
 			this._isCreated = true;
 			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
@@ -225,8 +187,8 @@ struct Form
 		api_ShowWindow(this.handle, 5);
 		api_UpdateWindow(this.handle);
 		if (this._menuMapInited && !this._menubarCreated) this.menubar.createHandle();
-		if (!mainLoopStarted) {
-			mainLoopStarted = true;
+		if (!app.mainLoopOn) {
+			app.mainLoopOn = true;
 			this._isMainWindow = true;
 			Msg pMsg;
 			while (api_GetMessage(&pMsg, null, 0, 0) > 0) {
@@ -280,68 +242,7 @@ struct Form
 
 
 // Constants
-	const Dword CS_VREDRAW = 0x0001;
-	const Dword CS_HREDRAW = 0x0002;
-	const Dword CS_OWNDC = 0x0020;
-	const Lpcwstr IDI_APP = makeIntResource(32512);
-	const Lpcwstr IDC_ARROW = makeIntResource(32512);
-	const Dword WS_OVERLAPPED = 0;
-	const Dword WS_CAPTION = 12582912;
-	const Dword WS_SYSMENU = 524288;
-	const Dword WS_THICKFRAME = 262144;
-	const Dword WS_MINIMIZEBOX = 131072;
-	const Dword WS_MAXIMIZEBOX = 65536;
-	const Dword WS_OVERLAPPEDWINDOW = 13565952;
-	const Dword WS_BORDER = 8388608;
-	const Dword WS_MAXIMIZE = 16777216;
-	const Dword WS_CLIPCHILDREN = 0x2000000;
-	const Dword WS_CLIPSIBLINGS = 0x4000000;
 
-	const Dword WS_EX_TOPMOST = 8;
-	const Dword WS_EX_TOOLWINDOW = 128;
-	const Dword WS_EX_CLIENTEDGE = 512;
-	const Dword WS_EX_LTRREADING = 0x00000000;
-	const Dword WS_EX_LEFT = 0x00000000;
-	const Dword WS_VSCROLL = 2097152;
-	const Dword WS_HSCROLL = 1048576;
-	const int GWLP_USERDATA = -21;
-	// const WS_EX_CLIPCHILDREN =
-	// const WS_EX_CLIPSIBLINGS =
-
-	// Prefixed window styles
-	const Dword FIXED3DEXSTYLE = 328448;
-	const Dword FIXED3DSTYLE = 113967104;
-	const Dword FIXEDDIALOGEXSTYLE = 327937;
-	const Dword FIXEDDIALOGSTYLE = 113967104;
-	const Dword FIXEDSINGLEEXSTYLE = 327936;
-	const Dword FIXEDSINGLESTYLE = 113967104;
-	const Dword NORMALWINEXSTYLE = 327936;
-	const Dword NORMALWINSTYLE = 114229248;
-	const Dword FIXEDTOOLEXSTYLE = 328064;
-	const Dword FIXEDTOOLSTYLE = 113967104;
-	const Dword SIZABLETOOLEXSTYLE = 328064;
-	const Dword SIZABLETOOLSTYLE = 114229248;
-
-	const Dword ICC_STANDARD_CLASSES = 0x00004000;
-	const Dword ICC_LISTVIEW_CLASSES = 0x00000001; // listview, header
-	const Dword ICC_TREEVIEW_CLASSES = 0x00000002; // treeview, tooltips
-	const Dword ICC_BAR_CLASSES      = 0x00000004; // toolbar, statusbar, trackbar, tooltips
-	const Dword ICC_TAB_CLASSES      = 0x00000008; // tab, tooltips
-	const Dword ICC_UPDOWN_CLASS     = 0x00000010; // updown
-	const Dword ICC_PROGRESS_CLASS   = 0x00000020; // progress
-	const Dword ICC_HOTKEY_CLASS     = 0x00000040; // hotkey
-	const Dword ICC_ANIMATE_CLASS    = 0x00000080; // animate
-	const Dword ICC_DATE_CLASSES     = 0x00000100; // month picker, date picker, time picker, updown
-	const Dword ICC_USEREX_CLASSES   = 0x00000200; // comboex
-	const Dword ICC_COOL_CLASSES     = 0x00000400; // rebar (coolbar) control
-
-	const Dword TME_HOVER = 1;
-	const Dword TME_LEAVE = 2;
-	const Dword HOVER_DEFAULT = 0xFFFFFFFF;
-
-	const uint SC_RESTORE = 0xF120;
-	const uint SC_MINIMIZE = 0xF020;
-	const uint SC_MAXIMIZE = 0xF030;
 
 
 
@@ -350,7 +251,7 @@ struct Form
 // End Constants
 
 // Private Functions
-	fn void registerClass(Hinstance hinst, Char16* clsName) @private
+	fn void registerClass() @private
 	{
 		WndClassEx wc;
 		wc.cbSize = WndClassEx.sizeof;
@@ -358,12 +259,12 @@ struct Form
 		wc.lpfnWndProc = &window_proc;
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
-		wc.hInstance = hinst;
+		wc.hInstance = app.hins;
 		wc.hIcon = api_LoadIcon(null, IDI_APP);
 		wc.hCursor = api_LoadCursor(null, IDC_ARROW);
 		wc.hbrBackground = api_CreateSolidBrush(0x00E6E6E6); //cast(Hbrush) (cast(uintptr) Color_Window + 1)
 		wc.lpszMenuName = (Lpcwstr)0;
-		wc.lpszClassName = clsName;
+		wc.lpszClassName = &className[0];
 		api_RegisterClassEx(&wc);
 	}
 
@@ -415,21 +316,21 @@ struct Form
 	{
 		switch (f.formPos) {
 			case CENTER:
-				f.xpos = (screenWidth - f.width) / 2  ;
-                f.ypos = (screenHeight - f.height) / 2  ;
-			case TOP_MID: f.xpos = (screenWidth - f.width) / 2  ;
-			case TOP_RIGHT: f.xpos = screenWidth - f.width ;
-			case MID_LEFT: f.ypos = (screenHeight - f.height) / 2 ;
+				f.xpos = (app.screenWidth - f.width) / 2  ;
+                f.ypos = (app.screenHeight - f.height) / 2  ;
+			case TOP_MID: f.xpos = (app.screenWidth - f.width) / 2  ;
+			case TOP_RIGHT: f.xpos = app.screenWidth - f.width ;
+			case MID_LEFT: f.ypos = (app.screenHeight - f.height) / 2 ;
 			case MID_RIGHT:
-				f.xpos = screenWidth - f.width ;
-                f.ypos = (screenHeight - f.height) / 2  ;
-			case BOTTOM_LEFT: f.ypos = screenHeight - f.height ;
+				f.xpos = app.screenWidth - f.width ;
+                f.ypos = (app.screenHeight - f.height) / 2  ;
+			case BOTTOM_LEFT: f.ypos = app.screenHeight - f.height ;
 			case BOTTOM_MID:
-				f.xpos = (screenWidth - f.width) / 2  ;
-                f.ypos = screenHeight - f.height ;
+				f.xpos = (app.screenWidth - f.width) / 2  ;
+                f.ypos = app.screenHeight - f.height ;
 			case BOTTOM_RIGHT:
-				f.xpos = screenWidth - f.width  ;
-                f.ypos = screenHeight - f.height ;
+				f.xpos = app.screenWidth - f.width  ;
+                f.ypos = app.screenHeight - f.height ;
 			default: break;
 		}
 	}

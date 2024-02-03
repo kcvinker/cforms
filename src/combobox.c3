@@ -8,6 +8,8 @@ module cforms;
 int cmbNumber = 1;
 Uintptr editSubId = 50;
 bool noComboUsed = true;
+Wstring cmbClass = {'C', 'o', 'm', 'b', 'o', 'B', 'o', 'x', 0};
+
 
 // ComboBox control struct
 struct ComboBox
@@ -45,7 +47,7 @@ struct CmbData
 		this.kind = ControlType.COMBO_BOX;
 		this.name = dstring::new("ComboBox_");
 		this.name.appendf("%d", cmbNumber);
-		this.className = "ComboBox";
+		this.className = &cmbClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE;
@@ -363,24 +365,4 @@ fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID,
 }
 
 
-// Constants
-	const Dword CBS_DROPDOWN = 0x0002;
-	const Dword CBS_DROPDOWNLIST = 0x0003;
-	const Dword CB_GETCOMBOBOXINFO = 0x0164;
-	const Dword CB_ADDSTRING = 0x0143;
-	const Dword CB_SETCURSEL = 0x014E;
-	const Dword CB_GETCURSEL = 0x0147;
-	const int CBN_ERRSPACE = -1;
-	const Word CBN_SELCHANGE = 1;
-	const Word CBN_DBLCLK = 2;
-	const Word CBN_SETFOCUS = 3;
-	const Word CBN_KILLFOCUS = 4;
-	const Word CBN_EDITCHANGE = 5;
-	const Word CBN_EDITUPDATE = 6;
-	const Word CBN_DROPDOWN = 7;
-	const Word CBN_CLOSEUP = 8;
-	const Word CBN_SELENDOK = 9;
-	const Word CBN_SELENDCANCEL = 10;
-
-// End Constants
 

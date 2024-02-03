@@ -4,6 +4,8 @@ module cforms;
 // import std::io;
 
 int pbNumber = 1;
+Wstring pgbClass = {'m', 's', 'c', 't', 'l', 's', '_', 'p', 'r', 'o', 'g', 'r', 'e', 's', 's', '3', '2', 0};
+
 
 // ProgressBar control struct
 struct ProgressBar
@@ -35,7 +37,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		this.kind = ControlType.PROGRESS_BAR;
 		this.name = dstring::new("ProgressBar_");
 		this.name.appendf("%d", pbNumber);
-		this.className = "msctls_progress32";
+		this.className = &pgbClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD;
@@ -231,20 +233,5 @@ fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 
 
 
-// Constants
-	// const UDS_ALIGNRIGHT const UDS_ARROWKEYS const UDS_AUTOBUDDY const UDS_HOTTRACK;
-	const PBS_SMOOTH = 0x01;
-	const PBS_VERTICAL = 0x04;
-	const PBS_MARQUEE = 0x08;
-	const PBST_NORMAL = 0x0001;
-	const PBST_ERROR = 0x0002;
-	const PBST_PAUSED = 0x0003;
-	const PBM_SETPOS = (WM_USER+2);
-	const PBM_SETSTEP = (WM_USER+4);
-	const PBM_STEPIT = (WM_USER+5);
-	const PBM_SETRANGE32 = (WM_USER+6);
-	const PBM_GETPOS = (WM_USER+8);
-	const PBM_SETMARQUEE = (WM_USER+10);
-	const PBM_SETSTATE  = (WM_USER+16);
-// End Constants
+
 

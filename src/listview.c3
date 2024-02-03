@@ -5,10 +5,12 @@ module cforms;
 import std::collections::list;
 
 int lvNumber = 1;
-const LVSTYLE = WS_BORDER | WS_CHILD | WS_VISIBLE | LVS_ALIGNLEFT | LVS_EDITLABELS;
+Wstring lvClass = {'S', 'y', 's', 'L', 'i', 's', 't', 'V', 'i', 'e', 'w', '3', '2', 0};
 
+const LVSTYLE = WS_BORDER | WS_CHILD | WS_VISIBLE | LVS_ALIGNLEFT | LVS_EDITLABELS;
 def ColumnList = List(<ListViewColumn*>);
 def ItemList = List(<ListViewItem*>);
+
 
 // ListView control struct
 struct ListView
@@ -76,14 +78,7 @@ struct ListViewColumn
 	LVColumn* lvc;
 }
 
-enum ListViewStyle : char
-{
-    LARGE_ICON,
-    REPORT_VIEW,
-    SMALL_ICON,
-    LIST_VIEW,
-    TILE_VIEW,
-}
+
 
 // Public functions
 	// ListView constructor - Create and returns a New ListView struct
@@ -95,7 +90,7 @@ enum ListViewStyle : char
 		this.kind = ControlType.LIST_VIEW;
 		this.name = dstring::new("ListView_");
 		this.name.appendf("%d", lvNumber);
-		this.className = "SysListView32";
+		this.className = &lvClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this.headerFont = this.font;
@@ -596,76 +591,5 @@ fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
-// Constants
-	const LVM_FIRST = 4096;
-	const LVN_FIRST = -100u;
 
-	// LV Styles
-		const LVS_ICON = 0;
-		const LVS_REPORT = 1;
-		const LVS_SMALLICON = 2;
-		const LVS_LIST = 3;
-		const LVS_SINGLESEL = 4;
-		const LVS_EDITLABELS = 512;
-		const LVS_ALIGNLEFT = 2048;
-		const LVS_SHOWSELALWAYS = 8;
-		const LVS_NOCOLUMNHEADER = 16384;
-
-		const LVS_EX_GRIDLINES = 1;
-		const LVS_EX_SUBITEMIMAGES = 2;
-		const LVS_EX_CHECKBOXES = 4;
-		const LVS_EX_TRACKSELECT = 8;
-		const LVS_EX_HEADERDRAGDROP = 16;
-		const LVS_EX_FULLROWSELECT = 32; // applies to report mode only;
-		const LVS_EX_ONECLICKACTIVATE = 64;
-		const LVS_EX_TWOCLICKACTIVATE = 128;
-		const LVS_EX_FLATSB = 256;
-		const LVS_EX_REGIONAL = 512;
-		const LVS_EX_INFOTIP = 1024; // listview does InfoTips for you;
-		const LVS_EX_UNDERLINEHOT = 2048;
-		const LVS_EX_UNDERLINECOLD = 4096;
-		const LVS_EX_MULTIWORKAREAS = 8192;
-	// End LV Styles
-
-	// Misc constants
-		const LV_VIEW_ICON            = 0x0000;
-		const LV_VIEW_DETAILS         = 0x0001;
-		const LV_VIEW_SMALLICON       = 0x0002;
-		const LV_VIEW_LIST            = 0x0003;
-		const LV_VIEW_TILE            = 0x0004;
-		const LV_VIEW_MAX             = 0x0004;
-
-		const LVCF_FMT = 1;
-		const LVCF_WIDTH = 2;
-		const LVCF_TEXT = 4;
-		const LVCF_SUBITEM = 8;
-		const LVCF_IMAGE = 16;
-		const LVCF_ORDER = 32;
-		const LVCFMT_LEFT = 0;
-		const LVCFMT_RIGHT = 1;
-		const LVCFMT_CENTER = 2;
-		const LVCFMT_JUSTIFYMASK = 3;
-		const LVCFMT_IMAGE = 2048;
-		const LVCFMT_BITMAP_ON_RIGHT = 4096;
-		const LVCFMT_COL_HAS_IMAGES = 32768;
-
-		const LVIF_TEXT = 1;
-		const LVIF_IMAGE = 2;
-		const LVIF_PARAM = 4;
-		const LVIF_STATE = 8;
-
-	// Misc constants
-
-	// LV Messages
-
-		const LVM_SETBKCOLOR = (LVM_FIRST + 1);
-		const LVM_GETHEADER = (LVM_FIRST + 31);
-		const LVM_SETEXTENDEDLISTVIEWSTYLE = (LVM_FIRST + 54);
-		const LVM_SETCOLUMNORDERARRAY = (LVM_FIRST + 58);
-		const LVM_INSERTITEMW = (LVM_FIRST + 77);
-		const LVM_INSERTCOLUMNW = (LVM_FIRST + 97);
-		const LVM_SETITEMTEXTW = (LVM_FIRST + 116);
-
-	// LV Messages
-// End Constants
 

@@ -8,6 +8,8 @@ def TicDataList = List(<TicData>);
 const U16_MAX = 1 << 16;
 
 int tkbNumber = 1;
+Wstring trkClass = {'m', 's', 'c', 't', 'l', 's', '_', 't', 'r', 'a', 'c', 'k', 'b', 'a', 'r', '3', '2', 0};
+
 
 // TrackBar control struct
 struct TrackBar
@@ -68,7 +70,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.kind = ControlType.TRACK_BAR;
 		this.name = dstring::new("TrackBar_");
 		this.name.appendf("%d", tkbNumber);
-		this.className = "msctls_trackbar32";
+		this.className = &trkClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS;
@@ -509,53 +511,5 @@ fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
-// Constants
-	// const UDS_ALIGNRIGHT const UDS_ARROWKEYS const UDS_AUTOBUDDY const UDS_HOTTRACK;
-	const TBS_AUTOTICKS = 0x1;
-	const Word THUMB_PAGE_HIGH = 3;
-	const Word THUMB_PAGE_LOW = 2;
-	const Word THUMB_LINE_HIGH = 1;
-	const Word THUMB_LINE_LOW = 0;
 
-	const TB_LINEUP = 0;
-	const TB_LINEDOWN = 1;
-	const TB_PAGEUP = 2;
-	const TB_PAGEDOWN = 3;
-	const TB_THUMBPOSITION = 4;
-	const TB_THUMBTRACK = 5;
-	const TB_TOP = 6;
-	const TB_BOTTOM = 7;
-	const TB_ENDTRACK = 8;
-	const TBCD_TICS = 0x1;
-	const TBCD_THUMB = 0x2;
-	const TBCD_CHANNEL = 0x3;
-
-	const TBS_VERT = 0x2;
-	const TBS_HORZ = 0x0;
-	const TBS_TOP = 0x4;
-	const TBS_BOTTOM = 0x0;
-	const TBS_LEFT = 0x4;
-	const TBS_RIGHT = 0x0;
-	const TBS_BOTH = 0x8;
-	const TBS_NOTICKS = 0x10;
-	const TBS_ENABLESELRANGE = 0x20;
-	const TBS_FIXEDLENGTH = 0x40;
-	const TBS_NOTHUMB = 0x80;
-	const TBS_TOOLTIPS = 0x100;
-	const TBS_REVERSED = 0x200;
-	const TBS_DOWNISLEFT = 0x400;
-	const TBS_NOTIFYBEFOREMOVE = 0x800;
-	const TBS_TRANSPARENTBKGND = 0x1000;
-
-	const TBM_GETPOS = WM_USER;
-	const TBM_SETPOS = WM_USER+5;
-	const TBM_SETRANGEMIN = WM_USER+7;
-	const TBM_SETRANGEMAX = WM_USER+8;
-	const TBM_SETTICFREQ = WM_USER+20;
-	const TBM_SETPAGESIZE = WM_USER+21;
-	const TBM_SETLINESIZE = WM_USER+23;
-	const TBM_GETTHUMBRECT = WM_USER+25;
-	const TBM_GETCHANNELRECT = WM_USER+26;
-
-// End Constants
 

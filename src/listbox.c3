@@ -5,6 +5,8 @@ import std::collections::list;
 // import std::io;
 
 int lbxNumber = 1;
+Wstring lbxClass = {'L', 'i', 's', 't', 'B', 'o', 'x', 0};
+
 
 // ListBox control struct
 struct ListBox
@@ -37,7 +39,7 @@ struct ListBox
 		this.kind = ControlType.LIST_BOX;
 		this.name = dstring::new("ListBox_");
 		this.name.appendf("%d", lbxNumber);
-		this.className = "Listbox";
+		this.className = &lbxClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_BORDER  | LBS_NOTIFY | LBS_HASSTRINGS;
@@ -319,42 +321,3 @@ fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 }
 
 
-// Constants
-	const Dword LBS_NOTIFY = 1;
-	const Dword LBS_SORT = 2;
-	const Dword LBS_NOREDRAW = 4;
-	const Dword LBS_MULTIPLESEL = 8;
-	const Dword LBS_OWNERDRAWFIXED = 16;
-	const Dword LBS_OWNERDRAWVARIABLE = 32;
-	const Dword LBS_HASSTRINGS = 64;
-	const Dword LBS_USETABSTOPS = 128;
-	const Dword LBS_NOINTEGRALHEIGHT = 256;
-	const Dword LBS_MULTICOLUMN = 512;
-	const Dword LBS_WANTKEYBOARDINPUT = 1024;
-	const Dword LBS_EXTENDEDSEL = 2048;
-	const Dword LBS_DISABLENOSCROLL = 4096;
-	const Dword LBS_NODATA = 8192;
-	const Dword LBS_NOSEL = 16384;
-
-	const Dword LB_ADDSTRING = 384;
-
-	const Dword LB_DELETESTRING = 0x0182;
-	const Dword LB_RESETCONTENT = 0x0184;
-	const Dword LB_INSERTSTRING = 0x0181;
-	const Dword LB_GETCURSEL = 0x0188;
-	const int LB_ERR = -1;
-	const Dword LB_GETTEXTLEN = 0x018A;
-	// const Word LBN_ERRSPACE = (-2);
-	const Word LBN_SELCHANGE = 1;
-	const Word LBN_DBLCLK = 2;
-	const Word LBN_SELCANCEL = 3;
-	const Word LBN_SETFOCUS = 4;
-	const Word LBN_KILLFOCUS = 5;
-	const Dword LB_GETTEXT = 393;
-	const Dword LB_GETSELCOUNT = 400;
-	const Dword LB_GETSELITEMS = 401;
-	const Dword LB_SETSEL = 389;
-	const Dword LB_SETCURSEL = 390;
-	const Dword LB_FINDSTRINGEXACT = 418;
-	const Dword LB_GETCARETINDEX = 415;
-// End Constants

@@ -4,6 +4,8 @@ module cforms;
 
 
 int calNumber = 1;
+Wstring calClass = {'L', 'i', 's', 't', 'B', 'o', 'x', 0};
+
 
 // Calendar control struct
 struct Calendar
@@ -23,13 +25,7 @@ struct Calendar
 	EventHandler onViewChanged;
 }
 
-enum ViewMode : int
-{
-	MONTH_VIEW,
-    YEAR_VIEW,
-    DECADE_VIEW,
-    CENTUARY_VIEW,
-}
+
 
 
 // Public functions
@@ -40,7 +36,7 @@ enum ViewMode : int
 		this.kind = ControlType.CALENDAR;
 		this.name = dstring::new("Calendar_");
 		this.name.appendf("%d", calNumber);
-		this.className = "SysMonthCal32";
+		this.className = &calClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;
@@ -181,21 +177,7 @@ fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 }
 
 
-// Constants
-	const MCS_DAYSTATE = 0x1;
-	const MCS_MULTISELECT = 0x2;
-	const MCS_NOSELCHANGEONNAV = 0x100;
-	const MCM_FIRST = 0x1000;
-	const MCM_GETCURSEL = MCM_FIRST+1;
-	const MCM_SETCURSEL = MCM_FIRST+2;
-	const MCM_GETMINREQRECT = MCM_FIRST+9;
-	const MCM_SETCURRENTVIEW = MCM_FIRST+32;
-	const MCN_FIRST = -746u;
-	const MCN_SELECT = MCN_FIRST;
-	const MCN_SELCHANGE = (MCN_FIRST - 3u);
-	const MCN_VIEWCHANGE = MCN_FIRST-4u;
 
-// End Constants
 
 fn SystemTime sysTimeFromDateTime(DateTime dt)
 {

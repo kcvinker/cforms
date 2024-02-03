@@ -4,6 +4,8 @@ module cforms;
 
 
 int dtpNumber = 1;
+Wstring dtpClass = {'S', 'y', 's', 'D', 'a', 't', 'e', 'T', 'i', 'm', 'e', 'P', 'i', 'c', 'k', '3', '2', 0};
+
 
 // DateTimePicker control struct
 struct DateTimePicker
@@ -48,7 +50,7 @@ enum DTPFormat : int(String descrption, int value )
 		this.kind = ControlType.DATE_TIME_PICKER;
 		this.name = dstring::new("DateTimePicker_");
 		this.name.appendf("%d", dtpNumber);
-		this.className = "SysDateTimePick32";
+		this.className = &dtpClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;
@@ -192,32 +194,7 @@ fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 }
 
 
-// Constants
-	const Dword DTM_FIRST = 0x1000;
-	const DTN_FIRST = -760u; //4294966536; d 4294966536 p 4294966556
 
-	const Dword DTS_LONGDATEFORMAT = 0x4;
-	const Dword DTS_APPCANPARSE = 0x10;
-	const Dword DTS_SHORTDATECENTURYFORMAT = 0xc;
-	const Dword DTS_SHORTDATEFORMAT = 0x0;
-	const Dword DTS_TIMEFORMAT = 0x9;
-	const Dword DTS_RIGHTALIGN = 0x20;
-	const Dword DTS_UPDOWN = 0x1;
-
-
-	const Dword DTM_SETFORMATA = (DTM_FIRST+5);
-	const Dword DTM_SETMCSTYLE = (DTM_FIRST+11);
-	const Dword DTM_GETIDEALSIZE = (DTM_FIRST+15);
-	const DTM_SETSYSTEMTIME = (DTM_FIRST+2);
-
-	const DTN_CLOSEUP = DTN_FIRST - 7u; // 4294966529;  //(DTN_FIRST - 7);
-	const DTN_DROPDOWN = DTN_FIRST - 6u; // 4294966530 ; //(DTN_FIRST - 6);
-	const DTN_USERSTRINGW = DTN_FIRST - 5u; // 4294966531; //(DTN_FIRST - 5);
-	const DTN_FORMATW = DTN_FIRST - 3u; // 4294966533; //(DTN_FIRST-3);
-	const DTN_FORMATQUERYW = DTN_FIRST - 2u; //  4294966534; // (DTN_FIRST-2);
-	const DTN_DATETIMECHANGE = DTN_FIRST - 1u; //4294966535; // (DTN_FIRST-1);
-	const DTN_USERSTRING = DTN_USERSTRINGW;
-// End Constants
 
 
 

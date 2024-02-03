@@ -11,6 +11,8 @@ const Dword BS_PUSHBUTTON = 0;
 // const Dword BSTYLE = WS_CHILD | BS_NOTIFY | WS_TABSTOP | WS_VISIBLE | BS_PUSHBUTTON  ;
 const uint TXTFLAG = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX;
 int btnNumber = 1;
+Wstring btnClass = {'B', 'u', 't', 't', 'o', 'n', 0};
+
 
 // Button control struct
 struct Button ()
@@ -101,7 +103,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	{
 		Button* this = using.new_clear(Button);
 		this.kind = ControlType.BUTTON;
-		this.className = "Button";
+		this.className = &btnClass[0];
 		this.name = dstring::new("Button_");
 		this.name.appendf("%d", btnNumber);
 		this._wideText = String.to_new_utf16(text).ptr!!;

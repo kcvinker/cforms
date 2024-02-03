@@ -8,6 +8,8 @@ const uint SWP_NOMOVE = 2;
 const Dword LBSTYLE = WS_VISIBLE | WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | SS_NOTIFY ;
 const uint LBTXTFLAG = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX;
 int lbNumber = 1;
+Wstring lblClass = {'S', 't', 'a', 't', 'i', 'c', 0};
+
 
 // Label control struct
 struct Label
@@ -29,7 +31,7 @@ struct Label
 		this.kind = ControlType.LABEL;
 		this.name = dstring::new("Label_");
 		this.name.appendf("%d", lbNumber);
-		this.className = "Static";
+		this.className = &lblClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = LBSTYLE;

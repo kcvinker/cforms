@@ -2,39 +2,6 @@
 
 module cforms;
 
-
-const int LOGPIXELSX = 88;
-const int LOGPIXELSY = 90;
-
-const int OUT_DEFAULT_PRECIS = 0;
-const int OUT_STRING_PRECIS = 1;
-const int CLIP_DEFAULT_PRECIS = 0;
-const int OUT_OUTLINE_PRECIS = 8;
-const int OUT_DEVICE_PRECIS = 5;
-
-const int DEFAULT_QUALITY = 0;
-const int ANTIALIASED_QUALITY = 4;
-const int CLEARTYPE_QUALITY = 5;
-const int PROOF_QUALITY = 2;
-
-const int DEFAULT_PITCH = 0;
-const int FIXED_PITCH = 1;
-const int VARIABLE_PITCH = 2;
-const int DEFAULT_CHARSET = 1;
-
-enum FontWeight : int
-{
-	THIN,
-    EXTRA_LIGHT,
-    LIGHT,
-    NORMAL,
-    MEDIUM,
-    SEMI_BOLD,
-    BOLD,
-    EXTRA_BOLD,
-    THICK
-}
-
 struct Font
 {
 	String name;

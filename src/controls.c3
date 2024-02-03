@@ -6,32 +6,14 @@ module cforms;
 iptr globalCtlID = 100;
 ulong globalSubClsID = 1000;
 
-enum ControlType : char
-{
-	NONE,
-    BUTTON,
-    CALENDAR,
-    CHECK_BOX,
-    COMBO_BOX,
-    DATE_TIME_PICKER,
-    GROUP_BOX,
-    LABEL,
-    LIST_BOX,
-    LIST_VIEW,
-    NUM_PICKER,
-    PROGRESS_BAR,
-    RADIO_BUTTON,
-    TEXT_BOX,
-    TRACK_BAR,
-    TREE_VIEW
-}
+
 
 struct Control
 {
 	ControlType kind;
 	DString name;
 	String text;
-	String className;
+	Char16* className;
 	Hwnd handle;
 	Color backColor;
 	Color foreColor;
@@ -175,19 +157,14 @@ fault StringFault
 	{
 		if (!special) ctl.setCtlID();
 		Char16* text = String.to_new_utf16(ctl.text).ptr!!;
-		Char16* clsN = String.to_new_utf16(ctl.className).ptr!!;
-		defer {
-			free(text);
-			free(clsN);
-		}
-
-		ctl.handle = api_CreateWindowEx(ctl._exStyle, clsN, text,
-										ctl._style,
+		defer free(text);
+		ctl.handle = api_CreateWindowEx(ctl._exStyle, ctl.className,
+										text, ctl._style,
 										ctl.xpos, ctl.ypos,
 										ctl.width, ctl.height,
 										ctl._parent.handle,
 										(Hmenu)ctl.ctlID,
-										ctl._parent.hinst, null);
+										app.hins, null);
 		if (ctl.handle) {
 			// ptf("control %s's handle is created.", ctl.name.str());
 			ctl._isCreated = true;

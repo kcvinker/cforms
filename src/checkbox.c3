@@ -5,6 +5,7 @@ module cforms;
 
 int cbNumber = 1;
 
+
 // CheckBox control struct
 struct CheckBox
 {
@@ -28,7 +29,7 @@ struct CheckBox
 		this.kind = ControlType.CHECK_BOX;
 		this.name = dstring::new("CheckBox_");
 		this.name.appendf("%d", cbNumber);
-		this.className = "Button";
+		this.className = &btnClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX;
@@ -160,12 +161,3 @@ fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 }
 
 
-// Constants
-	const Dword BS_LEFTTEXT = 32;
-	const Dword BS_RIGHTBUTTON = BS_LEFTTEXT;
-	const Dword BCM_GETIDEALSIZE = BCM_FIRST + 0x1;
-	const Dword BS_AUTOCHECKBOX = 3;
-	const Dword BM_GETCHECK = 0x00F0;
-	const Dword BM_SETCHECK = 0x00F1;
-
-// End Constants

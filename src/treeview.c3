@@ -9,6 +9,8 @@ def NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, voi
 // def NodeDisposeHandler = fn void(TreeNode* this);
 
 int tvNumber = 1;
+Wstring tvClass = {'S', 'y', 's', 'T', 'r', 'e', 'e', 'V', 'i', 'e', 'w', '3', '2', 0};
+
 const TVSTYLE = WS_BORDER | WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_DISABLEDRAGDROP;
 
 enum NodeOps : char {ADDNODE, INSERTNODE, ADDCHILD, INSERTCHILD}
@@ -65,7 +67,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.kind = ControlType.TREE_VIEW;
 		this.name = dstring::new("TreeView_");
 		this.name.appendf("%d", tvNumber);
-		this.className = "SysTreeView32";
+		this.className = &tvClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = TVSTYLE;
@@ -590,57 +592,5 @@ fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
-// Constants
-	// TV Styles
-		const TVS_HASBUTTONS = 0x0001;
-		const TVS_HASLINES = 0x0002;
-		const TVS_LINESATROOT = 0x0004;
-		const TVS_EDITLABELS = 0x0008;
-		const TVS_DISABLEDRAGDROP = 0x0010;
-		const TVS_SHOWSELALWAYS = 0x0020;
-		const TVS_RTLREADING = 0x0040;
-		const TVS_NOTOOLTIPS = 0x0080;
-		const TVS_CHECKBOXES = 0x0100;
-		const TVS_TRACKSELECT = 0x0200;
-		const TVS_SINGLEEXPAND = 0x0400;
-		const TVS_INFOTIP = 0x0800;
-		const TVS_FULLROWSELECT = 0x1000;
-		const TVS_NOSCROLL = 0x2000;
-		const TVS_NONEVENHEIGHT = 0x4000;
-		const TVS_NOHSCROLL = 0x8000; // TVS_NOSCROLL overrides this;
-		const TVS_EX_NOSINGLECOLLAPSE = 0x0001;
-		const TVS_EX_MULTISELECT = 0x0002;
-		const TVS_EX_DOUBLEBUFFER = 0x0004;
-		const TVS_EX_NOINDENTSTATE = 0x0008;
-		const TVS_EX_RICHTOOLTIP = 0x0010;
-		const TVS_EX_AUTOHSCROLL = 0x0020;
-		const TVS_EX_FADEINOUTEXPANDOS = 0x0040;
-		const TVS_EX_PARTIALCHECKBOXES = 0x0080;
-		const TVS_EX_EXCLUSIONCHECKBOXES = 0x0100;
-		const TVS_EX_DIMMEDCHECKBOXES = 0x0200;
-		const TVS_EX_DRAWIMAGEASYNC = 0x0400;
-	// End TV Styles
 
-	const TV_FIRST = 0x1100;
-	const TVM_DELETEITEM = (TV_FIRST + 1);
-	const TVM_SETIMAGELIST = (TV_FIRST + 9);
-	const TVM_SETBKCOLOR = (TV_FIRST + 29);
-	const TVM_SETTEXTCOLOR = (TV_FIRST + 30);
-	const TVM_SETLINECOLOR = (TV_FIRST + 40);
-	const TVM_INSERTITEMW = (TV_FIRST + 50);
-
-	const TVIF_TEXT = 0x0001;
-	const TVIF_IMAGE = 0x0002;
-	const TVIF_PARAM = 0x0004;
-	const TVIF_STATE = 0x0008;
-	const TVIF_SELECTEDIMAGE = 0x0020;
-
-	// const ULONG_MAX = 18446744073709551616;
-	const Htreeitem TVI_ROOT = (Htreeitem)(Ulongptr)-0x10000u64;
-	const Htreeitem TVI_FIRST = (Htreeitem)(Ulongptr)-0xffffu64;
-	const Htreeitem TVI_LAST = (Htreeitem)(Ulongptr)-0xfffeu64;
-	const Htreeitem TVI_SORT = (Htreeitem)(Ulongptr)-0xfffdu64;
-
-	const TVIS_USERMASK = 0xF000;
-// End Constants
 
