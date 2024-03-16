@@ -39,6 +39,7 @@ fn void FlatDraw.setData(FlatDraw* this, Color c) @private
 	double hotAdj = hotRc.isDark() ? 1.5 : 1.2;
 	double frmAdj = 0.5;
 	hotRc.changeShade(hotAdj);
+	// ptf("hot rc red %d, green %d, blue %d, cref %d", hotRc.red, hotRc.green, hotRc.blue, hotRc.ref);
 
 	this.defBrush = api_CreateSolidBrush(c.ref);
 	this.hotBrush = api_CreateSolidBrush(hotRc.ref);
@@ -99,9 +100,9 @@ fn void GradDraw.dtor(GradDraw* g) @private
 							int x = 10, int y = 10,
 							int width = 120, int height = 35,
 							bool auto = false, EventHandler evtFn = null,
-							Allocator* using = mem::heap())
+							Allocator* using = allocator::heap())
 	{
-		Button* this = using.new_clear(Button);
+		Button* this = mem::new(Button);
 		this.kind = ControlType.BUTTON;
 		this.className = &btnClass[0];
 		this.name = dstring::new("Button_");
@@ -122,6 +123,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		if (evtFn) this.onMouseClick = evtFn;
 		this._parent.controls.append(this);
 		if (auto) this.createHandle();
+
 		return this;
 	}
 

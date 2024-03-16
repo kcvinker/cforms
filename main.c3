@@ -62,7 +62,7 @@ fn void makeWindow()
 
 	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10, .auto = true);
 	// b2.onMouseClick = &btnClick2;
-	b2.setBackColor(0xa663cc);
+	b2.setBackColor(0xadc178);
 	b2.onMouseClick = &onB2Click;
 
 	b3 = newButton(frm, "Gradient", b2.right() + 10, 10, .auto = true);

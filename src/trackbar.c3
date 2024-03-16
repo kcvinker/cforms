@@ -64,9 +64,9 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	// TrackBar constructor - Create and returns a New TrackBar struct
 	fn TrackBar* newTrackBar(Form* parent, int x = 10, int y = 10,
 								int width = 200, int height = 35, bool auto = false,
-								EventHandler evtFn = null, Allocator* using = mem::heap())
+								EventHandler evtFn = null, Allocator* using = allocator::heap())
 	{
-		TrackBar* this = using.new_clear(TrackBar);
+		TrackBar* this = mem::new(TrackBar);
 		this.kind = ControlType.TRACK_BAR;
 		this.name = dstring::new("TrackBar_");
 		this.name.appendf("%d", tkbNumber);

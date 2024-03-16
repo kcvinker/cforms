@@ -31,9 +31,9 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// ProgressBar constructor - Create and returns a New ProgressBar struct
 	fn ProgressBar* newProgressBar(Form* parent, int x = 10, int y = 10,
 									int width = 200, int height = 25, bool perc = false,
-									bool auto = false, Allocator* using = mem::heap())
+									bool auto = false, Allocator* using = allocator::heap())
 	{
-		ProgressBar* this = using.new_clear(ProgressBar);
+		ProgressBar* this = mem::new(ProgressBar);
 		this.kind = ControlType.PROGRESS_BAR;
 		this.name = dstring::new("ProgressBar_");
 		this.name.appendf("%d", pbNumber);

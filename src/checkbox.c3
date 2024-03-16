@@ -23,9 +23,9 @@ struct CheckBox
 								int x = 10, int y = 10,
 								int width = 140, int height = 27,
 								bool auto = false, EventHandler evtFn = null,
-								Allocator* using = mem::heap())
+								Allocator* using = allocator::heap())
 	{
-		CheckBox* this = using.new_clear(CheckBox);
+		CheckBox* this = mem::new(CheckBox);
 		this.kind = ControlType.CHECK_BOX;
 		this.name = dstring::new("CheckBox_");
 		this.name.appendf("%d", cbNumber);
@@ -48,6 +48,7 @@ struct CheckBox
 		cbNumber += 1;
 		this._parent.controls.append(this);
 		if (auto) this.createHandle();
+		
 		return this;
 	}
 

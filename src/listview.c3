@@ -84,9 +84,9 @@ struct ListViewColumn
 	// ListView constructor - Create and returns a New ListView struct
 	fn ListView* newListView(Form* parent, int x = 10, int y = 10,
 								int width = 300, int height = 200,
-								bool auto = false, Allocator* using = mem::heap())
+								bool auto = false, Allocator* using = allocator::heap())
 	{
-		ListView* this = using.new_clear(ListView);
+		ListView* this = mem::new(ListView);
 		this.kind = ControlType.LIST_VIEW;
 		this.name = dstring::new("ListView_");
 		this.name.appendf("%d", lvNumber);
@@ -121,9 +121,9 @@ struct ListViewColumn
 
 	// ListViewCoulmn constructor.
 	fn ListViewColumn* newListViewColumn(String txt, int width = 100,
-										int imageIndex = -1, Allocator* using = mem::heap())
+										int imageIndex = -1, Allocator* using = allocator::heap())
 	{
-		ListViewColumn* this = using.new_clear(ListViewColumn);
+		ListViewColumn* this = mem::new(ListViewColumn);
 		this.text = txt;
 		this.width = width;
 		this.imgIndex = imageIndex;
@@ -139,9 +139,9 @@ struct ListViewColumn
 	// ListViewItem constructor
 	fn ListViewItem* newListViewItem(String txt, uint bgColor = 0xFFFFFF,
 									uint fgColor = 0x000000, int imgIndex = -1,
-										Allocator* using = mem::heap())
+										Allocator* using = allocator::heap())
 	{
-		ListViewItem* this = using.new_clear(ListViewItem);
+		ListViewItem* this = mem::new(ListViewItem);
 		this.text = txt;
 		this.backColor = newColor(bgColor);
 		this.foreColor = newColor(fgColor);

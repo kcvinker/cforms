@@ -135,9 +135,9 @@ fn void startup_job() @init
 }
 
 // Public Functions
-	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = mem::heap())
+	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = allocator::heap())
 	{
-		Form* this = using.new_clear(Form);
+		Form* this = mem::new(Form);
 		this.kind = ControlType.NONE;
 		this.name = dstring::new("Form_");
 		this.name.appendf("%d", frmNumber);
@@ -157,6 +157,7 @@ fn void startup_job() @init
 		this.hinst = app.hins;
 		this.backColor = app.defWinColor;
 		frmNumber += 1;
+		ptf("size of name %d\n", int.sizeof);
 		return this;
 	}
 
@@ -213,9 +214,9 @@ fn void startup_job() @init
 		return this.menubar;
 	}
 
-	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null, Allocator* using = mem::heap())
+	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null, Allocator* using = allocator::heap())
 	{
-		Timer* tm = using.new_clear(Timer);
+		Timer* tm = mem::new(Timer);
 		tm.interval = interval;
 		tm.onTick = tickHandler;
 		tm._idNum = (Uintptr)tm;

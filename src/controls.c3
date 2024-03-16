@@ -256,7 +256,7 @@ fault StringFault
 		int tLen = api_GetWindowTextLength(hwnd);
 		if (tLen) {
 			@pool() {
-				Char16[] buffer = mem::temp_array(Char16, (usz)(tLen + 1));
+				Char16[] buffer = mem::temp_alloc_array(Char16, (usz)(tLen + 1));
 				int ret = api_GetWindowText(hwnd, buffer.ptr, tLen + 1);
 				return string::new_from_utf16(buffer)!!;
 			};

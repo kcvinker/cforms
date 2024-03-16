@@ -41,9 +41,9 @@ struct CmbData
 	// ComboBox constructor
 	fn ComboBox* newComboBox(Form* parent, int x = 10, int y = 10,
 								int width = 140, int height = 27,
-								bool auto = false, Allocator* using = mem::heap())
+								bool auto = false, Allocator* using = allocator::heap())
 	{
-		ComboBox* this = using.new_clear(ComboBox);
+		ComboBox* this = mem::new(ComboBox);
 		this.kind = ControlType.COMBO_BOX;
 		this.name = dstring::new("ComboBox_");
 		this.name.appendf("%d", cmbNumber);

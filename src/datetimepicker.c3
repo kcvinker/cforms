@@ -44,9 +44,9 @@ enum DTPFormat : int(String descrption, int value )
 // Public functions
 	// DateTimePicker constructor
 	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10,
-											bool auto = false, Allocator* using = mem::heap())
+											bool auto = false, Allocator* using = allocator::heap())
 	{
-		DateTimePicker* this = using.new_clear(DateTimePicker);
+		DateTimePicker* this = mem::new(DateTimePicker);
 		this.kind = ControlType.DATE_TIME_PICKER;
 		this.name = dstring::new("DateTimePicker_");
 		this.name.appendf("%d", dtpNumber);

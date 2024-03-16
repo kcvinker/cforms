@@ -25,9 +25,9 @@ struct Label
 	// Label constructor
 	fn Label* newLabel(Form* parent, String text,
 						int x = 10, int y = 10, int width = 0, int height = 0,
-						bool auto = false, Allocator* using = mem::heap())
+						bool auto = false, Allocator* using = allocator::heap())
 	{
-		Label* this = using.new_clear(Label);
+		Label* this = mem::new(Label);
 		this.kind = ControlType.LABEL;
 		this.name = dstring::new("Label_");
 		this.name.appendf("%d", lbNumber);

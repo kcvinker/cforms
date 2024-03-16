@@ -70,9 +70,9 @@ struct MenuItem
 }
 
 // Menubar Constructor
-fn MenuBar* newMenuBar(Form* frm, Allocator* using = mem::heap())
+fn MenuBar* newMenuBar(Form* frm, Allocator* using = allocator::heap())
 {
-	MenuBar* this = using.new_clear(MenuBar);
+	MenuBar* this = mem::new(MenuBar);
 	this.handle = api_CreateMenu();
 	this._pForm = frm;
 	this.font = newFont("Tahoma", 11);
@@ -90,8 +90,8 @@ fn bool isPopup(MenuType mtp)
 	return mtp == MenuType.BASE_MENU || mtp == MenuType.POPUP;
 }
 
-fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint indexNum, Allocator* using = mem::heap()) {
-	MenuItem* this = using.new_clear(MenuItem);
+fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint indexNum, Allocator* using = allocator::heap()) {
+	MenuItem* this = mem::new(MenuItem);
 	this._popup = isPopup(mtp);
     this.handle = this._popup ? api_CreatePopupMenu() : api_CreateMenu();
     this._index = indexNum;
@@ -325,9 +325,9 @@ struct ContextMenu
     EventHandler onMenuShown, onMenuClose;
 }
 
-fn ContextMenu* newContextMenu(Allocator* using = mem::heap())
+fn ContextMenu* newContextMenu(Allocator* using = allocator::heap())
 {
-	ContextMenu* this = using.new_clear(ContextMenu);
+	ContextMenu* this = mem::new(ContextMenu);
 	this.handle = api_CreatePopupMenu();
 	this.width = 120;
 	this.height = 25;

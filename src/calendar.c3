@@ -4,7 +4,7 @@ module cforms;
 
 
 int calNumber = 1;
-Wstring calClass = {'L', 'i', 's', 't', 'B', 'o', 'x', 0};
+Wstring calClass = {'S', 'y', 's', 'M', 'o', 'n', 't', 'h', 'C', 'a', 'l', '3', '2', 0};
 
 
 // Calendar control struct
@@ -30,9 +30,9 @@ struct Calendar
 
 // Public functions
 	// Calendar constructor
-	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, bool auto = false, Allocator* using = mem::heap())
+	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, bool auto = false, Allocator* using = allocator::heap())
 	{
-		Calendar* this = using.new_clear(Calendar);
+		Calendar* this = mem::new(Calendar);
 		this.kind = ControlType.CALENDAR;
 		this.name = dstring::new("Calendar_");
 		this.name.appendf("%d", calNumber);

@@ -33,9 +33,9 @@ struct ListBox
 	// ListBox constructor
 	fn ListBox* newListBox(Form* parent, int x = 10, int y = 10,
 							int width = 150, int height = 150,
-							bool auto = false, Allocator* using = mem::heap())
+							bool auto = false, Allocator* using = allocator::heap())
 	{
-		ListBox* this = using.new_clear(ListBox);
+		ListBox* this = mem::new(ListBox);
 		this.kind = ControlType.LIST_BOX;
 		this.name = dstring::new("ListBox_");
 		this.name.appendf("%d", lbxNumber);
@@ -149,7 +149,7 @@ struct ListBox
 			int selCount = (int)this.sendMsg(LB_GETSELCOUNT, 0, 0);
 			if (selCount != LB_ERR) {
 				@pool() {
-					int[] buffer = mem::temp_array(int, selCount);
+					int[] buffer = mem::temp_alloc_array(int, selCount);
 					this.sendMsg(LB_GETSELITEMS, selCount, &buffer[0]);
 					foreach (indx: buffer) { sItems.append(this.getItemInternal(indx));}
 				};
@@ -243,7 +243,7 @@ struct ListBox
 		int sLen = (int)this.sendMsg(LB_GETTEXTLEN, index, 0);
 		if (sLen) {
 			@pool() {
-				Char16[] buffer = mem::temp_array(Char16, sLen);
+				Char16[] buffer = mem::temp_alloc_array(Char16, sLen);
 				Lresult res =this.sendMsg(LB_GETTEXT, index, &buffer[0]);
 				String x = string::new_from_utf16(buffer)!!;
 				return x;

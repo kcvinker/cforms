@@ -51,9 +51,9 @@ struct NumberPicker
 	fn NumberPicker* newNumberPicker(Form* parent, int x = 10, int y = 10,
 										int width = 75, int height = 25,
 										bool auto = false, EventHandler evtFn = null,
-										bool btnLeft = false, Allocator* using = mem::heap())
+										bool btnLeft = false, Allocator* using = allocator::heap())
 	{
-		NumberPicker* this = using.new_clear(NumberPicker);
+		NumberPicker* this = mem::new(NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
 		this.name = dstring::new("NumberPicker_");
 		this.className = &npClass[0];

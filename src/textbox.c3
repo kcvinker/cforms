@@ -32,9 +32,9 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	// TextBox constructor
 	fn TextBox* newTextBox(Form* parent, String text, int x = 10, int y = 10,
 							int width = 140, int height = 27,
-							bool auto = false, Allocator* using = mem::heap())
+							bool auto = false, Allocator* using = allocator::heap())
 	{
-		TextBox* this = using.new_clear(TextBox);
+		TextBox* this = mem::new(TextBox);
 		this.kind = ControlType.TEXT_BOX;
 		this.name = dstring::new("TextBox_");
 		this.name.appendf("%d", tbNumber);

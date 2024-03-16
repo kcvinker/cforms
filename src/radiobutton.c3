@@ -22,9 +22,9 @@ struct RadioButton
 	// RadioButton constructor
 	fn RadioButton* newRadioButton(Form* parent, String text, int x = 10, int y = 10,
 									int width = 0, int height = 0, EventHandler evtFn = null,
-									bool auto = false, Allocator* using = mem::heap())
+									bool auto = false, Allocator* using = allocator::heap())
 	{
-		RadioButton* this = using.new_clear(RadioButton);
+		RadioButton* this = mem::new(RadioButton);
 		this.kind = ControlType.RADIO_BUTTON;
 		this.name = dstring::new("RadioButton_");
 		this.name.appendf("%d", rbNumber);

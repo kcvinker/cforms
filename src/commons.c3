@@ -150,10 +150,10 @@ const MB_ERR_INVALID_CHARS = 0x00000008;
 
 fn TrackingAllocator startTracking()
 {
-	Allocator* alloc = mem::heap();
+	Allocator* alloc = allocator::heap();
 	TrackingAllocator tal;
-	mem::temp();
-	tal.init(mem::heap());
+	allocator::temp();
+	tal.init(allocator::heap());
 	return tal;
 }
 
