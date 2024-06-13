@@ -135,7 +135,7 @@ fn void startup_job() @init
 }
 
 // Public Functions
-	fn Form* newForm(String title, int width = 500, int height = 400, Allocator* using = allocator::heap())
+	fn Form* newForm(String title, int width = 500, int height = 400, Allocator using = allocator::heap())
 	{
 		Form* this = mem::new(Form);
 		this.kind = ControlType.NONE;
@@ -177,6 +177,7 @@ fn void startup_job() @init
 										(Hmenu)0,
 										app.hins, null);
 		if (this.handle) {
+			
 			this._isCreated = true;
 			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
 			this.setFontInternal();
@@ -187,6 +188,7 @@ fn void startup_job() @init
 	{
 		api_ShowWindow(this.handle, 5);
 		api_UpdateWindow(this.handle);
+		
 		if (this._menuMapInited && !this._menubarCreated) this.menubar.createHandle();
 		if (!app.mainLoopOn) {
 			app.mainLoopOn = true;
@@ -214,7 +216,7 @@ fn void startup_job() @init
 		return this.menubar;
 	}
 
-	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null, Allocator* using = allocator::heap())
+	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null, Allocator using = allocator::heap())
 	{
 		Timer* tm = mem::new(Timer);
 		tm.interval = interval;

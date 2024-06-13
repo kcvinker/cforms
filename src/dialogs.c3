@@ -96,7 +96,7 @@ fn void FileOpenDialog.extractFileNames(FileOpenDialog* this, Char16* buffer, in
                 offset = i + 1;
                 String fname = string::temp_from_utf16(slice)!!;
                 String fullPath = string::new_format("%s\\%s", dirPath, fname);
-                this.fileNames.append(fullPath);
+                this.fileNames.push(fullPath);
                 if (buffer[offset] == '\u0000') break;
             }
         }

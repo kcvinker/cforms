@@ -61,7 +61,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	// TreeView constructor - Create and returns a New TreeView struct
 	fn TreeView* newTreeView(Form* parent, int x = 10, int y = 10,
 								int width = 200, int height = 200,
-								bool auto = false, Allocator* using = allocator::heap())
+								bool auto = false, Allocator using = allocator::heap())
 	{
 		TreeView* this = mem::new(TreeView);
 		this.kind = ControlType.TREE_VIEW;
@@ -81,12 +81,12 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.lineColor = newColor(0x000000);
 		this.uniqNodeID = 100;
 		tvNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}
 
-	fn TreeNode* newTreeNode(String txt, int image_index = -1, int sel_image_index = -1, Allocator* using = allocator::heap())
+	fn TreeNode* newTreeNode(String txt, int image_index = -1, int sel_image_index = -1, Allocator using = allocator::heap())
 	{
 		TreeNode* this = mem::new(TreeNode);
 		this.text = txt;
@@ -171,7 +171,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	 * @require this._isCreated
 	 **/
 	fn TreeNode* TreeView.addChildNode1(TreeView* this, String nodeTxt, TreeNode* parentNode,
-											Allocator* using = allocator::heap()) @private
+											Allocator using = allocator::heap()) @private
 	{
 			TreeNode* tn = newTreeNode(nodeTxt);
 			this.addNodeInternal(NodeOps.ADDCHILD, tn, parentNode);
@@ -186,7 +186,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
 	}
 
-	macro TreeNode* TreeView.addChildNode(TreeView* this, TreeNode* parent, nodeOrText, Allocator* using = allocator::heap())
+	macro TreeNode* TreeView.addChildNode(TreeView* this, TreeNode* parent, nodeOrText, Allocator using = allocator::heap())
 	{
 		$switch ($typeof(nodeOrText))
 			$case String: return this.addChildNode1(nodeOrText, parent, using);
@@ -224,7 +224,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		}
 	}
 
-	fn TreeNode* TreeView.insertNode1(TreeView* this, String nodeTxt, int index, Allocator* using = allocator::heap()) @private
+	fn TreeNode* TreeView.insertNode1(TreeView* this, String nodeTxt, int index, Allocator using = allocator::heap()) @private
 	{
 		TreeNode* node = newTreeNode(nodeTxt);
 		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
@@ -236,7 +236,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
 	}
 
-	macro TreeNode* TreeView.insertNode(TreeView* this, nodeOrText, indexNum, Allocator* using = allocator::heap())
+	macro TreeNode* TreeView.insertNode(TreeView* this, nodeOrText, indexNum, Allocator using = allocator::heap())
 	{
 		$switch ($typeof(nodeOrText))
 			$case String: return this.insertNode1(nodeOrText, indexNum, using);
@@ -248,7 +248,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	}
 
 	fn TreeNode* TreeView.insertChildNode1(TreeView* this, String nodeTxt, TreeNode* parent,
-												int index, Allocator* using = allocator::heap()) @private
+												int index, Allocator using = allocator::heap()) @private
 	{
 		TreeNode* tn = newTreeNode(nodeTxt);
 		this.addNodeInternal(NodeOps.INSERTCHILD, tn, parent, index);
@@ -261,7 +261,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	}
 
 	macro TreeNode* TreeView.insertChildNode(TreeView* this, TreeNode* parent, nodeOrText,
-													indexNum, Allocator* using = allocator::heap())
+													indexNum, Allocator using = allocator::heap())
 	{
 		$switch ($typeof(nodeOrText))
 			$case String: return this.insertChildNode1(nodeOrText, parent, indexNum, using);
@@ -363,7 +363,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		fn Lparam TreeNode.toLpm(TreeNode* this) @private {return (Lparam)((void*) this);}
 
 		// Helper function for adding a child node
-		fn TreeNode* TreeNode.addChildNode1(TreeNode* this, String nodeTxt, Allocator* using = allocator::heap()) @private
+		fn TreeNode* TreeNode.addChildNode1(TreeNode* this, String nodeTxt, Allocator using = allocator::heap()) @private
 		{
 			TreeNode* node = newTreeNode(nodeTxt);
 			api_SendMessage(this.treeHwnd, MM_NODE_ADDED, node.toWpm(), this.toLpm());
@@ -377,7 +377,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		}
 
 		// Add child node node. Parameter nodeOrText can be string or node pointer.
-		macro TreeNode* TreeNode.addChildNode(TreeNode* this, nodeOrText, Allocator* using = allocator::heap())
+		macro TreeNode* TreeNode.addChildNode(TreeNode* this, nodeOrText, Allocator using = allocator::heap())
 		{
 			$switch ($typeof(nodeOrText))
 				$case String: return this.addChildNode1(nodeOrText, using);
@@ -389,7 +389,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		}
 
 		// Insert child node node. Parameter nodeOrText can be string or node pointer.
-		macro TreeNode* TreeNode.insertChildNode(TreeNode* this, nodeOrText, indexNum, Allocator* using = allocator::heap())
+		macro TreeNode* TreeNode.insertChildNode(TreeNode* this, nodeOrText, indexNum, Allocator using = allocator::heap())
 		{
 			TreeNode* ret;
 			NodePack np;
@@ -512,10 +512,10 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 			node.handle = (Htreeitem)hItem;
 			this.uniqNodeID += 1;
 			if (isRootNode) {
-				this.nodes.append(node);
+				this.nodes.push(node);
 				this.nodeCount += 1;
 			} else {
-				pnode.nodes.append(node);
+				pnode.nodes.push(node);
 				pnode.nodeCount += 1;
 			}
 		} else {
@@ -569,7 +569,7 @@ fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case MM_NODE_DELETED:
 			TreeNode* node = (TreeNode*)((void*) lp);
 			Lresult ret = this.sendMsg(TVM_DELETEITEM, 0, (Lparam) node.handle);
-			this.nodes.remove(node);
+			this.nodes.remove_first_match(node);
 			node.destroy();
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);

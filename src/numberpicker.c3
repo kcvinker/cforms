@@ -51,7 +51,7 @@ struct NumberPicker
 	fn NumberPicker* newNumberPicker(Form* parent, int x = 10, int y = 10,
 										int width = 75, int height = 25,
 										bool auto = false, EventHandler evtFn = null,
-										bool btnLeft = false, Allocator* using = allocator::heap())
+										bool btnLeft = false, Allocator using = allocator::heap())
 	{
 		NumberPicker* this = mem::new(NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
@@ -79,7 +79,7 @@ struct NumberPicker
 		this.valStr = dstring::new("0");
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (evtFn) this.onValueChanged = evtFn;
 		if (auto) this.createHandle();
 		npNumber += 1;

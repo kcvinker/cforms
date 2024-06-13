@@ -64,7 +64,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	// TrackBar constructor - Create and returns a New TrackBar struct
 	fn TrackBar* newTrackBar(Form* parent, int x = 10, int y = 10,
 								int width = 200, int height = 35, bool auto = false,
-								EventHandler evtFn = null, Allocator* using = allocator::heap())
+								EventHandler evtFn = null, Allocator using = allocator::heap())
 	{
 		TrackBar* this = mem::new(TrackBar);
 		this.kind = ControlType.TRACK_BAR;
@@ -97,7 +97,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.customDraw = true;
 		tkbNumber += 1;
 		this.onValueChanged = evtFn;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}
@@ -235,12 +235,12 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		pFactor = channelLen / range;
 
 		tic = this.minRange + this.frequency;
-		this._tdList.append(TicData{stPos, 0}); // Very first tic
+		this._tdList.push(TicData{stPos, 0}); // Very first tic
 		for (int i = 0; i < numTics; i++) {
-			this._tdList.append(TicData{(int)(tic * pFactor) + stPos, tic}); // Middle tics
+			this._tdList.push(TicData{(int)(tic * pFactor) + stPos, tic}); // Middle tics
 			tic += this.frequency;
 		}
-		this._tdList.append(TicData{enPos, (int)range}); // Last tic
+		this._tdList.push(TicData{enPos, (int)range}); // Last tic
 
 		// Now, set up single point (x/y) for tics.
 		if (this.vertical) {

@@ -84,7 +84,7 @@ struct ListViewColumn
 	// ListView constructor - Create and returns a New ListView struct
 	fn ListView* newListView(Form* parent, int x = 10, int y = 10,
 								int width = 300, int height = 200,
-								bool auto = false, Allocator* using = allocator::heap())
+								bool auto = false, Allocator using = allocator::heap())
 	{
 		ListView* this = mem::new(ListView);
 		this.kind = ControlType.LIST_VIEW;
@@ -114,14 +114,14 @@ struct ListViewColumn
 		this.headerBackColor = newColor(0xb3cccc);
 		this.headerForeColor = newColor(0x000000);
 		lvNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}
 
 	// ListViewCoulmn constructor.
 	fn ListViewColumn* newListViewColumn(String txt, int width = 100,
-										int imageIndex = -1, Allocator* using = allocator::heap())
+										int imageIndex = -1, Allocator using = allocator::heap())
 	{
 		ListViewColumn* this = mem::new(ListViewColumn);
 		this.text = txt;
@@ -139,7 +139,7 @@ struct ListViewColumn
 	// ListViewItem constructor
 	fn ListViewItem* newListViewItem(String txt, uint bgColor = 0xFFFFFF,
 									uint fgColor = 0x000000, int imgIndex = -1,
-										Allocator* using = allocator::heap())
+										Allocator using = allocator::heap())
 	{
 		ListViewItem* this = mem::new(ListViewItem);
 		this.text = txt;
@@ -207,7 +207,7 @@ struct ListViewColumn
 	 * 2. lv.addColumns(String... colNames, int... colWidths)	 */
 	macro void ListView.addColumns(ListView* this, params...)
 	{
-		any* p1 = params[0]; // This may be the column count or a ListViewColumn pointer
+		any p1 = params[0]; // This may be the column count or a ListViewColumn pointer
 		switch (p1) {
 			case String:
 				StrList colnames;
@@ -215,8 +215,8 @@ struct ListViewColumn
 				defer {colnames.free(); widths.free();}
 				foreach(item: params) {
 					switch (item) {
-						case String: colnames.append(*item);
-						case int: widths.append(*item);
+						case String: colnames.push(*item);
+						case int: widths.push(*item);
 					}
 					if (colnames.len() == widths.len()) {
 						foreach (i, name : colnames) {
@@ -275,7 +275,7 @@ struct ListViewColumn
 	{
 		ListViewItem* lvitem = newListViewItem(itemtxt);
 		foreach (sitem: subitems) {
-			lvitem.subItems.append(makeStringFromAny(sitem));
+			lvitem.subItems.push(makeStringFromAny(sitem));
 		}
 		this.addItem2(lvitem);
 	}
@@ -355,7 +355,7 @@ struct ListViewColumn
 
         lvcol.lvc = &lvc;
         if (this._isCreated) this.sendMsg(LVM_INSERTCOLUMNW, lvcol.index, &lvc);
-        this.columns.append(lvcol);
+        this.columns.push(lvcol);
         this._colIndex += 1;
 	}
 
@@ -376,7 +376,7 @@ struct ListViewColumn
         lvi.cchTextMax = item.text.len;
         // lvi.lParam = bitcast(item, Lparam);
        	this.sendMsg(LVM_INSERTITEMW, 0, &lvi);
-        this.items.append(item);
+        this.items.push(item);
 		this._itemIndex += 1;
 	}
 
@@ -393,7 +393,7 @@ struct ListViewColumn
         lvi.pszText = sitem;
         lvi.iImage = -1;
         this.sendMsg(LVM_SETITEMTEXTW, item.index, &lvi);
-        if (appendSubItem) item.subItems.append(subitem);
+        if (appendSubItem) item.subItems.push(subitem);
 	}
 
 	// Get the Header handle & subclass it.

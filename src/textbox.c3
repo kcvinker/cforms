@@ -32,7 +32,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	// TextBox constructor
 	fn TextBox* newTextBox(Form* parent, String text, int x = 10, int y = 10,
 							int width = 140, int height = 27,
-							bool auto = false, Allocator* using = allocator::heap())
+							bool auto = false, Allocator using = allocator::heap())
 	{
 		TextBox* this = mem::new(TextBox);
 		this.kind = ControlType.TEXT_BOX;
@@ -54,7 +54,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.textType = TextType.NORMAL;
 		this.textAlign = Alignment.CENTER;
 		tbNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}

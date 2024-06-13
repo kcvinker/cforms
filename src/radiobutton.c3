@@ -22,7 +22,7 @@ struct RadioButton
 	// RadioButton constructor
 	fn RadioButton* newRadioButton(Form* parent, String text, int x = 10, int y = 10,
 									int width = 0, int height = 0, EventHandler evtFn = null,
-									bool auto = false, Allocator* using = allocator::heap())
+									bool auto = false, Allocator using = allocator::heap())
 	{
 		RadioButton* this = mem::new(RadioButton);
 		this.kind = ControlType.RADIO_BUTTON;
@@ -46,7 +46,7 @@ struct RadioButton
 		this._autoSizable = true;
 		rbNumber += 1;
 		this.onCheckedChanged = evtFn;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}

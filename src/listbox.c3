@@ -33,7 +33,7 @@ struct ListBox
 	// ListBox constructor
 	fn ListBox* newListBox(Form* parent, int x = 10, int y = 10,
 							int width = 150, int height = 150,
-							bool auto = false, Allocator* using = allocator::heap())
+							bool auto = false, Allocator using = allocator::heap())
 	{
 		ListBox* this = mem::new(ListBox);
 		this.kind = ControlType.LIST_BOX;
@@ -53,7 +53,7 @@ struct ListBox
 		this._dummyIndex = -1;
 		this.selectedIndex = -1;
 		lbxNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}
@@ -73,7 +73,7 @@ struct ListBox
 	// Add an item to list box.
 	fn void ListBox.addItem(ListBox* this, String item)
 	{
-		this.items.append(item);
+		this.items.push(item);
 		if (this._isCreated) {
 			Char16* lbtext = String.to_new_utf16(item).ptr!!;
 			defer free(lbtext);
@@ -90,7 +90,7 @@ struct ListBox
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
-			this.items.append(item);
+			this.items.push(item);
 		}
 	}
 
@@ -151,7 +151,7 @@ struct ListBox
 				@pool() {
 					int[] buffer = mem::temp_alloc_array(int, selCount);
 					this.sendMsg(LB_GETSELITEMS, selCount, &buffer[0]);
-					foreach (indx: buffer) { sItems.append(this.getItemInternal(indx));}
+					foreach (indx: buffer) { sItems.push(this.getItemInternal(indx));}
 				};
 			}
 		}

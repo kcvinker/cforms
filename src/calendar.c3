@@ -30,7 +30,7 @@ struct Calendar
 
 // Public functions
 	// Calendar constructor
-	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, bool auto = false, Allocator* using = allocator::heap())
+	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, bool auto = false, Allocator using = allocator::heap())
 	{
 		Calendar* this = mem::new(Calendar);
 		this.kind = ControlType.CALENDAR;
@@ -49,7 +49,7 @@ struct Calendar
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		calNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}

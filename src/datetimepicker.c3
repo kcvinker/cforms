@@ -33,10 +33,10 @@ struct DateTimePicker
 
 enum DTPFormat : int(String descrption, int value )
 {
-	LONG_DATE("Long Date format", 1),
-	SHORT_DATE("Short Date Format", 2),
-	TIME_ONLY("Only show Time", 4),
-	CUSTOM("User Defined Format", 8)
+	LONG_DATE = {"Long Date format", 1},
+	SHORT_DATE = {"Short Date Format", 2},
+	TIME_ONLY = {"Only show Time", 4},
+	CUSTOM = {"User Defined Format", 8}
 }
 
 
@@ -44,7 +44,7 @@ enum DTPFormat : int(String descrption, int value )
 // Public functions
 	// DateTimePicker constructor
 	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10,
-											bool auto = false, Allocator* using = allocator::heap())
+											bool auto = false, Allocator using = allocator::heap())
 	{
 		DateTimePicker* this = mem::new(DateTimePicker);
 		this.kind = ControlType.DATE_TIME_PICKER;
@@ -64,7 +64,7 @@ enum DTPFormat : int(String descrption, int value )
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		dtpNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}

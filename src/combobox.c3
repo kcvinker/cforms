@@ -41,7 +41,7 @@ struct CmbData
 	// ComboBox constructor
 	fn ComboBox* newComboBox(Form* parent, int x = 10, int y = 10,
 								int width = 140, int height = 27,
-								bool auto = false, Allocator* using = allocator::heap())
+								bool auto = false, Allocator using = allocator::heap())
 	{
 		ComboBox* this = mem::new(ComboBox);
 		this.kind = ControlType.COMBO_BOX;
@@ -64,7 +64,7 @@ struct CmbData
 			this._parent._comboMap.new_init();
 			noComboUsed = false;
 		}
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}
@@ -101,10 +101,10 @@ struct CmbData
 	// {
 	// 	var $tp = $typeof(item).typeid;
 	// 	$if ($tp == String.typeid):
-	// 		this.items.append(item);
+	// 		this.items.push(item);
 	// 	$else
 	// 		$if (isStrLiteral(item)):
-	// 			this.items.append(item);
+	// 			this.items.push(item);
 	// 		$endif
 	// 	$endif
 	// }
@@ -144,21 +144,21 @@ struct CmbData
 
 // Private functions
 
-	fn void ComboBox.putItemInternal(&this, any* item)
+	fn void ComboBox.putItemInternal(&this, any item)
 	{
 		switch (item) {
 			case String:
 				Char16* witem = String.to_new_utf16(*item).ptr!!;
 				defer free(witem);
 				this.sendMsg(CB_ADDSTRING, 0, witem);
-				this.items.append(*item);
+				this.items.push(*item);
 
 			default:
 				String sitem = numeralsToString(item);
 				Char16* witem = String.to_new_utf16(sitem).ptr!!;
 				defer {free(witem); free(sitem);}
 				this.sendMsg(CB_ADDSTRING, 0, witem);
-				this.items.append(sitem);
+				this.items.push(sitem);
 		}
 	}
 

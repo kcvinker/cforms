@@ -100,7 +100,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 							int x = 10, int y = 10,
 							int width = 120, int height = 35,
 							bool auto = false, EventHandler evtFn = null,
-							Allocator* using = allocator::heap())
+							Allocator using = allocator::heap())
 	{
 		Button* this = mem::new(Button);
 		this.kind = ControlType.BUTTON;
@@ -121,7 +121,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		this.foreColor = Color{};
 		btnNumber += 1;
 		if (evtFn) this.onMouseClick = evtFn;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 
 		return this;

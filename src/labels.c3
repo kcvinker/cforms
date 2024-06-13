@@ -25,7 +25,7 @@ struct Label
 	// Label constructor
 	fn Label* newLabel(Form* parent, String text,
 						int x = 10, int y = 10, int width = 0, int height = 0,
-						bool auto = false, Allocator* using = allocator::heap())
+						bool auto = false, Allocator using = allocator::heap())
 	{
 		Label* this = mem::new(Label);
 		this.kind = ControlType.LABEL;
@@ -47,7 +47,7 @@ struct Label
 		this.autoSize = true;
 		this._autoSizable = true;
 		lbNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 

@@ -31,7 +31,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// ProgressBar constructor - Create and returns a New ProgressBar struct
 	fn ProgressBar* newProgressBar(Form* parent, int x = 10, int y = 10,
 									int width = 200, int height = 25, bool perc = false,
-									bool auto = false, Allocator* using = allocator::heap())
+									bool auto = false, Allocator using = allocator::heap())
 	{
 		ProgressBar* this = mem::new(ProgressBar);
 		this.kind = ControlType.PROGRESS_BAR;
@@ -55,7 +55,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		this.marqueeSpeed = 30; // Animation updated in each 30 milliseconds.
 		this.showPercentage = perc;
 		pbNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}

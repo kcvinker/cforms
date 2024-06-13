@@ -37,7 +37,7 @@ macro isStrLiteral(x)
 	return $res;
 }
 
-fn String makeStringFromAny(any* value)
+fn String makeStringFromAny(any value)
 {
 	switch (value) {
 		case String: return *value;
@@ -54,7 +54,7 @@ fn void printWchars(Char16* txt, int count)
 	print("");
 }
 
-fn String numeralsToString(any* value) @private
+fn String numeralsToString(any value) @private
 {
 	// DString ds = dstring::tnew_with_capacity(16);
 	switch (value) {
@@ -140,7 +140,7 @@ fn void printRect(Rect rc, String msg = "Rect")
 const CP_UTF8 = 65001;
 const MB_ERR_INVALID_CHARS = 0x00000008;
 
-// fn Char16* toChar16p(String str, Allocator* allocator = mem::temp_allocator()) { 261023
+// fn Char16* toChar16p(String str, Allocator allocator = mem::temp_allocator()) { 261023
 // 	long size = api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, null, 0);
 // 	Char16* buffer = allocator.alloc((size + 1) * Char16.sizeof)!!;
 // 	api_MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, str.len, buffer, (int)size + 1);
@@ -150,7 +150,7 @@ const MB_ERR_INVALID_CHARS = 0x00000008;
 
 fn TrackingAllocator startTracking()
 {
-	Allocator* alloc = allocator::heap();
+	Allocator alloc = allocator::heap();
 	TrackingAllocator tal;
 	allocator::temp();
 	tal.init(allocator::heap());

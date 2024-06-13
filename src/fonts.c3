@@ -42,7 +42,7 @@ fn void Font.createHandle(Font* f, Hwnd hwnd)
 	LogFont lf;
 	Char16[] s = String.to_new_utf16(f.name)!!;
 	defer free(s);
-	lf.lfFaceName[:s.len + 1] = s[:s.len + 1]; // Copying wchar array to lfFaceName
+	lf.lfFaceName[:s.len] = s[:s.len]; // Copying wchar array to lfFaceName
 	lf.lfHeight = iHeight;
 	lf.lfWeight =  (long)((int)f.weight * 100) + 100;
 	lf.lfCharSet = DEFAULT_CHARSET;

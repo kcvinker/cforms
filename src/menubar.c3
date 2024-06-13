@@ -70,7 +70,7 @@ struct MenuItem
 }
 
 // Menubar Constructor
-fn MenuBar* newMenuBar(Form* frm, Allocator* using = allocator::heap())
+fn MenuBar* newMenuBar(Form* frm, Allocator using = allocator::heap())
 {
 	MenuBar* this = mem::new(MenuBar);
 	this.handle = api_CreateMenu();
@@ -90,7 +90,7 @@ fn bool isPopup(MenuType mtp)
 	return mtp == MenuType.BASE_MENU || mtp == MenuType.POPUP;
 }
 
-fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint indexNum, Allocator* using = allocator::heap()) {
+fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint indexNum, Allocator using = allocator::heap()) {
 	MenuItem* this = mem::new(MenuItem);
 	this._popup = isPopup(mtp);
     this.handle = this._popup ? api_CreatePopupMenu() : api_CreateMenu();
@@ -117,7 +117,7 @@ fn MenuItem* MenuBar.addItem(MenuBar* this, String menuName, uint txtColor = 0x0
 	mi._mbar = this;
     this._menuCount += 1;
     this.menus[menuName] = mi;
-	this._menuList.append(mi);
+	this._menuList.push(mi);
     this._pForm._menuItemMap[mi.idNum] = mi;
 	return mi;
 }
@@ -132,7 +132,7 @@ fn void MenuBar.addItems(MenuBar* this, String... menuNames)
 		mi._mbar = this;
 		this._menuCount += 1;
 		this.menus[name] = mi;
-		this._menuList.append(mi);
+		this._menuList.push(mi);
 		this._pForm._menuItemMap[mi.idNum] = mi;
 	}
 }
@@ -325,7 +325,7 @@ struct ContextMenu
     EventHandler onMenuShown, onMenuClose;
 }
 
-fn ContextMenu* newContextMenu(Allocator* using = allocator::heap())
+fn ContextMenu* newContextMenu(Allocator using = allocator::heap())
 {
 	ContextMenu* this = mem::new(ContextMenu);
 	this.handle = api_CreatePopupMenu();

@@ -72,7 +72,7 @@ fn void makeWindow()
 
 	cmb = newComboBox(frm, b3.right() + 10, 10, .auto = true);
 	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
-	cmb.addItem(&&456.45654);
+	cmb.addItem((any*)&&456.45654);
 	// cmb.setProperty("selindex", 1);
 	// setProperty(cmb, "selindex", 1);
 

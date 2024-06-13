@@ -21,7 +21,7 @@ struct GroupBox
 	// GroupBox constructor - Create and returns a New GroupBox struct
 	fn GroupBox* newGroupBox(Form* parent, String text = "",
 								int x = 10, int y = 10, int width = 230, int height = 250,
-								bool auto = false, Allocator* using = allocator::heap())
+								bool auto = false, Allocator using = allocator::heap())
 	{
 		GroupBox* this = mem::new(GroupBox);
 		this.kind = ControlType.GROUP_BOX;
@@ -43,7 +43,7 @@ struct GroupBox
 		this._textable = true;
 		this._normalText = true;
 		gbNumber += 1;
-		this._parent.controls.append(this);
+		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 		return this;
 	}
