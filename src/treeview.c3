@@ -569,7 +569,7 @@ fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case MM_NODE_DELETED:
 			TreeNode* node = (TreeNode*)((void*) lp);
 			Lresult ret = this.sendMsg(TVM_DELETEITEM, 0, (Lparam) node.handle);
-			this.nodes.remove_first_match(node);
+			this.nodes.remove_first_item(node);
 			node.destroy();
 
 		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);

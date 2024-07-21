@@ -181,14 +181,15 @@ fn void startup_job() @init
 			this._isCreated = true;
 			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
 			this.setFontInternal();
+			// api_ShowWindow(this.handle, 10);
 		}
 	}
 
 	fn void Form.show(Form* this)
 	{
-		api_ShowWindow(this.handle, 5);
-		api_UpdateWindow(this.handle);
 		
+		// api_UpdateWindow(this.handle);
+		api_ShowWindow(this.handle, 10);
 		if (this._menuMapInited && !this._menubarCreated) this.menubar.createHandle();
 		if (!app.mainLoopOn) {
 			app.mainLoopOn = true;
@@ -362,6 +363,7 @@ fn void startup_job() @init
 
 	fn void Form.formShownHandler(Form* f) @private
 	{
+		// print("show window");
 		if (!f._isLoaded) {
 			f._isLoaded = true;
 			if (f.onLoad) f.onLoad(f, &&EventArgs{});
@@ -677,6 +679,8 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
         	if (menu && menu.onCloseup) menu.onCloseup(menu, &&EventArgs{});
 
 		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		default:
+			return api_DefWindowProc(hw, msg, wp, lp);
 
 	}
 	return api_DefWindowProc(hw, msg, wp, lp);

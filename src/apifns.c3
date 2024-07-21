@@ -21,6 +21,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Lresult api_DefWindowProc(Hwnd, uint, Wparam, Lparam) @extern("DefWindowProcW");
 	extern fn void api_PostQuitMessage(int) @extern("PostQuitMessage");
 	extern fn Hdc api_GetDC(Hwnd) @extern("GetDC");
+	extern fn Hdc api_GetWindowDC(Hwnd) @extern("GetWindowDC");
+	extern fn Hdc api_GetDCEx(Hwnd, Hrgn, Dword) @extern("GetDCEx");
 	extern fn int api_ReleaseDC(Hwnd, Hdc) @extern("ReleaseDC");
 	extern fn Lresult api_SendMessage(Hwnd, uint, Wparam, Lparam) @extern("SendMessageW");
 	extern fn Lresult api_SendNotifyMessage(Hwnd, uint, Wparam, Lparam) @extern("SendNotifyMessageW");
@@ -45,6 +47,7 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Hdc api_BeginPaint(Hwnd, PaintStruct*) @extern("BeginPaint");
 	extern fn Bool api_EndPaint(Hwnd, PaintStruct*) @extern("EndPaint");
 	extern fn Bool api_SetRect(Rect*, int, int, int, int) @extern("SetRect");
+	extern fn Bool api_OffsetRect(Rect*, int, int) @extern("OffsetRect");
 	extern fn Bool api_SetWindowText(Hwnd, Lpcwstr) @extern("SetWindowTextW");
 	extern fn int api_GetWindowTextLength(Hwnd) @extern("GetWindowTextLengthW");
 	extern fn int api_GetWindowText(Hwnd, Char16*, int) @extern("GetWindowTextW");

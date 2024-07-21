@@ -60,7 +60,7 @@ fault StringFault
 	NOT_TEXTABLE,
 }
 
-// Public functions
+// Public functions 
 
 	/* Set font for this control
 	 * This macro expects 3 different signatures.

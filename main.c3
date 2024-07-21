@@ -37,12 +37,13 @@ int cntr = 1;
 Timer* tm;
 fn void makeWindow()
 {
+	// ulong x = 800;
 
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	// frm.setBackColor(0xaaff00);
 	// frm.onMouseDown = &frmOnMouseDown;
 	// frm.width = 800;
-	// frm.onMouseDown = fn(c, e) => frm.printPoint(e);
+	frm.onMouseDown = fn(c, e) => frm.printPoint(e);
 	frm.createHandle();
 	// ptf("form handle %d, form hinst: %d", frm.handle, frm.hinst );
 
@@ -95,6 +96,7 @@ fn void makeWindow()
 	Label* lb2 = newLabel(frm, "Thread Count", 20, np1.bottom() + 14, .auto = true);
 	np2 = newNumberPicker(frm, lb2.right() + 10, np1.bottom() + 10, .auto = true, .btnLeft = true);
 	np2.setBackColor(0xcdb4db);
+	// np1.setBackColor(0xc9ada7);
 	// setProperty(np2, "buttonleft", true);
 
 	lbx = newListBox(frm, gb.right() + 10, b1.bottom() + 10, .auto = true);
