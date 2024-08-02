@@ -16,7 +16,7 @@ struct TrayIcon
     TrayMenuTrigger menuTrigger;
     Hicon _hTrayIcon;
     Hwnd _msgWinHwnd;
-    ContextMenu* cmenu;
+    ContextMenu* contextMenu;
     void* userData;
     NotifyIconData _nid;
 
@@ -138,7 +138,7 @@ fn ContextMenu* TrayIcon.addContextMenu(&this, TrayMenuTrigger trigger, String..
     cmenu.addMenus(menuNames);
     cmenu.tray = this;
     cmenu._trayParent = true;    
-    this.cmenu = cmenu;
+    this.contextMenu = cmenu;
     this._cmenuUsed = true;
     this.menuTrigger = trigger;
     return cmenu;
@@ -147,10 +147,10 @@ fn ContextMenu* TrayIcon.addContextMenu(&this, TrayMenuTrigger trigger, String..
 fn void TrayIcon.showContextMenu(&this)
 {
     Point pt;    
-    if (!this.cmenu._menuInserted) this.cmenu.createHandle();
+    if (!this.contextMenu._menuInserted) this.contextMenu.createHandle();
     api_GetCursorPos(&pt);
-    uint mBtn = this.cmenu.rightClick ? TPM_RIGHTBUTTON : TPM_LEFTBUTTON;
-	api_TrackPopupMenu(this.cmenu.handle, 2, pt.x, pt.y, 0, this.cmenu._dummyHwnd, null);
+    uint mBtn = this.contextMenu.rightClick ? TPM_RIGHTBUTTON : TPM_LEFTBUTTON;
+	api_TrackPopupMenu(this.contextMenu.handle, 2, pt.x, pt.y, 0, this.contextMenu._dummyHwnd, null);
     // ptf("tray context menu res %d", x);
     
 }
@@ -215,7 +215,7 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
             Bool p = api_Shell_NotifyIcon(NIM_DELETE, &this._nid);
 		    
             if (this._hTrayIcon) api_DestroyIcon(this._hTrayIcon);
-            if (this._cmenuUsed) this.cmenu.destroy();
+            if (this._cmenuUsed) this.contextMenu.destroy();
             allocator::free(&app.tracker, this);
             // ptf("message only window destroyed, nim delete res %d", p);
             
