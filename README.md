@@ -36,6 +36,7 @@ TreeView* tv;
 GroupBox* gb;
 ListView* lv;
 Timer* tm;
+TrayIcon* tray;
 // MenuBar* mb;
 
 
@@ -44,6 +45,15 @@ fn void makeWindow(TrackingAllocator* tar)
 
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	frm.createHandle();
+
+	// Add a tray icon for our program
+	ti = newTrayIcon("cforms sample tray icon", "cforms.ico");
+	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
+
+	// Now, add a context menu for our tray icon. 
+	// TrayMenuTrigger means the mouse button for triggering the context menu.
+	ti.addContextMenu(TrayMenuTrigger.RIGHT_CLICK, "Windows", "Linux", "MacOS");
+	ti.cmenu.menus["Linux"]!!.onClick = fn(c,e) => print("Linux menu selected from tray");
 
 	// Let's add a timer. 400 is the ticking interval in ms.
 	// onTimerTick is the tick event handler
