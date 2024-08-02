@@ -53,7 +53,7 @@ fn void makeWindow(TrackingAllocator* tar)
 	// Now, add a context menu for our tray icon. 
 	// TrayMenuTrigger means the mouse button for triggering the context menu.
 	ti.addContextMenu(TrayMenuTrigger.RIGHT_CLICK, "Windows", "Linux", "MacOS");
-	ti.cmenu.menus["Linux"]!!.onClick = fn(c,e) => print("Linux menu selected from tray");
+	ti.contextMenu.menus["Linux"]!!.onClick = fn(c,e) => print("Linux menu selected from tray");
 
 	// Let's add a timer. 400 is the ticking interval in ms.
 	// onTimerTick is the tick event handler
