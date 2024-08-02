@@ -99,15 +99,14 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	fn Button* newButton(Form* parent, String text,
 							int x = 10, int y = 10,
 							int width = 120, int height = 35,
-							bool auto = false, EventHandler evtFn = null,
-							Allocator using = allocator::heap())
+							bool auto = false, EventHandler evtFn = null)
 	{
-		Button* this = mem::new(Button);
+		Button* this = allocator::new(&app.tracker, Button);
 		this.kind = ControlType.BUTTON;
 		this.className = &btnClass[0];
-		this.name = dstring::new("Button_");
+		this.name = dstring::new("Button_", &app.tracker);
 		this.name.appendf("%d", btnNumber);
-		this._wideText = String.to_new_utf16(text).ptr!!;
+		this._wideText = String.to_new_utf16(text, &app.tracker).ptr!!;
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = btnStyle;
@@ -267,8 +266,8 @@ fn void GradDraw.dtor(GradDraw* g) @private
 			case 4..5: this._gdraw.dtor();
 		}
 		this.name.free();
-		free(this._wideText);
-		free(this);
+		allocator::free(&app.tracker, this._wideText);
+		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
 
@@ -302,25 +301,52 @@ fn void Control.leftMouseClickHandler(&self)
 
 fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	Button* this = bitcast(refData, Button*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &btnWndProc, scID);;
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler(); //
+		case WM_DESTROY: 
+			Button* this = bitcast(refData, Button*);
+			api_RemoveWindowSubclass(hw, &btnWndProc, scID);;
+			this.dtor(); 
+		case WM_LBUTTONDOWN: 
+			Button* this = bitcast(refData, Button*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP: 
+			Button* this = bitcast(refData, Button*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK: 
+			Button* this = bitcast(refData, Button*);
+			this.leftClickHandler(); //
 
+		case WM_RBUTTONDOWN: 
+			Button* this = bitcast(refData, Button*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP: 
+			Button* this = bitcast(refData, Button*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK: 
+			Button* this = bitcast(refData, Button*);
+			this.rightClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
-
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(lp);
-		case MM_RUNDTOR: this.dtor(); return 0;
+		case WM_MOUSEMOVE: 
+			Button* this = bitcast(refData, Button*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE: 
+			Button* this = bitcast(refData, Button*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL: 
+			Button* this = bitcast(refData, Button*);
+			this.mouseWheelHandler(msg, wp, lp);
+		case WM_CONTEXTMENU: 
+			Button* this = bitcast(refData, Button*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case MM_NOTIFY_REFLECT: 
+			Button* this = bitcast(refData, Button*);
+			return this.wmNotifyHandler(lp);
+		default:
+			return api_DefSubclassProc(hw, msg, wp, lp);
+		// case MM_RUNDTOR: 
+		// this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

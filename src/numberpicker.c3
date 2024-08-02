@@ -53,11 +53,11 @@ struct NumberPicker
 	fn NumberPicker* newNumberPicker(Form* parent, int x = 10, int y = 10,
 										int width = 75, int height = 25,
 										bool auto = false, EventHandler evtFn = null,
-										bool btnLeft = false, Allocator using = allocator::heap())
+										bool btnLeft = false)
 	{
-		NumberPicker* this = mem::new(NumberPicker);
+		NumberPicker* this = allocator::new(&app.tracker, NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
-		this.name = dstring::new("NumberPicker_");
+		this.name = dstring::new("NumberPicker_", &app.tracker);
 		this.className = &npClass[0];
 		this._parent = parent;
 		this.font = parent.font;
@@ -429,35 +429,66 @@ struct NumberPicker
 		api_DeleteObject((Hgdiobj)(this.font.handle));
 		api_DeleteObject((Hgdiobj)this._borderBrush);
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		free(this);
+		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
 
 
 fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	NumberPicker* this = bitcast(refData, NumberPicker*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &npWndProc, scID);
+		case WM_DESTROY:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			api_RemoveWindowSubclass(hw, &npWndProc, scID);
+			this.dtor();
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case WM_LBUTTONDOWN:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_RBUTTONDOWN:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.rightClickHandler();
 
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case WM_KEYDOWN: this.keyDownHandler(wp);
-		case WM_KEYUP: this.keyUpHandler(wp);
-		case WM_CHAR: this.keyPressHandler(wp);
+		case WM_MOUSEMOVE:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.mouseWheelHandler(msg, wp, lp);
+		case WM_CONTEXTMENU:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case WM_KEYDOWN:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.keyDownHandler(wp);
+		case WM_KEYUP:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.keyUpHandler(wp);
+		case WM_CHAR:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.keyPressHandler(wp);
 
-		case MM_NOTIFY_REFLECT: this.wmNotifyHandler(lp);
+		case MM_NOTIFY_REFLECT:
+			NumberPicker* this = bitcast(refData, NumberPicker*);
+			this.wmNotifyHandler(lp);
 		// case WM_PAINT:
 		// 	Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
 		// 	Hdc hdc = api_GetDC(hw);
@@ -469,7 +500,7 @@ fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		// 	api_ReleaseDC(hw, hdc);
 		// 	return ret;
 
-		case MM_RUNDTOR: this.dtor(); return 0;
+		// case MM_RUNDTOR: this.dtor(); return 0;
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
 	}

@@ -2,12 +2,21 @@
 
 module cforms;
 
+// Icons for diff tasks
+	const Lpcwstr IDI_APP = makeIntResource(32512);
+	const Lpcwstr IDC_ARROW = makeIntResource(32512);	
+	const Lpcwstr IDI_ERROR = makeIntResource(32513);
+	const Lpcwstr IDI_QUESTION = makeIntResource(32514);
+	const Lpcwstr IDI_EXCLAMATION = makeIntResource(32515);
+	const Lpcwstr IDC_ASTERIK = makeIntResource(32516);
+	const Lpcwstr IDI_WINLOGO = makeIntResource(32517);
+	const Lpcwstr IDI_SHIELD = makeIntResource(32518);
+	// const Lpcwstr IDI_SHIELD = makeIntResource(32519);
+
 // Form consts
     const Dword CS_VREDRAW = 0x0001;
 	const Dword CS_HREDRAW = 0x0002;
 	const Dword CS_OWNDC = 0x0020;
-	const Lpcwstr IDI_APP = makeIntResource(32512);
-	const Lpcwstr IDC_ARROW = makeIntResource(32512);
 	const Dword WS_OVERLAPPED = 0;
 	const Dword WS_CAPTION = 12582912;
 	const Dword WS_SYSMENU = 524288;
@@ -65,6 +74,13 @@ module cforms;
 	const uint SC_RESTORE = 0xF120;
 	const uint SC_MINIMIZE = 0xF020;
 	const uint SC_MAXIMIZE = 0xF030;
+
+	const uint IMAGE_BITMAP = 0;
+	const uint IMAGE_ICON = 1;
+	const uint IMAGE_CURSOR = 2;
+	const uint LR_LOADFROMFILE = 0x00000010;
+	const uint LR_DEFAULTCOLOR = 0x00000000;
+
 // End of Form consts
 
 //Calendar Constants
@@ -115,30 +131,7 @@ module cforms;
 // End of Combo Constants
 
 
-// My Own Messages
-	const uint MM_MOUSE_LBCLICK = 9000;
-	const uint MM_MOUSE_RBCLICK = 9001;
-	const uint MM_NOTIFY_REFLECT = 9002;
-	const uint MM_RUNDTOR = 9003;
-	const uint MM_COLOR_STATIC = 9004;
-	const uint MM_COLOR_EDIT = 9005;
-	const uint MM_COLOR_LBOX = 9006;
-	const uint MM_CTL_COMMAND = 9007;
-	const uint MM_BUDDY_RESIZE = 9008;
-	const uint MM_HSCROLL = 9009;
-	const uint MM_VSCROLL = 9010;
-	const uint MM_MENU_ADDED = 9011;
-	const uint MM_NODE_ADDED = 9012;
-	const uint MM_NODE_INSERTED = 9013;
-	const uint MM_NODE_DELETED = 9014;
-	const uint MM_THREAD_MSG = 9015;
 
-	const HDM_FIRST = 4608;
-	const HDM_LAYOUT = (HDM_FIRST + 5);
-	const HDM_HITTEST = (HDM_FIRST + 6);
-	const HDM_GETITEMRECT = (HDM_FIRST + 7);
-
-// End of My own messages
 
 // Common Constants
 	const WM_USER = 0x0400;
@@ -623,26 +616,70 @@ module cforms;
 		const TVS_EX_DIMMEDCHECKBOXES = 0x0200;
 		const TVS_EX_DRAWIMAGEASYNC = 0x0400;
 	// End TV Styles
+	// TV Messages
+		const TV_FIRST = 0x1100;
+		const TVM_DELETEITEM = (TV_FIRST + 1);
+		const TVM_SETIMAGELIST = (TV_FIRST + 9);
+		const TVM_SETBKCOLOR = (TV_FIRST + 29);
+		const TVM_SETTEXTCOLOR = (TV_FIRST + 30);
+		const TVM_SETLINECOLOR = (TV_FIRST + 40);
+		const TVM_INSERTITEMW = (TV_FIRST + 50);
 
-	const TV_FIRST = 0x1100;
-	const TVM_DELETEITEM = (TV_FIRST + 1);
-	const TVM_SETIMAGELIST = (TV_FIRST + 9);
-	const TVM_SETBKCOLOR = (TV_FIRST + 29);
-	const TVM_SETTEXTCOLOR = (TV_FIRST + 30);
-	const TVM_SETLINECOLOR = (TV_FIRST + 40);
-	const TVM_INSERTITEMW = (TV_FIRST + 50);
-
-	const TVIF_TEXT = 0x0001;
-	const TVIF_IMAGE = 0x0002;
-	const TVIF_PARAM = 0x0004;
-	const TVIF_STATE = 0x0008;
-	const TVIF_SELECTEDIMAGE = 0x0020;
+		const TVIF_TEXT = 0x0001;
+		const TVIF_IMAGE = 0x0002;
+		const TVIF_PARAM = 0x0004;
+		const TVIF_STATE = 0x0008;
+		const TVIF_SELECTEDIMAGE = 0x0020;
+	// End of TV Messages
 
 	// const ULONG_MAX = 18446744073709551616;
 	const Htreeitem TVI_ROOT = (Htreeitem)(Ulongptr)-0x10000u64;
 	const Htreeitem TVI_FIRST = (Htreeitem)(Ulongptr)-0xffffu64;
 	const Htreeitem TVI_LAST = (Htreeitem)(Ulongptr)-0xfffeu64;
 	const Htreeitem TVI_SORT = (Htreeitem)(Ulongptr)-0xfffdu64;
-
 	const TVIS_USERMASK = 0xF000;
 // End of TreeView Constants
+
+// Notify Icon messages
+	const NIM_ADD = 0x00000000;
+	const NIM_MODIFY = 0x00000001;
+	const NIM_DELETE = 0x00000002;
+	const NIM_SETFOCUS = 0x00000003;
+	const NIM_SETVERSION = 0x00000004;
+
+// Notify Icon Notifications
+	const uint NIF_MESSAGE = 0x00000001;
+	const uint NIF_ICON = 0x00000002;
+	const uint NIF_TIP = 0x00000004;
+	const uint NIF_STATE = 0x00000008;
+	const uint NIF_INFO = 0x00000010;
+	const uint NIF_GUID = 0x00000020;
+	const uint NIF_REALTIME = 0x00000040;
+	const uint NIF_SHOWTIP = 0x00000080;
+
+
+// Notify Icon Constants
+	const Dword NIS_HIDDEN = 0x00000001;
+	const Dword NIS_SHAREDICON = 0x00000002; 
+
+	const Dword NIIF_NONE = 0x00000000; 
+	const Dword NIIF_INFO = 0x00000001; 
+	const Dword NIIF_WARNING = 0x00000002; 
+	const Dword NIIF_ERROR = 0x00000003; 
+	const Dword NIIF_USER = 0x00000004; 
+	const Dword NIIF_NOSOUND = 0x00000010; 
+	const Dword NIIF_LARGE_ICON = 0x00000020; 
+	const Dword NIIF_RESPECT_QUIET_TIME = 0x00000080; 
+	const Dword NIIF_ICON_MASK = 0x0000000F; 
+
+	const uint NIN_SELECT           =   (WM_USER + 0);
+	const uint NINF_KEY             =   0x1;
+	const uint NIN_KEYSELECT        =   (NIN_SELECT | NINF_KEY);
+	const uint NIN_BALLOONSHOW      =   (WM_USER + 2);
+	const uint NIN_BALLOONHIDE      =   (WM_USER + 3);
+	const uint NIN_BALLOONTIMEOUT   =   (WM_USER + 4);
+	const uint NIN_BALLOONUSERCLICK =   (WM_USER + 5);
+	const uint NIN_POPUPOPEN        =   (WM_USER + 6);
+	const uint NIN_POPUPCLOSE       =   (WM_USER + 7);
+
+	

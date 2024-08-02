@@ -127,6 +127,23 @@ enum SizedPosition : int
     BOTTOMRIGHTCORNER
 }
 
+enum BallonIcon : Dword 
+{
+    NONE,
+    INFO,
+    WARNING,
+    ERROR,
+    CUSTOM
+}
+
+enum TrayMenuTrigger : char
+{
+    NONE,
+    LFET_CLICK,
+    LEFT_DOUBLE_CLICK,
+    RIGHT_CLICK
+
+}
 
 enum Keys : int (String description, int value)
 {

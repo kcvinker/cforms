@@ -149,29 +149,65 @@ struct Calendar
 
 fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	Calendar* this = bitcast(refData, Calendar*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &calWndProc, scID);
+		case WM_DESTROY:
+			Calendar* this = bitcast(refData, Calendar*);
+			api_RemoveWindowSubclass(hw, &calWndProc, scID);
+			this.dtor(); return 0;
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case WM_LBUTTONDOWN:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_RBUTTONDOWN:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.rightClickHandler();
 
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
+		case WM_MOUSEMOVE:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.mouseWheelHandler(msg, wp, lp);
 
-		case WM_KEYDOWN: this.keyDownHandler(wp);
-		case WM_KEYUP: this.keyUpHandler(wp);
-		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(lp);
-		case MM_RUNDTOR: this.dtor(); return 0;
+		case WM_KEYDOWN:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.keyDownHandler(wp);
+		case WM_KEYUP:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.keyUpHandler(wp);
+		case WM_CHAR:
+			Calendar* this = bitcast(refData, Calendar*);
+			this.keyPressHandler(wp);
+		case WM_CONTEXTMENU:
+			Calendar* this = bitcast(refData, Calendar*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case MM_NOTIFY_REFLECT:
+			Calendar* this = bitcast(refData, Calendar*);
+			return this.wmNotifyHandler(lp);
+		
+		default:
+			return api_DefSubclassProc(hw, msg, wp, lp);
+		// case MM_RUNDTOR:
+		// 	Calendar* this = bitcast(refData, Calendar*);
+		// 	this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

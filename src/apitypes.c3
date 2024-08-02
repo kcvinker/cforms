@@ -373,7 +373,32 @@ struct DateTime
 	WeekDays dayOfWeek;
 }
 
+struct Guid 
+{
+    ulong  data1;
+    ushort data2;
+    ushort data3;
+    char[8] data4;
+} 
 
+ struct NotifyIconData 
+ {
+	Dword cbSize;
+	Hwnd  hWnd;
+	uint  uID;
+	uint  uFlags;
+	uint  uCallbackMessage;
+	Hicon hIcon;
+	Char16[128] toolTipText;
+	Dword dwState;
+	Dword dwStateMask;
+	Char16[256] balloonText;
+	uint uVersionOrTimeout;
+	Char16[64] balloonTitle;
+	Dword dwInfoFlags;
+	// Guid guidItem;
+	// Hicon hBalloonIcon;
+}
 
 
 

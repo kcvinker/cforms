@@ -11,6 +11,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 // User32 dll functions
 	extern fn Hcursor api_LoadCursor(Hinstance instance, Lpcwstr cursorName) @extern("LoadCursorW");
 	extern fn Hicon api_LoadIcon(Hinstance instance, Lpcwstr iconName) @extern("LoadIconW");
+	extern fn Bool api_DestroyIcon(Hicon) @extern("DestroyIcon");
+	extern fn Hicon api_LoadImage(Hinstance instance, Lpcwstr name, uint typ, int cx, int cy, uint fuload) @extern("LoadImageW");
 	extern fn short api_RegisterClassEx(WndClassEx*) @extern("RegisterClassExW");
 	extern fn Hwnd api_CreateWindowEx(Dword, Lpcwstr, Lpcwstr, Dword, int, int, int, int, Hwnd, Hmenu, Hinstance, void*) @extern("CreateWindowExW");
 	extern fn Bool api_ShowWindow(Hwnd, int) @extern("ShowWindow");
@@ -64,6 +66,9 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn int api_MapWindowPoints(Hwnd, Hwnd, LpPoint, uint) @extern("MapWindowPoints");
 	extern fn int api_SetTimer(Hwnd, Uintptr, uint, TimerProc) @extern("SetTimer");
 	extern fn int api_KillTimer(Hwnd, Uintptr) @extern("KillTimer");
+	extern fn int api_UnregisterClass(Lpcwstr, Hinstance) @extern("UnregisterClassW");
+	extern fn int api_GetCursorPos(Point*) @extern("GetCursorPos");
+	extern fn Bool api_SetForegroundWindow(Hwnd) @extern("SetForegroundWindow");
 
 
 
@@ -125,6 +130,7 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn PidList_Absolute api_SHBrowseForFolder(BrowseInfoW*) @extern("SHBrowseForFolderW");
 	extern fn Bool api_SHGetPathFromIDList(PcIdList_Absolute, Lpwstr) @extern("SHGetPathFromIDListW");
 	extern fn void api_CoTaskMemFree(void*) @extern("CoTaskMemFree");
+	extern fn Bool api_Shell_NotifyIcon(Dword, NotifyIconData*) @extern("Shell_NotifyIconW");
 //
 
 

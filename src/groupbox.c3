@@ -21,11 +21,11 @@ struct GroupBox
 	// GroupBox constructor - Create and returns a New GroupBox struct
 	fn GroupBox* newGroupBox(Form* parent, String text = "",
 								int x = 10, int y = 10, int width = 230, int height = 250,
-								bool auto = false, Allocator using = allocator::heap())
+								bool auto = false)
 	{
-		GroupBox* this = mem::new(GroupBox);
+		GroupBox* this = allocator::new(&app.tracker, GroupBox);
 		this.kind = ControlType.GROUP_BOX;
-		this.name = dstring::new("GroupBox_");
+		this.name = dstring::new("GroupBox_", &app.tracker);
 		this.name.appendf("%d", gbNumber);
 		this.className = &btnClass[0];
 		this.text = text == "" ? this.name.str_view() : text;
@@ -145,44 +145,80 @@ struct GroupBox
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._pen) api_DeleteObject((Hgdiobj)this._pen);
 		free(this._wideText);
-		free(this);
+		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
 
 
 fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	GroupBox* this = bitcast(refData, GroupBox*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &gbWndProc, scID);
+		case WM_DESTROY:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			api_RemoveWindowSubclass(hw, &gbWndProc, scID);
+			this.dtor();
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case WM_LBUTTONDOWN:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_RBUTTONDOWN:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.rightClickHandler();
 
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
+		case WM_MOUSEMOVE:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.mouseWheelHandler(msg, wp, lp);
 
-		case WM_KEYDOWN: this.keyDownHandler(wp);
-		case WM_KEYUP: this.keyUpHandler(wp);
-		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case WM_PAINT: return this.drawText(hw, msg, wp, lp); //this.drawTextDB(hw, msg, wp, lp); //this.drawText(hw, msg, wp, lp);
-		case WM_GETTEXTLENGTH:  return 0;
+		case WM_KEYDOWN:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.keyDownHandler(wp);
+		case WM_KEYUP:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.keyUpHandler(wp);
+		case WM_CHAR:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			this.keyPressHandler(wp);
+		case WM_CONTEXTMENU:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case WM_PAINT:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			return this.drawText(hw, msg, wp, lp); //this.drawTextDB(hw, msg, wp, lp); //this.drawText(hw, msg, wp, lp);
+		case WM_GETTEXTLENGTH:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			 return 0;
 
 		case WM_ERASEBKGND:
-			if (this._parent._isSizing)	return 1;
+			GroupBox* this = bitcast(refData, GroupBox*);
+						if (this._parent._isSizing)	return 1;
 			if (this._drawMode & 2) {
 				api_FillRect((Hdc)wp, &&this.clientRect(), this._bkBrush);
 				return 0;
 			}
-		case MM_RUNDTOR: this.dtor(); return 0;
+		default:
+			return api_DefSubclassProc(hw, msg, wp, lp);
+		// case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

@@ -22,11 +22,11 @@ struct RadioButton
 	// RadioButton constructor
 	fn RadioButton* newRadioButton(Form* parent, String text, int x = 10, int y = 10,
 									int width = 0, int height = 0, EventHandler evtFn = null,
-									bool auto = false, Allocator using = allocator::heap())
+									bool auto = false)
 	{
-		RadioButton* this = mem::new(RadioButton);
+		RadioButton* this = allocator::new(&app.tracker, RadioButton);
 		this.kind = ControlType.RADIO_BUTTON;
-		this.name = dstring::new("RadioButton_");
+		this.name = dstring::new("RadioButton_", &app.tracker);
 		this.name.appendf("%d", rbNumber);
 		this.className = &btnClass[0];
 		this._parent = parent;
@@ -125,41 +125,81 @@ struct RadioButton
 		this.name.free();
 		free(this._wideText);
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		free(this);
+		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
 
 
 fn Lresult rbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	RadioButton* this = bitcast(refData, RadioButton*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &rbWndProc, scID);
+		case WM_DESTROY:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			api_RemoveWindowSubclass(hw, &rbWndProc, scID);
+			this.dtor();
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case WM_LBUTTONDOWN:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_RBUTTONDOWN:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.rightClickHandler();
 
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
+		case WM_MOUSEMOVE:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.mouseWheelHandler(msg, wp, lp);
 
-		case WM_KEYDOWN: this.keyDownHandler(wp);
-		case WM_KEYUP: this.keyUpHandler(wp);
-		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case MM_COLOR_STATIC: return (Lresult) this.colorMsgHandler(wp);
-		case MM_NOTIFY_REFLECT: return this.wmNotifyHandler(lp);
+		case WM_KEYDOWN:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.keyDownHandler(wp);
+		case WM_KEYUP:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.keyUpHandler(wp);
+		case WM_CHAR:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.keyPressHandler(wp);
+		case WM_CONTEXTMENU:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case MM_COLOR_STATIC:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			return (Lresult) this.colorMsgHandler(wp);
+		case MM_NOTIFY_REFLECT:
+			RadioButton* this = bitcast(refData, RadioButton*);
+			return this.wmNotifyHandler(lp);
 
-		// case WM_PAINT: return this.paintHandler(msg, wp, lp);
+		// case WM_PAINT:
+			// RadioButton* this = bitcast(refData, RadioButton*);
+			// return this.paintHandler(msg, wp, lp);
 
-		case MM_CTL_COMMAND : this.wmCommandHandler(wp);
-		case MM_RUNDTOR: this.dtor(); return 0;
+		case MM_CTL_COMMAND :
+			RadioButton* this = bitcast(refData, RadioButton*);
+			this.wmCommandHandler(wp);
+			
+		default:
+			return api_DefSubclassProc(hw, msg, wp, lp);
+		// case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

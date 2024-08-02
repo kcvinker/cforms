@@ -3,37 +3,26 @@
 
 module cforms;
 
-import std::io;
+
 import std::collections::list;
 import std::collections::map;
-import libc;
+
+
+
 
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
-def print = io::printn;
-def ptf = io::printfn;
-def log = io::printn;
-def cptf = libc::printf;
+
 def ControlList = List(<Control*>);
 
 def CmbMap = std::collections::map::HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
 def MenuItemMap = std::collections::map::HashMap(<uint, MenuItem*>);
 def TimerMap = std::collections::map::HashMap(<Uintptr, Timer*>);
 
-// Important static data
-AppData app;
-Wstring className = {'C', 'f', 'o', 'r', 'm', 's', '_', 'W', 'i', 'n', 'd', 'o', 'w', '_', 'i', 'n', '_', 'C', '3', 0};
+
 int frmNumber = 1;
 
 
-// Helper types
-	struct AppData
-	{
-		bool mainLoopOn;
-		Hinstance hins;
-		int screenWidth;
-		int screenHeight;
-		Color defWinColor;
-	}
+// Helper types	
 
 	struct Timer
 	{
@@ -59,7 +48,7 @@ int frmNumber = 1;
 	fn void Timer.dtor(&this)
 	{
 		if (this._isEnabled) api_KillTimer(this._parentHwnd, this._idNum);
-		free(this);
+		allocator::free(&app.tracker, this);
 		print("timer freed");
 	}
 
@@ -121,25 +110,14 @@ struct Form
 // 	MenuItem* menu;
 // }
 
-fn void startup_job() @init
-{
-	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
-	app.defWinColor = colorFromRgb(230, 230, 230);
-	app.screenWidth = api_GetSystemMetrics(0);
-	app.screenHeight = api_GetSystemMetrics(1);
-	registerClass();
-	InitCommonControls icc;
-	icc.dwSize = InitCommonControls.sizeof;
-	icc.dwICC = ICC_STANDARD_CLASSES;
-	api_InitCommonControlsEx(&icc);
-}
+
 
 // Public Functions
-	fn Form* newForm(String title, int width = 500, int height = 400, Allocator using = allocator::heap())
+	fn Form* newForm(String title, int width = 500, int height = 400)
 	{
-		Form* this = mem::new(Form);
+		Form* this = allocator::new(&app.tracker, Form);
 		this.kind = ControlType.NONE;
-		this.name = dstring::new("Form_");
+		this.name = dstring::new("Form_", &app.tracker);
 		this.name.appendf("%d", frmNumber);
 		this._formID = frmNumber;
 		this.text = title;
@@ -157,7 +135,7 @@ fn void startup_job() @init
 		this.hinst = app.hins;
 		this.backColor = app.defWinColor;
 		frmNumber += 1;
-		ptf("size of name %d\n", int.sizeof);
+		// ptf("size of name %d\n", int.sizeof);
 		return this;
 	}
 
@@ -186,8 +164,7 @@ fn void startup_job() @init
 	}
 
 	fn void Form.show(Form* this)
-	{
-		
+	{		
 		// api_UpdateWindow(this.handle);
 		api_ShowWindow(this.handle, 10);
 		if (this._menuMapInited && !this._menubarCreated) this.menubar.createHandle();
@@ -200,6 +177,7 @@ fn void startup_job() @init
 				api_DispatchMessage(&pMsg);
 			}
 		}
+		app.finalize(); // Print the memory leak report
 	}
 
 	fn void Form.setBackColor(Form* this, uint clr)
@@ -217,9 +195,10 @@ fn void startup_job() @init
 		return this.menubar;
 	}
 
-	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null, Allocator using = allocator::heap())
+	// Adds a timer to this window.
+	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null)
 	{
-		Timer* tm = mem::new(Timer);
+		Timer* tm = allocator::new(&app.tracker, Timer);
 		tm.interval = interval;
 		tm.onTick = tickHandler;
 		tm._idNum = (Uintptr)tm;
@@ -227,6 +206,9 @@ fn void startup_job() @init
 		this._timerMap[tm._idNum] = tm;
 		return tm;
 	}
+
+	// Sets a tray icon for this window.
+	
 
 	// A handy function to help find the points where we can place new controls.
 	fn void Form.printPoint(Form* this, MouseEventArgs* m)
@@ -256,7 +238,7 @@ fn void startup_job() @init
 
 // Private Functions
 	fn void registerClass() @private
-	{
+	{		
 		WndClassEx wc;
 		wc.cbSize = WndClassEx.sizeof;
 		wc.style = CS_OWNDC; // CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -266,54 +248,57 @@ fn void startup_job() @init
 		wc.hInstance = app.hins;
 		wc.hIcon = api_LoadIcon(null, IDI_APP);
 		wc.hCursor = api_LoadCursor(null, IDC_ARROW);
-		wc.hbrBackground = api_CreateSolidBrush(0x00E6E6E6); //cast(Hbrush) (cast(uintptr) Color_Window + 1)
+		wc.hbrBackground = (Hbrush)api_GetStockObject(5); //api_CreateSolidBrush(app.defWinColor.ref); //cast(Hbrush) (cast(uintptr) Color_Window + 1)
 		wc.lpszMenuName = (Lpcwstr)0;
 		wc.lpszClassName = &className[0];
 		api_RegisterClassEx(&wc);
+		
+		// ptf("wm app %d", WM_APP);
 	}
 
-	fn void Form.setStyle(Form* f) @private
+	fn void Form.setStyle(&this) @private
 	{
-		switch (f.formStyle) {
+		switch (this.formStyle) {
 			case FormStyle.FIXED_3D:
-				f._exStyle = FIXED3DEXSTYLE ;
-				f._style = FIXED3DSTYLE ;
-				if (!f.maximizeBox) f._style = f._style ^ WS_MAXIMIZEBOX ;
-				if (!f.minimizeBox) f._style = f._style ^ WS_MINIMIZEBOX ;
+				this._exStyle = FIXED3DEXSTYLE ;
+				this._style = FIXED3DSTYLE ;
+				if (!this.maximizeBox) this._style = this._style ^ WS_MAXIMIZEBOX ;
+				if (!this.minimizeBox) this._style = this._style ^ WS_MINIMIZEBOX ;
 
 			case FormStyle.FIXED_DIALOG :
-				f._exStyle = FIXEDDIALOGEXSTYLE ;
-				f._style = FIXEDDIALOGSTYLE ;
-				if (!f.maximizeBox) f._style = f._style ^ WS_MAXIMIZEBOX ;
-				if (!f.minimizeBox) f._style = f._style ^ WS_MINIMIZEBOX ;
+				this._exStyle = FIXEDDIALOGEXSTYLE ;
+				this._style = FIXEDDIALOGSTYLE ;
+				if (!this.maximizeBox) this._style = this._style ^ WS_MAXIMIZEBOX ;
+				if (!this.minimizeBox) this._style = this._style ^ WS_MINIMIZEBOX ;
 
 			case FormStyle.FIXED_SINGLE :
-				f._exStyle = FIXEDSINGLEEXSTYLE ;
-				f._style = FIXEDSINGLESTYLE ;
-				if (!f.maximizeBox) f._style = f._style ^ WS_MAXIMIZEBOX ;
-				if (!f.minimizeBox) f._style = f._style ^ WS_MINIMIZEBOX ;
+				this._exStyle = FIXEDSINGLEEXSTYLE ;
+				this._style = FIXEDSINGLESTYLE ;
+				if (!this.maximizeBox) this._style = this._style ^ WS_MAXIMIZEBOX ;
+				if (!this.minimizeBox) this._style = this._style ^ WS_MINIMIZEBOX ;
 
 			case FormStyle.NORMAL_WINDOW :
-				f._exStyle = NORMALWINEXSTYLE ;
-				f._style = NORMALWINSTYLE | WS_CLIPCHILDREN ;
-				if (!f.maximizeBox) f._style = f._style ^ WS_MAXIMIZEBOX ;
-				if (!f.minimizeBox) f._style = f._style ^ WS_MINIMIZEBOX ;
+				this._exStyle = NORMALWINEXSTYLE ;
+				this._style = NORMALWINSTYLE | WS_CLIPCHILDREN ;
+				if (!this.maximizeBox) this._style = this._style ^ WS_MAXIMIZEBOX ;
+				if (!this.minimizeBox) this._style = this._style ^ WS_MINIMIZEBOX ;
 
 			case FormStyle.FIXED_TOOL :
-				f._exStyle = FIXEDTOOLEXSTYLE ;
-				f._style = FIXEDTOOLSTYLE ;
+				this._exStyle = FIXEDTOOLEXSTYLE ;
+				this._style = FIXEDTOOLSTYLE ;
 
 			case FormStyle.SIZABLE_TOOL :
-				f._exStyle = SIZABLETOOLEXSTYLE ;
-				f._style = SIZABLETOOLSTYLE ;
+				this._exStyle = SIZABLETOOLEXSTYLE ;
+				this._style = SIZABLETOOLSTYLE ;
 
 			case FormStyle.HIDDEN:
-				f._exStyle = WS_EX_TOOLWINDOW;
-				f._style = WS_BORDER;
+				this._exStyle = WS_EX_TOOLWINDOW;
+				this._style = WS_BORDER;
 			default: break;
 		}
-		if (f.topMost) f._exStyle = f._exStyle | WS_EX_TOPMOST;
-        if (f.formState == FormState.MAXIMIZED) f._style = f._style | WS_MAXIMIZE;
+		if (this.topMost) this._exStyle = this._exStyle | WS_EX_TOPMOST;
+        if (this.formState == FormState.MAXIMIZED) this._style = this._style | WS_MAXIMIZE;
+		this._bkBrush = api_CreateSolidBrush(this.backColor.ref);
 	}
 
 	fn void Form.setPosition(Form* f) @private
@@ -489,6 +474,33 @@ fn void startup_job() @init
 		return null;
 	}
 
+	fn void handleTrayIconEvents(Hwnd hw, Lparam lpm) 
+	{
+		static int x = 1;
+		ptf("baloon %d", lpm);
+		switch (lpm) {
+            case WM_LBUTTONDOWN:
+                ptf("Left button down, %d", x);
+                
+            case WM_LBUTTONUP:
+                ptf("Left button up, %d", x);
+                
+            case WM_LBUTTONDBLCLK:
+                ptf("Left button double-click, %d", x);
+                
+            case WM_RBUTTONDOWN:
+                ptf("Right button down, %d", x);
+                
+            case WM_RBUTTONUP:
+                // Display context menu here
+				ptf("Right button up, %d", x);
+                
+            case WM_MOUSEMOVE:
+				ptf("mouse move, %d", x);
+		}
+		x += 1;
+	}
+
 	fault MenuEventError {MED_NOT_FOUND}
 
 	// This will execute when a Form destroyed
@@ -499,16 +511,10 @@ fn void startup_job() @init
 		}
 		api_DeleteObject((Hgdiobj)this.font.handle);
 
-		if (this.controls.len()) {
-			foreach (ctl: this.controls) {
-				Lresult ret = api_SendMessage(ctl.handle, MM_RUNDTOR, 0, 0);
-			}
-		}
 		this.controls.free();
 		this.name.free();
 		if (this.menubar) {
-			this.menubar.destroy();
-			free(this.menubar);
+			this.menubar.destroy();			
 		}
 		if (this._timerMap.len()) {
 			@pool() {
@@ -518,63 +524,126 @@ fn void startup_job() @init
 		}
 		if (this._menuMapInited) this._menuItemMap.free();
 		if (!noComboUsed) this._comboMap.free();
-		if (this._isMainWindow) api_PostQuitMessage(0);
-		free(this);
+		
+		if (this._isMainWindow) {
+			// if (app.nidUsed) {
+			// 	// api_Shell_NotifyIcon(NIM_DELETE, &app.nid);
+			// 	api_DestroyWindow(app.hMsgWin);
+			// }
+
+			api_PostQuitMessage(0);
+		}
+		allocator::free(&app.tracker, this);
 	}
 
 // End Private Functions
 
 fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {
-	// ptf("WIn Message %s", msg);
+	// static int x = 1;
+	// ptf("[%d] WIn Message %s", x, msg);
+	// x +=1;
 	// Form* this = (Form*)(api_GetWindowLongPtr(hw, GWLP_USERDATA));
-	Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+	// Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 	switch (msg) {
 	// Common msgs
-		case WM_SHOWWINDOW: this.formShownHandler();
-		case WM_ACTIVATEAPP : this.formActivateHandler(wp);
+		case WM_SHOWWINDOW:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.formShownHandler();
+		case WM_ACTIVATEAPP :
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.formActivateHandler(wp);
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case MM_TRAY_MSG:
+			handleTrayIconEvents(hw, lp);
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_LBUTTONDOWN:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.leftClickHandler();
 
-		case WM_MOUSEMOVE: this.formMouseMoveHandler(msg, wp, lp);
-		// case WM_MOUSEHOVER: this.formMouseHoverHandler(msg, wp, lp); // In a later thought, i avoided this.
-		case WM_MOUSELEAVE: this.formMouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
+		case WM_RBUTTONDOWN:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.rightClickHandler();
 
-		case WM_SIZING: return this.formSizingHandler(msg, wp, lp);
-		case WM_SIZE : return this.formSizedHandler(msg, wp, lp);
+		case WM_MOUSEMOVE:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.formMouseMoveHandler(msg, wp, lp);
+		// case WM_MOUSEHOVER:
+			// Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	// this.formMouseHoverHandler(msg, wp, lp); // In a later thought, i avoided this.
+		case WM_MOUSELEAVE:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.formMouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.mouseWheelHandler(msg, wp, lp);
 
-		case WM_MOVING : return this.formMovingHandler(lp);
-		case WM_MOVE : return this.formMovedHandler(lp);
+		case WM_SIZING:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	return this.formSizingHandler(msg, wp, lp);
+		case WM_SIZE :
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	return this.formSizedHandler(msg, wp, lp);
 
-		case WM_SYSCOMMAND : this.formSysCommandHandler(wp);
-		case WM_CLOSE : this.formCloseHandler();
-		case WM_DESTROY: this.formDestroyHandler();
+		case WM_MOVING :
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	return this.formMovingHandler(lp);
+		case WM_MOVE :
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	return this.formMovedHandler(lp);
 
-		case WM_HSCROLL: return api_SendMessage((Hwnd) lp, MM_HSCROLL, wp, lp);
-        case WM_VSCROLL: return api_SendMessage((Hwnd) lp, MM_VSCROLL, wp, lp);
+		case WM_SYSCOMMAND :
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.formSysCommandHandler(wp);
+		case WM_CLOSE :
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.formCloseHandler();
+		case WM_DESTROY:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.formDestroyHandler();
 
-		case WM_TIMER: this.timerHandler(wp);
+		case WM_HSCROLL:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	return api_SendMessage((Hwnd) lp, MM_HSCROLL, wp, lp);
+        case WM_VSCROLL:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	return api_SendMessage((Hwnd) lp, MM_VSCROLL, wp, lp);
 
-		case MM_THREAD_MSG: if (this.onThreadMsg) this.onThreadMsg(wp, lp);
+		case WM_TIMER:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	this.timerHandler(wp);
+
+		case MM_THREAD_MSG:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		 	if (this.onThreadMsg) this.onThreadMsg(wp, lp);
 
 		case WM_ERASEBKGND :
-			if (this._fDrawMode != FormDrawMode.DEFAULT) {
-				this.setBackColorInternal((Hdc)wp);
-				return 1; // We must return non zero value if we handle this message.
-			}
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+			// if (this._fDrawMode != FormDrawMode.DEFAULT) {
+			// 	this.setBackColorInternal((Hdc)wp);
+			// 	return 1; // We must return non zero value if we handle this message.
+			// } else {
+
+			// }
+			this.setBackColorInternal((Hdc)wp);
+			return 1;
 	// end of commons
 
-		case WM_NOTIFY:
+		case WM_NOTIFY:			
 			NMHdr* nmh = (NMHdr*)lp;
 			return api_SendMessage(nmh.hwndFrom, MM_NOTIFY_REFLECT, wp, lp);
-
 
 		case WM_CTLCOLORSTATIC:
 			Hwnd hc = (Hwnd)lp;
@@ -586,6 +655,7 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			return api_SendMessage(hc, MM_COLOR_EDIT, wp, lp);
 
 		case WM_CTLCOLORLISTBOX:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			Hwnd hc = (Hwnd)lp;
 			if (try cmbHwn = this._comboMap[hc]) {
 				return api_SendMessage(cmbHwn, MM_COLOR_LBOX, wp, lp);
@@ -594,6 +664,7 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			}
 
 		case WM_MEASUREITEM:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			MeasureItemStruct* pmi = (MeasureItemStruct*) lp;
 			MenuItem* mi = (MenuItem*) ((void*) pmi.itemData);
 			if (mi.kind == MenuType.BASE_MENU) {
@@ -610,6 +681,7 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			return 1;
 
 		case WM_DRAWITEM:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			DrawItemStruct* dis = (DrawItemStruct*) lp;
 			MenuItem* mi = (MenuItem*) ((void*) dis.itemData);
 			Colorref txtClrRef = mi.fgColor.ref;
@@ -641,6 +713,8 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		// 	return 0;
 
 		case WM_COMMAND:
+			// print("form rcvd command");
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
             switch (hiWord(wp)) {
 				case 0:  // menu click commands
 					uint menuID = (uint) loWord(wp);
@@ -656,6 +730,7 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 
 
 		case WM_MENUSELECT:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			MenuItem* pmenu = this.getMenuFromHmenu((Hmenu) lp);
 			uint mid = (uint)(loWord(wp)); // Could be an id of a child menu or an index of a child menu
 			Word hwwpm = hiWord(wp);
@@ -671,14 +746,19 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			}
 
 		case WM_INITMENUPOPUP:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
 			if (menu && menu.onPopup) menu.onPopup(menu, &&EventArgs{});
 
 		case WM_UNINITMENUPOPUP:
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
         	MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
         	if (menu && menu.onCloseup) menu.onCloseup(menu, &&EventArgs{});
 
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case WM_CONTEXTMENU: 
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+
 		default:
 			return api_DefWindowProc(hw, msg, wp, lp);
 

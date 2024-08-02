@@ -32,6 +32,7 @@ struct Control
 	bool _isMouseEntered;
 	bool _textable;
 	bool _autoSizable;
+	bool _cmenuUsed;
 	Hbrush _bkBrush;
 	Char16* _wideText;
 	Font font;
@@ -134,7 +135,9 @@ fault StringFault
 	{
 		this.contextMenu = cmenu;
 		if (!cmenu.parent) this.contextMenu.parent = this;
-		this.contextMenu.setDummyControl();
+		// this.contextMenu.setDummyControl();
+		// this.contextMenu.createMessageWindow();
+		this._cmenuUsed = true;
 	}
 
 	fn void Control.setContextMenu2(Control* this, String... menuNames) @private
@@ -143,7 +146,9 @@ fault StringFault
 		cmenu.addMenus(menuNames);
 		cmenu.parent = this;
 		this.contextMenu = cmenu;
-		this.contextMenu.setDummyControl();
+		// this.contextMenu.setDummyControl();
+		// this.contextMenu.createMessageWindow();
+		this._cmenuUsed = true;
 	}
 
 	fn int Control.right(&self)	{ return self.getMappedRect().right;	}

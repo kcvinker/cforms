@@ -31,11 +31,11 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// ProgressBar constructor - Create and returns a New ProgressBar struct
 	fn ProgressBar* newProgressBar(Form* parent, int x = 10, int y = 10,
 									int width = 200, int height = 25, bool perc = false,
-									bool auto = false, Allocator using = allocator::heap())
+									bool auto = false)
 	{
-		ProgressBar* this = mem::new(ProgressBar);
+		ProgressBar* this = allocator::new(&app.tracker, ProgressBar);
 		this.kind = ControlType.PROGRESS_BAR;
-		this.name = dstring::new("ProgressBar_");
+		this.name = dstring::new("ProgressBar_", &app.tracker);
 		this.name.appendf("%d", pbNumber);
 		this.className = &pgbClass[0];
 		this._parent = parent;
@@ -80,7 +80,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 			this.value = ivalue;
 			if (this._isCreated) this.sendMsg(PBM_SETPOS, ivalue, 0);
 		} else {
-			log("ivalue is not in between minValue & maxValue");
+			print("ivalue is not in between minValue & maxValue");
 		}
 	}
 
@@ -105,7 +105,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 			this.step = value;
 			if (this._isCreated) this.sendMsg(PBM_SETSTEP, this.step, 0);
 		} else {
-			log("ivalue is not in between minValue & maxValue");
+			print("ivalue is not in between minValue & maxValue");
 		}
 	}
 
@@ -189,43 +189,75 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
-		free(this);
+		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
 
 
 fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	ProgressBar* this = bitcast(refData, ProgressBar*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &pbWndProc, scID);
+		case WM_DESTROY:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			api_RemoveWindowSubclass(hw, &pbWndProc, scID);
+			this.dtor();
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case WM_LBUTTONDOWN:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_RBUTTONDOWN:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.rightClickHandler();
 
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
+		case WM_MOUSEMOVE:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.mouseWheelHandler(msg, wp, lp);
 
-		case WM_KEYDOWN: this.keyDownHandler(wp);
-		case WM_KEYUP: this.keyUpHandler(wp);
-		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case WM_KEYDOWN:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.keyDownHandler(wp);
+		case WM_KEYUP:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.keyUpHandler(wp);
+		case WM_CHAR:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			this.keyPressHandler(wp);
+		case WM_CONTEXTMENU:
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case WM_PAINT:
-			if (this.showPercentage && this.barStyle != ProgressBarStyle.MARQUEE_STYLE) {
+			ProgressBar* this = bitcast(refData, ProgressBar*);
+						if (this.showPercentage && this.barStyle != ProgressBarStyle.MARQUEE_STYLE) {
 				api_DefSubclassProc(hw, msg, wp, lp);
 				return this.paintHandler();
 			} else {
 				return api_DefSubclassProc(hw, msg, wp, lp);
 			}
+		default:
+			return api_DefSubclassProc(hw, msg, wp, lp);
 
-		case MM_RUNDTOR: this.dtor(); return 0;
+		// case MM_RUNDTOR: this.dtor(); return 0;
 
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);

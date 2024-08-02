@@ -33,11 +33,11 @@ struct ListBox
 	// ListBox constructor
 	fn ListBox* newListBox(Form* parent, int x = 10, int y = 10,
 							int width = 150, int height = 150,
-							bool auto = false, Allocator using = allocator::heap())
+							bool auto = false)
 	{
-		ListBox* this = mem::new(ListBox);
+		ListBox* this = allocator::new(&app.tracker, ListBox);
 		this.kind = ControlType.LIST_BOX;
-		this.name = dstring::new("ListBox_");
+		this.name = dstring::new("ListBox_", &app.tracker);
 		this.name.appendf("%d", lbxNumber);
 		this.className = &lbxClass[0];
 		this._parent = parent;
@@ -237,7 +237,7 @@ struct ListBox
 
 	fault ArrayResult {EMPTY_ARRAY}
 
-	// Internal function to get an item
+	// Internal function to get an item. Caller must free the return value
 	fn String ListBox.getItemInternal(ListBox* this, int index) @private
 	{
 		int sLen = (int)this.sendMsg(LB_GETTEXTLEN, index, 0);
@@ -245,7 +245,7 @@ struct ListBox
 			@pool() {
 				Char16[] buffer = mem::temp_alloc_array(Char16, sLen);
 				Lresult res =this.sendMsg(LB_GETTEXT, index, &buffer[0]);
-				String x = string::new_from_utf16(buffer)!!;
+				String x = string::new_from_utf16(buffer, &app.tracker)!!;
 				return x;
 			};
 		}
@@ -285,37 +285,72 @@ struct ListBox
 		this.selectedIndices.free();
 		this.items.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		free(this);
+		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
 
 
 fn Lresult lbxWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	ListBox* this = bitcast(refData, ListBox*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &lbxWndProc, scID);
+		case WM_DESTROY:
+			ListBox* this = bitcast(refData, ListBox*);
+			api_RemoveWindowSubclass(hw, &lbxWndProc, scID);
+			this.dtor();
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case WM_LBUTTONDOWN:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_RBUTTONDOWN:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.rightClickHandler();
 
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
+		case WM_MOUSEMOVE:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.mouseWheelHandler(msg, wp, lp);
 
-		case WM_KEYDOWN: this.keyDownHandler(wp);
-		case WM_KEYUP: this.keyUpHandler(wp);
-		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case MM_COLOR_LBOX: return (Lresult) this.colorMsgHandler(wp);
-		case MM_CTL_COMMAND : this.wmCommandHandler(wp);
-		case MM_RUNDTOR: this.dtor(); return 0;
+		case WM_KEYDOWN:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.keyDownHandler(wp);
+		case WM_KEYUP:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.keyUpHandler(wp);
+		case WM_CHAR:
+			ListBox* this = bitcast(refData, ListBox*);
+			this.keyPressHandler(wp);
+		case WM_CONTEXTMENU:
+			ListBox* this = bitcast(refData, ListBox*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case MM_COLOR_LBOX:
+			ListBox* this = bitcast(refData, ListBox*);
+			return (Lresult) this.colorMsgHandler(wp);
+		case MM_CTL_COMMAND :
+			ListBox* this = bitcast(refData, ListBox*);
+			this.wmCommandHandler(wp);
+		default:
+			return api_DefSubclassProc(hw, msg, wp, lp);
+		// case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

@@ -7,13 +7,14 @@ import std::collections::list;
 import std::collections::map;
 // import std::sort;
 // import libc;
-
+Wstring cmenuMsgWinClass = {'c', 'f', 'o', 'r', 'm', 's', '_', 'C', 'm', 'e', 'n', 'u', '_', 'M', 's','g','_','w', 'i','n', 0};
 def MenuItemList = List(<MenuItem*>);
 def MenuMap = std::collections::map::HashMap(<String, MenuItem*>);
 enum MenuType : char {BASE_MENU, MENU_ITEM, POPUP, SEPRATOR }
 def MenuEventHandler = fn void(MenuItem*, EventArgs*);
 uint menuNumber = 101;
 Hmenu nullMenu = (Hmenu)0;
+bool cmenuMsgWinCreated = false;
 
 struct MenuBase
 {
@@ -70,9 +71,9 @@ struct MenuItem
 }
 
 // Menubar Constructor
-fn MenuBar* newMenuBar(Form* frm, Allocator using = allocator::heap())
+fn MenuBar* newMenuBar(Form* frm)
 {
-	MenuBar* this = mem::new(MenuBar);
+	MenuBar* this = allocator::new(&app.tracker, MenuBar);
 	this.handle = api_CreateMenu();
 	this._pForm = frm;
 	this.font = newFont("Tahoma", 11);
@@ -90,8 +91,9 @@ fn bool isPopup(MenuType mtp)
 	return mtp == MenuType.BASE_MENU || mtp == MenuType.POPUP;
 }
 
-fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint indexNum, Allocator using = allocator::heap()) {
-	MenuItem* this = mem::new(MenuItem);
+fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint indexNum, ) 
+{
+	MenuItem* this = allocator::new(&app.tracker, MenuItem);
 	this._popup = isPopup(mtp);
     this.handle = this._popup ? api_CreatePopupMenu() : api_CreateMenu();
     this._index = indexNum;
@@ -108,7 +110,7 @@ fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint 
 }
 
 
-fn MenuItem* MenuBar.addItem(MenuBar* this, String menuName, uint txtColor = 0x000000)
+fn MenuItem* MenuBar.addItem(&this, String menuName, uint txtColor = 0x000000)
 {
 	MenuItem* mi = newMenuItem(menuName, MenuType.BASE_MENU, this.handle, this._menuCount);
     mi._formHwnd = this._pForm.handle;
@@ -123,7 +125,7 @@ fn MenuItem* MenuBar.addItem(MenuBar* this, String menuName, uint txtColor = 0x0
 }
 
 // Add more than one menu item to menu bar.
-fn void MenuBar.addItems(MenuBar* this, String... menuNames)
+fn void MenuBar.addItems(&this, String... menuNames)
 {
 	foreach (name: menuNames) {
 		MenuItem* mi = newMenuItem(name, MenuType.BASE_MENU, this.handle, this._menuCount);
@@ -138,7 +140,7 @@ fn void MenuBar.addItems(MenuBar* this, String... menuNames)
 }
 
 // Create menu handles and set menus in menubar. Must call this after creating menubar struct.
-fn void MenuBar.createHandle(MenuBar* this)
+fn void MenuBar.createHandle(&this)
 {
 	this._menuDefBgBrush = getHbrush(0xe9ecef);
     this._menuHotBgBrush = getHbrush(0x90e0ef);
@@ -163,7 +165,7 @@ fn bool sortMenuItemList(MenuItem* a, MenuItem* b) @private
 	return a.idNum < b.idNum;
 }
 
-fn void MenuItem.insertMenuInternal(MenuItem* this, Hmenu parentHmenu)
+fn void MenuItem.insertMenuInternal(&this, Hmenu parentHmenu)
 {
 	MenuItemInfoW mii;
     mii.cbSize = (uint) MenuItemInfoW.sizeof;
@@ -181,7 +183,7 @@ fn void MenuItem.insertMenuInternal(MenuItem* this, Hmenu parentHmenu)
 
 
 // Create menu item and append the handle in parent menu.
-fn void MenuItem.create(MenuItem* this)
+fn void MenuItem.create(&this)
 {
 	switch (this.kind) {
     	case MenuType.BASE_MENU: nextcase;
@@ -217,7 +219,7 @@ fn void MenuItem.create(MenuItem* this)
 }
 
 // Add menu item to existing menu item. So the parent become a popup menu.
-fn MenuItem* MenuItem.addItem(MenuItem* this, String menuName, uint txtColor = 0x000000)
+fn MenuItem* MenuItem.addItem(&this, String menuName, uint txtColor = 0x000000)
 {
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
@@ -237,7 +239,7 @@ fn MenuItem* MenuItem.addItem(MenuItem* this, String menuName, uint txtColor = 0
 }
 
 //Add more than one menu item to existing menu item.
-fn void MenuItem.addItems(MenuItem* this, String... menuNames )
+fn void MenuItem.addItems(&this, String... menuNames )
 {
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
@@ -271,7 +273,7 @@ fn void MenuItem.addItems(MenuItem* this, String... menuNames )
 // 	api_SendMessage(this._formHwnd, MM_MENU_NOTIFY, 0, (Lparam)(void*)this);
 // }
 
-fn MenuItem* MenuItem.getChildFromIndex(MenuItem* this, uint indx)
+fn MenuItem* MenuItem.getChildFromIndex(&this, uint indx)
 {
 	if (this._menuCount > 0) {
 		@pool() {
@@ -284,7 +286,7 @@ fn MenuItem* MenuItem.getChildFromIndex(MenuItem* this, uint indx)
 }
 
 // Freeing resources for a menu item
-fn void MenuItem.destroy(MenuItem* this)
+fn void MenuItem.destroy(&this)
 {
 	if (this._menuCount > 0) {
 		@pool() {
@@ -293,11 +295,11 @@ fn void MenuItem.destroy(MenuItem* this)
 		};
 	}
 	free(this._wideText);
-	free(this);
+	allocator::free(&app.tracker, this);
 }
 
 // Freeing resources for a menu bar
-fn void MenuBar.destroy(MenuBar* this)
+fn void MenuBar.destroy(&this)
 {
 	if (this._menuCount) {
 		@pool() {
@@ -305,6 +307,7 @@ fn void MenuBar.destroy(MenuBar* this)
 			this.menus.free();
 		};
 	}
+	allocator::free(&app.tracker, this);
 }
 
 
@@ -316,19 +319,24 @@ struct ContextMenu
     int width, height;
     bool rightClick;
 	bool _menuInserted;
+	bool _trayParent;
     Colorref _grayCref;
     Hwnd _dummyHwnd;
     Control* parent;
+	TrayIcon* tray;
     Hbrush _defBgBrush, _hotBgBrush, _borderBrush, _grayBrush;
 
 	// Events
     EventHandler onMenuShown, onMenuClose;
+    TrayIconEventHandler onTrayMenuShown, onTrayMenuClose;
+
 }
 
-fn ContextMenu* newContextMenu(Allocator using = allocator::heap())
+fn ContextMenu* newContextMenu()
 {
-	ContextMenu* this = mem::new(ContextMenu);
+	ContextMenu* this = allocator::new(&app.tracker, ContextMenu);
 	this.handle = api_CreatePopupMenu();
+	// ptf("cmenu handle %d", this.handle);
 	this.width = 120;
 	this.height = 25;
 	this.rightClick = true;
@@ -338,10 +346,16 @@ fn ContextMenu* newContextMenu(Allocator using = allocator::heap())
 	this._borderBrush = getHbrush(0x0077b6);
 	this._grayBrush = getHbrush(0xced4da);
 	this._grayCref = getClrRef(0x979dac);
+
+	/* 	We are using a message-only-window to handle all messages from context menu.
+		We will create the message-only-window class once. But we will create...
+		the message-only-windows for each time a context appears. */
+	if (!cmenuMsgWinCreated) registerCmenuMessageWindow();
+	this.createMessageWindow();
 	return this;
 }
 
-fn void ContextMenu.addMenus(ContextMenu* this, String[] menuNames)
+fn void ContextMenu.addMenus(&this, String[] menuNames)
 {
 	foreach (name: menuNames) {
 		MenuType mtyp = name == "|" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;
@@ -351,7 +365,7 @@ fn void ContextMenu.addMenus(ContextMenu* this, String[] menuNames)
 	}
 }
 
-fn MenuItem* ContextMenu.addMenu(ContextMenu* this, String menuText)
+fn MenuItem* ContextMenu.addMenu(&this, String menuText)
 {
 	MenuType mtyp = menuText == "_" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;
 	MenuItem* mi = newMenuItem(menuText, mtyp, this.handle, this._menuCount);
@@ -385,25 +399,8 @@ fn void ContextMenu.createHandle(&this)
 }
 
 
-fn bool ContextMenu.isParentForm(ContextMenu* this) @private {return this.parent.kind == ControlType.NONE;}
-fn void ContextMenu.setDummyControl(ContextMenu* this)
-{
-	Hwnd pHwnd;
-	Hinstance hinsta;
-	if (this.isParentForm()) {
-		pHwnd = this.parent.handle;
-		hinsta = ((Form*)this.parent).hinst;
-	} else {
-		pHwnd = this.parent._parent.handle;
-		hinsta = this.parent._parent.hinst;
-	}
-	Char16* btnClass = String.to_new_utf16("Button")!!;
-	defer free(btnClass);
-	this._dummyHwnd = api_CreateWindowEx(0,  btnClass, null, WS_CHILD, 0, 0, 0, 0, pHwnd, null, hinsta, null);
-	api_SetWindowSubclass(this._dummyHwnd, &cmenuWndProc,  globalSubClsID, bitcast(this, Dwordptr));
-	globalSubClsID += 1;
-	if (!this.font.handle) this.font.createHandle(this._dummyHwnd);
-}
+// fn bool ContextMenu.isParentForm(&this) @private {return this.parent.kind == ControlType.NONE;}
+
 
 fn MenuItem* ContextMenu.getMenuItem(ContextMenu* this, uint id) @private
 {
@@ -416,47 +413,90 @@ fn MenuItem* ContextMenu.getMenuItem(ContextMenu* this, uint id) @private
 /**
  * @require this.parent && this.menus.count "Either parent is null or no menu items added"
 **/
-fn void ContextMenu.showMenu(ContextMenu* this, Lparam lpm)
+fn void ContextMenu.showMenu(&this, Lparam lpm)
 {
+	/*=====================================================
+	Let's first create the message-only-window for this menu.
+	These windows are lightweight windows, so that they occupy 
+	very less amount of memory. And they are good for handling messages.
+	=====================================================================*/
+	// this.createMessageWindow();
 	if (!this._menuInserted) this.createHandle();
 	Point pt = getMousePoints(lpm);
 	if (pt.x == -1 && pt.y == -1) {
-		// ContextMenu message generated by keybord shortcut.
-		// So we need to find the mouse position.
+		/* ContextMenu message generated by keybord shortcut.
+		So we need to find the mouse position.*/
 		pt = getMousePosOnMsg();
 	}
+
 	uint mBtn = this.rightClick ? TPM_RIGHTBUTTON : TPM_LEFTBUTTON;
-	api_TrackPopupMenu(this.handle, mBtn, pt.x, pt.y, 0, this._dummyHwnd, null);
+	api_TrackPopupMenu(this.handle, 2 , pt.x, pt.y, 0, this._dummyHwnd, null);	
+	// ptf("showmenu res %d", x);
 }
 
-fn void ContextMenu.destroy(ContextMenu* this)
+fn void ContextMenu.destroy(&this)
 {
+	/*	When a control is enabled it's context menu, it is responsible...
+		to call this destroyer when it is done with the context menu. */
+
+	// We first clean our menu items.
 	if (this._menuCount > 0) {
 		@pool() {
 			foreach (menu: this.menus.value_tlist()) { menu.destroy();}
 		};
 		this.menus.free();
 	}
-	print("Context menu is about to destroy");
+	api_DestroyWindow(this._dummyHwnd);
 	api_DestroyMenu(this.handle);
-	free(this);
+	allocator::free(&app.tracker, this);
+	// print("Context menu struct destroyed");
 }
 
-fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
+
+fn void registerCmenuMessageWindow() @private
 {
-	ContextMenu* this = bitcast(refData, ContextMenu*);
+	WndClassEx wc;
+	wc.cbSize = WndClassEx.sizeof;
+	wc.lpfnWndProc = &cmenuWndProc;
+	wc.hInstance = app.hins;
+	wc.lpszClassName = &cmenuMsgWinClass[0];
+	api_RegisterClassEx(&wc);
+	cmenuMsgWinCreated = true;
+	// print("context menu message-only window registered");
+}
+
+// Creating message only window for handling menu messages.
+fn void ContextMenu.createMessageWindow(&this) @private
+{	
+	this._dummyHwnd = api_CreateWindowEx(0, &cmenuMsgWinClass[0], null, 0, 0, 0, 0, 0, HWND_MESSAGE, null, app.hins, null);    
+    api_SetWindowLongPtr(this._dummyHwnd, GWLP_USERDATA, bitcast(this, Longptr));
+	if (!this.font.handle) this.font.createHandle(this._dummyHwnd);
+	// ptf("Cmenu message only win handle %d", this._dummyHwnd);
+}
+
+
+fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
+{	
+	// log("cmenu wnd proc %d", msg);
 	switch (msg) {
 		case WM_DESTROY:
-			this.destroy();
-			api_RemoveWindowSubclass(hw, &cmenuWndProc, scID);;
+			// ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
+			// this.destroy();
+			// api_RemoveWindowSubclass(hw, &cmenuWndProc, scID);;
+			print("context menu's message-only-window destroyed");
+
+		// case WM_INITMENUPOPUP:
+		// 	print("WM_INITMENUPOPUP");
 
 		case WM_MEASUREITEM:
+			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
 			MeasureItemStruct* pmi = (MeasureItemStruct*)lp;
 			pmi.itemWidth = this.width;
 			pmi.itemHeight = this.height;
 			return 1;
 
     	case WM_DRAWITEM:
+			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
 			DrawItemStruct* dis = (DrawItemStruct*)lp;
 			MenuItem* mi = (MenuItem*)((void*)dis.itemData);
 			Colorref txtClrRef = mi.fgColor.ref;
@@ -483,30 +523,56 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, D
 			return 0;
 
 		case WM_ENTERMENULOOP:
-			if (this.onMenuShown) this.onMenuShown(this.parent, &&EventArgs{});
+			
+			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
+			// ptf("WM_ENTERMENULOOP, cmenu handle %d", this.handle);
+			if (this.onMenuShown) {
+				if (this._trayParent) {
+					this.onTrayMenuShown(this.tray, &&EventArgs{});
+				} else {
+					this.onMenuShown(this.parent, &&EventArgs{});
+				}
+			}				
 
 		case WM_EXITMENULOOP:
-			if (this.onMenuClose) this.onMenuClose(this.parent, &&EventArgs{});
+			// print("WM_EXITMENULOOP");
+			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
+			if (this.onMenuClose) {
+				if (this._trayParent) {
+					this.onTrayMenuClose(this.tray, &&EventArgs{});
+				} else {			
+					this.onMenuClose(this.parent, &&EventArgs{});
+				}
+			}
 
 		case WM_MENUSELECT:
+			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
 			int idNum = (int) loWord(wp);
 			Hmenu hMenu = (Hmenu) lp;
 			if (hMenu && idNum > 0) {
 				MenuItem* menu = this.getMenuItem(idNum);
+				// ptf("menu text %s, onClick %d", menu.text, (int)(uptr)menu.onClick);
 				if (menu && menu._isEnabled) {
 					if (menu.onFocus) menu.onFocus(menu, &&EventArgs{});
 				}
 			}
 
 		case WM_COMMAND:
+			// print("cmenu wm_command 557");
+			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);			
 			uint idNum = (uint) loWord(wp);
 			if (idNum > 0) {
 				MenuItem* menu = this.getMenuItem(idNum);
+				// ptf("wm command %s", menu.text);
 				if (menu && menu._isEnabled) {
 					if (menu.onClick) menu.onClick(menu, &&EventArgs{});
 				}
 			}
+			
+
+		default:
+			return api_DefWindowProc(hw, msg, wp, lp);
 	}
-	return api_DefSubclassProc(hw, msg, wp, lp);
+	return 0;
 }
 

@@ -35,17 +35,24 @@ ListView* lv;
 // MenuBar* mb;
 int cntr = 1;
 Timer* tm;
+TrayIcon* ti;
+
 fn void makeWindow()
 {
 	// ulong x = 800;
 
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	// frm.setBackColor(0xaaff00);
-	// frm.onMouseDown = &frmOnMouseDown;
+	frm.onMouseDown = &frmOnMouseDown;
 	// frm.width = 800;
-	frm.onMouseDown = fn(c, e) => frm.printPoint(e);
+	// frm.onMouseDown = fn(c, e) => frm.printPoint(e);
 	frm.createHandle();
-	// ptf("form handle %d, form hinst: %d", frm.handle, frm.hinst );
+
+	// Add a tray icon for our program
+	ti = newTrayIcon("cforms sample tray icon", "cforms.ico");
+	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
+	ti.addContextMenu(TrayMenuTrigger.RIGHT_CLICK, "Windows", "Linux", "MacOS");
+	ti.cmenu.menus["Linux"]!!.onClick = fn(c,e) => print("Linux menu selected from tray");
 
 	// Let's add a timer. 400 is the ticking interval in ms.
 	// onTimerTick is the tick event handler
@@ -127,25 +134,24 @@ fn void makeWindow()
 
 	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10, .auto = true);
 
-
-
-
-	// ptf("Total allocated memory: %s, Allocation count: %s", tar.total_allocated(), tar.allocation_count())!!;
-
 	frm.show();
 
 }
 
+
+
 fn int main(String[] args) {
-	mem::@report_heap_allocs_in_scope()
-	{
-		makeWindow();
-	};
+	// mem::@report_heap_allocs_in_scope()
+	// {
+	makeWindow();
+	// };
 	return 0;
 }
 
 fn void frmOnMouseDown(Control* f, MouseEventArgs* e) {
 	frm.printPoint(e);
+	ti.showBalloon("My Balloon", "See this balloon message", 3500, .noSound = true, .icon = BallonIcon.WARNING);
+	// ti.updateIcon("D:\\Icons\\Dakirby309-Windows-8-Metro-Web-Microsoft-Store-Metro.ico");
 }
 
 fn void frmMouseDown(Control* c, MouseEventArgs* e) {
@@ -155,7 +161,9 @@ fn void frmMouseDown(Control* c, MouseEventArgs* e) {
 fn void onB2Click(Control* s, EventArgs* e)
 {
 	print("Button pressed");
-	tm.start();
+	// tm.start();
+	ti.showBalloon("My Balloon", "this message has sound", 3500, .icon = BallonIcon.CUSTOM, .iconpath = "D:\\Icons\\Tatice-Cristal-Intense-Papillon-MSN.ico");
+
 }
 
 fn void onTimerTick(Control* f, EventArgs* e) {
@@ -180,7 +188,7 @@ fn void btnClick(Control* c, EventArgs* e) {
 
 
 fn void onMenuClick(MenuItem* m, EventArgs* e) {
-	ptf("menu text %s", m.text);
+	ptf("menu text (191) %s", m.text);
 }
 
 fn void onTrackChange(Control* m, EventArgs* e) {

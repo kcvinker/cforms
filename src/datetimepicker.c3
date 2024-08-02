@@ -44,11 +44,11 @@ enum DTPFormat : int(String descrption, int value )
 // Public functions
 	// DateTimePicker constructor
 	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10,
-											bool auto = false, Allocator using = allocator::heap())
+											bool auto = false)
 	{
-		DateTimePicker* this = mem::new(DateTimePicker);
+		DateTimePicker* this = allocator::new(&app.tracker, DateTimePicker);
 		this.kind = ControlType.DATE_TIME_PICKER;
-		this.name = dstring::new("DateTimePicker_");
+		this.name = dstring::new("DateTimePicker_", &app.tracker);
 		this.name.appendf("%d", dtpNumber);
 		this.className = &dtpClass[0];
 		this._parent = parent;
@@ -156,39 +156,70 @@ enum DTPFormat : int(String descrption, int value )
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		free(this);
+		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
 
 
 fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	DateTimePicker* this = bitcast(refData, DateTimePicker*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(hw, &dtpWndProc, scID);
+		case WM_DESTROY:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			api_RemoveWindowSubclass(hw, &dtpWndProc, scID);
+			this.dtor();
+		case WM_LBUTTONDOWN:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.leftClickHandler();
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case WM_RBUTTONDOWN:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.rightClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_MOUSEMOVE:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.mouseWheelHandler(msg, wp, lp);
+		case WM_CONTEXTMENU:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case WM_KEYDOWN:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.keyDownHandler(wp);
+		case WM_KEYUP:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.keyUpHandler(wp);
+		case WM_CHAR:
+			DateTimePicker* this = bitcast(refData, DateTimePicker*);
+			this.keyPressHandler(wp);
 
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case WM_KEYDOWN: this.keyDownHandler(wp);
-		case WM_KEYUP: this.keyUpHandler(wp);
-		case WM_CHAR: this.keyPressHandler(wp);
+		default:
+			return api_DefSubclassProc(hw, msg, wp, lp);
 
 		// case MM_COLOR_LBOX: return (Lresult) this.colorMsgHandler(wp);
 
 		// case MM_CTL_COMMAND : this.wmCommandHandler(wp);
 
-		case MM_RUNDTOR: this.dtor(); return 0;
+		// case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

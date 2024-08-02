@@ -32,11 +32,11 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	// TextBox constructor
 	fn TextBox* newTextBox(Form* parent, String text, int x = 10, int y = 10,
 							int width = 140, int height = 27,
-							bool auto = false, Allocator using = allocator::heap())
+							bool auto = false)
 	{
-		TextBox* this = mem::new(TextBox);
+		TextBox* this = allocator::new(&app.tracker, TextBox);
 		this.kind = ControlType.TEXT_BOX;
-		this.name = dstring::new("TextBox_");
+		this.name = dstring::new("TextBox_", &app.tracker);
 		this.name.appendf("%d", tbNumber);
 		this.className = &tbClass[0];
 		this._parent = parent;
@@ -136,39 +136,74 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.name.free();
 		this.cueStr.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		free(this);
+		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
 
 
 fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	TextBox* this = bitcast(refData, TextBox*);
+	
 	// io::printfn("message %s", msg);
 	switch (msg) {
-		case WM_DESTROY: api_RemoveWindowSubclass(this.handle, &tbWndProc, scID);
+		case WM_DESTROY:
+			TextBox* this = bitcast(refData, TextBox*);
+			api_RemoveWindowSubclass(this.handle, &tbWndProc, scID);
+			this.dtor();
 
-		case WM_LBUTTONDOWN: this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP: this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK: this.leftClickHandler();
+		case WM_LBUTTONDOWN:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.leftMouseDownHandler(msg, wp, lp);
+		case WM_LBUTTONUP:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.leftMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_LBCLICK:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.leftClickHandler();
 
-		case WM_RBUTTONDOWN: this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP: this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK: this.rightClickHandler();
+		case WM_RBUTTONDOWN:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.rightMouseDownHandler(msg, wp, lp);
+		case WM_RBUTTONUP:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.rightMouseUpHandler(msg, wp, lp);
+		case MM_MOUSE_RBCLICK:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.rightClickHandler();
 
-		case WM_MOUSEMOVE: this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE: this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL: this.mouseWheelHandler(msg, wp, lp);
+		case WM_MOUSEMOVE:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.mouseMoveHandler(msg, wp, lp);
+		case WM_MOUSELEAVE:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.mouseLeaveHandler();
+		case WM_MOUSEWHEEL:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.mouseWheelHandler(msg, wp, lp);
 
-		case WM_KEYDOWN: this.keyDownHandler(wp);
-		case WM_KEYUP: this.keyUpHandler(wp);
-		case WM_CHAR: this.keyPressHandler(wp);
-		case WM_CONTEXTMENU: if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case MM_COLOR_EDIT: return (Lresult) this.colorMsgHandler(wp);
+		case WM_KEYDOWN:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.keyDownHandler(wp);
+		case WM_KEYUP:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.keyUpHandler(wp);
+		case WM_CHAR:
+			TextBox* this = bitcast(refData, TextBox*);
+			this.keyPressHandler(wp);
+		case WM_CONTEXTMENU:
+			TextBox* this = bitcast(refData, TextBox*);
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+		case MM_COLOR_EDIT:
+			TextBox* this = bitcast(refData, TextBox*);
+			return (Lresult) this.colorMsgHandler(wp);
 		case MM_CTL_COMMAND:
-			Word ncode = hiWord(wp);
+			TextBox* this = bitcast(refData, TextBox*);
+						Word ncode = hiWord(wp);
 			if ((ncode == EN_CHANGE) && this.onTextChanged) this.onTextChanged(this, &&EventArgs{});
-		case MM_RUNDTOR: this.dtor(); return 0;
+
+		default:
+			return api_DefSubclassProc(hw, msg, wp, lp);
+		// case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

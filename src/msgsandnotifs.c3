@@ -2,6 +2,33 @@
 // msgs_and_notifications module - Created on 26-Jan-2023 07:00;
 module cforms;
 
+// My Own Messages
+	const uint BASE_MSG = WM_APP + 1;
+	const uint MM_MOUSE_LBCLICK = BASE_MSG + 0;
+	const uint MM_MOUSE_RBCLICK = BASE_MSG + 1;
+	const uint MM_NOTIFY_REFLECT = BASE_MSG + 2;
+	const uint MM_RUNDTOR = BASE_MSG + 3;
+	const uint MM_COLOR_STATIC = BASE_MSG + 4;
+	const uint MM_COLOR_EDIT = BASE_MSG + 5;
+	const uint MM_COLOR_LBOX = BASE_MSG + 6;
+	const uint MM_CTL_COMMAND = BASE_MSG + 7;
+	const uint MM_BUDDY_RESIZE = BASE_MSG + 8;
+	const uint MM_HSCROLL = BASE_MSG + 9;
+	const uint MM_VSCROLL = BASE_MSG + 10;
+	const uint MM_MENU_ADDED = BASE_MSG + 11;
+	const uint MM_NODE_ADDED = BASE_MSG + 12;
+	const uint MM_NODE_INSERTED = BASE_MSG + 13;
+	const uint MM_NODE_DELETED = BASE_MSG + 14;
+	const uint MM_THREAD_MSG = BASE_MSG + 15;
+    const uint MM_TRAY_MSG = BASE_MSG + 16; // 32785
+
+	const HDM_FIRST = 4608;
+	const HDM_LAYOUT = (HDM_FIRST + 5);
+	const HDM_HITTEST = (HDM_FIRST + 6);
+	const HDM_GETITEMRECT = (HDM_FIRST + 7);
+
+// End of My own messages
+
 const uint WM_NULL = 0;
 const uint WM_CREATE = 1;
 const uint WM_DESTROY = 2;
