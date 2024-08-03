@@ -48,11 +48,12 @@ fn void makeWindow()
 	// frm.onMouseDown = fn(c, e) => frm.printPoint(e);
 	frm.createHandle();
 
+	
 	// Add a tray icon for our program
 	ti = newTrayIcon("cforms sample tray icon", "cforms.ico");
 	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
 	ti.addContextMenu(TrayMenuTrigger.RIGHT_CLICK, "Windows", "Linux", "MacOS");
-	ti.cmenu.menus["Linux"]!!.onClick = fn(c,e) => print("Linux menu selected from tray");
+	ti.contextMenu.menus["Linux"]!!.onClick = fn(c,e) => print("Linux menu selected from tray");
 
 	// Let's add a timer. 400 is the ticking interval in ms.
 	// onTimerTick is the tick event handler
@@ -67,6 +68,7 @@ fn void makeWindow()
 
 	b1 = newButton(frm, "Normal Btn", 10, 10, .auto = true);
 	b1.onMouseClick = &btnClick;
+	
 
 	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10, .auto = true);
 	// b2.onMouseClick = &btnClick2;
@@ -88,6 +90,7 @@ fn void makeWindow()
 
 	gb = newGroupBox(frm,"Compiler Options", 10, b1.bottom() + 10, .height = 150, .auto = true);
 	gb.setForeColor(0x007f5f);
+	
 
 	cb = newCheckBox(frm, "Threads On", 20, gb.ypos + 30, .auto = true);
 	CheckBox* cb2 = newCheckBox(frm, "Hints Off", 20, cb.bottom() + 10, .auto = true);

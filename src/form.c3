@@ -253,6 +253,7 @@ struct Form
 		wc.lpszClassName = &className[0];
 		api_RegisterClassEx(&wc);
 		
+		
 		// ptf("wm app %d", WM_APP);
 	}
 
@@ -524,13 +525,8 @@ struct Form
 		}
 		if (this._menuMapInited) this._menuItemMap.free();
 		if (!noComboUsed) this._comboMap.free();
-		
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		if (this._isMainWindow) {
-			// if (app.nidUsed) {
-			// 	// api_Shell_NotifyIcon(NIM_DELETE, &app.nid);
-			// 	api_DestroyWindow(app.hMsgWin);
-			// }
-
 			api_PostQuitMessage(0);
 		}
 		allocator::free(&app.tracker, this);
@@ -540,11 +536,7 @@ struct Form
 
 fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {
-	// static int x = 1;
-	// ptf("[%d] WIn Message %s", x, msg);
-	// x +=1;
-	// Form* this = (Form*)(api_GetWindowLongPtr(hw, GWLP_USERDATA));
-	// Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+	// log("WIn Message %s", msg);
 	switch (msg) {
 	// Common msgs
 		case WM_SHOWWINDOW:

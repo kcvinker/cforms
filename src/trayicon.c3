@@ -204,20 +204,15 @@ fn void TrayIcon.create_message_window(&this) @private
 
 fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {   
-    // static int x = 1;
-    // ptf("[%d] message in tray icon wndproc %d, wpm %d, lpm %d", x, msg, wp, lp);
-    // x += 1;
 	switch(msg) {
 
 		case WM_DESTROY:
             // Let's destroy all resources of tray icon
             TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-            Bool p = api_Shell_NotifyIcon(NIM_DELETE, &this._nid);
-		    
+            api_Shell_NotifyIcon(NIM_DELETE, &this._nid);		    
             if (this._hTrayIcon) api_DestroyIcon(this._hTrayIcon);
             if (this._cmenuUsed) this.contextMenu.destroy();
-            allocator::free(&app.tracker, this);
-            // ptf("message only window destroyed, nim delete res %d", p);
+            allocator::free(&app.tracker, this);            
             
 		case MM_TRAY_MSG:			
             switch(lp) {

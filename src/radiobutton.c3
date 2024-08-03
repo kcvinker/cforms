@@ -125,6 +125,7 @@ struct RadioButton
 		this.name.free();
 		free(this._wideText);
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
 	}
 // End of Private functions

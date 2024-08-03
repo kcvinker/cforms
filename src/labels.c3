@@ -106,6 +106,7 @@ struct Label
 		this.name.free();
 		api_DeleteObject((Hgdiobj)this._bkBrush);
 		free(this._wideText);
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
 	}
 // End of Private functions

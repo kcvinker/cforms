@@ -78,14 +78,13 @@ fn String numeralsToString(any value) @private
 
 macro void log(String msg, ...) // Helper macro to print the debug data
 {
-	static int x = 1;
-	static String y = "[%d] ";
+	tlocal int x = 1;
+	tlocal String y = "[%d] ";
 	@pool() {
-		String nMsg = String.concat(y, msg); //, &app.tracker);
-		ptf(nMsg, x, $vasplat(0..));		
+		String nMsg = String.tconcat(y, msg); //, &app.tracker);
+		ptf(nMsg, x, $vasplat());		
 	};
-	x += 1;
-	// allocator::free(&app.tracker, nMsg);
+	x++;
 }
 
 fn double strToDouble(String s) @private

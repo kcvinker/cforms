@@ -136,6 +136,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.name.free();
 		this.cueStr.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
 	}
 // End of Private functions

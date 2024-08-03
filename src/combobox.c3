@@ -306,6 +306,7 @@ struct CmbData
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		this.items.free();
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		allocator::free(&app.tracker, this);
 	}

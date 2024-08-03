@@ -546,6 +546,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 			foreach (node: this.nodes) { node.destroy();} // Recursive destruction
 		}
 		this.nodes.free();
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
 	}
 // End of Private functions

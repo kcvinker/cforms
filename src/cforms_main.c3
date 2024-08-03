@@ -40,6 +40,7 @@ fn void cforms_init() @init
 	icc.dwSize = InitCommonControls.sizeof;
 	icc.dwICC = ICC_STANDARD_CLASSES;
 	api_InitCommonControlsEx(&icc);
+	
 }
 
 

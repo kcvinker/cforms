@@ -266,6 +266,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 			case 4..5: this._gdraw.dtor();
 		}
 		this.name.free();
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this._wideText);
 		allocator::free(&app.tracker, this);
 	}

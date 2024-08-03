@@ -474,6 +474,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.name.free();
 		this._tdList.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
 	}
 // End of Private functions

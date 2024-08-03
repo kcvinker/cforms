@@ -144,6 +144,7 @@ struct GroupBox
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._pen) api_DeleteObject((Hgdiobj)this._pen);
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		free(this._wideText);
 		allocator::free(&app.tracker, this);
 	}

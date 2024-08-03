@@ -119,6 +119,7 @@ struct CheckBox
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this._wideText);
 		allocator::free(&app.tracker, this);
 	}

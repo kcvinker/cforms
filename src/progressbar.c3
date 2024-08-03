@@ -189,6 +189,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
+		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
 	}
 // End of Private functions
