@@ -125,14 +125,8 @@ fn void makeWindow(TrackingAllocator* tar)
 }
 
 fn int main(String[] args)
-{
-	TrackingAllocator tal = startTracking(); // Cforms provide the memory tracking feature
-	defer tal.free();
-	mem::@scoped(&tal)
-    {
-		makeWindow(&tal);
-	};
-	printTrackReport(tal); // Show any memory leaks.
+{	
+	makeWindow(&tal);	
 	return 0;
 }
 
