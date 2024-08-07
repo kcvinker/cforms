@@ -40,7 +40,7 @@ TrayIcon* tray;
 // MenuBar* mb;
 
 
-fn void makeWindow(TrackingAllocator* tar)
+fn void makeWindow()
 {
 
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
@@ -126,7 +126,7 @@ fn void makeWindow(TrackingAllocator* tar)
 
 fn int main(String[] args)
 {	
-	makeWindow(&tal);	
+	makeWindow();	
 	return 0;
 }
 
