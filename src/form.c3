@@ -6,7 +6,9 @@ module cforms;
 
 import std::collections::list;
 import std::collections::map;
-
+import std::time::clock;
+import std::thread;
+import std::io;
 
 
 
@@ -550,7 +552,13 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			handleTrayIconEvents(hw, lp);
 
 		case WM_LBUTTONDOWN:
+			Clock c = clock::now();
+			std::thread::sleep_ms(2);
+			// NanoDuration n = c.mark();
+			io::printfn("time for getting form %s", c.mark());
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+			
+			
 		 	this.leftMouseDownHandler(msg, wp, lp);
 		case WM_LBUTTONUP:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);

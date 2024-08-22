@@ -43,14 +43,14 @@ fn void makeWindow()
 
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	// frm.setBackColor(0xaaff00);
-	frm.onMouseDown = &frmOnMouseDown;
+	// frm.onMouseDown = &frmOnMouseDown;
 	// frm.width = 800;
 	// frm.onMouseDown = fn(c, e) => frm.printPoint(e);
 	frm.createHandle();
 
 	
 	// Add a tray icon for our program
-	ti = newTrayIcon("cforms sample tray icon", "cforms.ico");
+	ti = newTrayIcon("cforms sample tray icon!", "cforms.ico");
 	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
 	ti.addContextMenu(TrayMenuTrigger.RIGHT_CLICK, "Windows", "Linux", "MacOS");
 	ti.contextMenu.menus["Linux"]!!.onClick = fn(c,e) => print("Linux menu selected from tray");

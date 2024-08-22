@@ -203,9 +203,13 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_CONTEXTMENU:
 			GroupBox* this = bitcast(refData, GroupBox*);
 			if (this.contextMenu) this.contextMenu.showMenu(lp);
+			
 		case WM_PAINT:
 			GroupBox* this = bitcast(refData, GroupBox*);
 			return this.drawText(hw, msg, wp, lp); //this.drawTextDB(hw, msg, wp, lp); //this.drawText(hw, msg, wp, lp);
+
+
+
 		case WM_GETTEXTLENGTH:
 			GroupBox* this = bitcast(refData, GroupBox*);
 			 return 0;

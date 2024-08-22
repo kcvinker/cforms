@@ -103,7 +103,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	}
 
 	// Create the handle of TrackBar
-	fn void TrackBar.createHandle(TrackBar* this)
+	fn void TrackBar.createHandle(&this)
 	{
 		this.setTKBStyle();
 		this.createInternal();
@@ -483,7 +483,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
 	
-	// io::printfn("message %s", msg);
+	// log("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY:
 			TrackBar* this = bitcast(refData, TrackBar*);

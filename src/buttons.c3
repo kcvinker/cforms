@@ -39,6 +39,7 @@ fn void FlatDraw.setData(FlatDraw* this, Color c) @private
 	double hotAdj = hotRc.isDark() ? 1.5 : 1.2;
 	double frmAdj = 0.5;
 	hotRc.changeShade(hotAdj);
+	
 	// ptf("hot rc red %d, green %d, blue %d, cref %d", hotRc.red, hotRc.green, hotRc.blue, hotRc.ref);
 
 	this.defBrush = api_CreateSolidBrush(c.ref);

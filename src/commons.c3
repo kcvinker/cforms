@@ -14,8 +14,11 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 
 // macro uint Hwnd.rehash(Hwnd i) => (uint)((iptr)i);
 
-
-fn Point getMousePoints(Lparam lpm) {return Point{loWord(lpm), hiWord(lpm)};}
+fn int wordToInt(Word x) @inline {return (int)((short)x);}
+fn Point getMousePoints(Lparam lpm) 
+{
+	return Point{wordToInt(loWord(lpm)), wordToInt(hiWord(lpm))};
+}
 
 fn Point getMousePosOnMsg()
 {
@@ -82,7 +85,7 @@ macro void log(String msg, ...) // Helper macro to print the debug data
 	tlocal String y = "[%d] ";
 	@pool() {
 		String nMsg = String.tconcat(y, msg); //, &app.tracker);
-		ptf(nMsg, x, $vasplat());		
+		ptf(nMsg, x, $vasplat);		
 	};
 	x++;
 }

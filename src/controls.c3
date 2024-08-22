@@ -71,9 +71,9 @@ fault StringFault
 	macro void Control.setFont(Control* c, ...)
 	{
 		$switch ($vacount)
-			$case 1: c.setFont1($vaarg(0));
-			$case 2: c.setFont2($vaarg(0), $vaarg(1));
-			$case 3: c.setFont3($vaarg(0), $vaarg(1), $vaarg(2));
+			$case 1: c.setFont1($vaarg[0]);
+			$case 2: c.setFont2($vaarg[0], $vaarg[1]);
+			$case 3: c.setFont3($vaarg[0], $vaarg[1], $vaarg[2]);
 		$endswitch
 	}
 
@@ -123,10 +123,10 @@ fault StringFault
 
 	macro void Control.addContextMenu(&self, ...)
 	{
-		$if $vacount == 1 && @typeis($vaarg(0), ContextMenu*):
-			return self.setContextMenu1($vaarg(0));
+		$if $vacount == 1 && @typeis($vaarg[0], ContextMenu*):
+			return self.setContextMenu1($vaarg[0]);
 		$else
-			return self.setContextMenu2($vasplat());
+			return self.setContextMenu2($vasplat);
 		$endif
 	}
 

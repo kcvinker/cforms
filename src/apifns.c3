@@ -66,7 +66,7 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn int api_MapWindowPoints(Hwnd, Hwnd, LpPoint, uint) @extern("MapWindowPoints");
 	extern fn int api_SetTimer(Hwnd, Uintptr, uint, TimerProc) @extern("SetTimer");
 	extern fn int api_KillTimer(Hwnd, Uintptr) @extern("KillTimer");
-	extern fn int api_UnregisterClass(Lpcwstr, Hinstance) @extern("UnregisterClassW");
+	extern fn Bool api_UnregisterClass(Lpcwstr, Hinstance) @extern("UnregisterClassW");
 	extern fn int api_GetCursorPos(Point*) @extern("GetCursorPos");
 	extern fn Bool api_SetForegroundWindow(Hwnd) @extern("SetForegroundWindow");
 

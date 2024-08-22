@@ -19,7 +19,7 @@ struct AppData
     int screenWidth;
     int screenHeight;
 	Hinstance hins;
-	Hwnd hMsgWin;
+	Hwnd trayHwnd;
 	Color defWinColor;
     TrackingAllocator tracker;
 }
@@ -32,7 +32,7 @@ fn void cforms_init() @init
 {	
 	app.tracker.init(allocator::heap());
 	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
-	app.defWinColor = colorFromUint(0xF7F7F7); //colorFromRgb(0xED, 0xED, 0xED);
+	app.defWinColor = colorFromUint(0xF5F5F5); //colorFromRgb(0xED, 0xED, 0xED);
 	app.screenWidth = api_GetSystemMetrics(0);
 	app.screenHeight = api_GetSystemMetrics(1);
 	registerClass();
@@ -47,8 +47,7 @@ fn void cforms_init() @init
 fn void AppData.finalize(&this)
 {
 	if (this.nidUsed) {		
-		if(this.hMsgWin) api_DestroyWindow(this.hMsgWin);
-		api_UnregisterClass(&msgWinClass[0], this.hins);
+		if(this.trayHwnd) api_DestroyWindow(this.trayHwnd);
 	}
 	if (this.cmenuUsed) api_UnregisterClass(&cmenuMsgWinClass[0], this.hins);
 	api_UnregisterClass(&className[0], this.hins);

@@ -133,8 +133,8 @@ fn DateTimeEventArgs newDateTimeEventArgs(Lpcwstr dtpStr)
     return this;
 }
 
-macro Word loWord(x) {return (Word)(x & 0xffff);}
-macro Word hiWord(x) {return (Word)(x >> 16);}
+macro Word loWord(x) {return (ushort)x;}
+macro Word hiWord(x) {return (ushort)(x >> 16);}
 fn Word loWordWparam(Wparam wp) @inline {return (Word)(wp & 0xffff);}
 fn Word hiWordWparam(Wparam wp) @inline {return (Word)(wp >> 16);}
 fn int xFromLparam(Lparam lpm) @inline { return (int)((short)loWord(lpm));}
