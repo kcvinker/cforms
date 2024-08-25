@@ -67,7 +67,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.kind = ControlType.TREE_VIEW;
 		this.name = dstring::new("TreeView_", &app.tracker);
 		this.name.appendf("%d", tvNumber);
-		this.className = &tvClass[0];
+		this._className = &tvClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = TVSTYLE;

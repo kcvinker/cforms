@@ -38,7 +38,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.kind = ControlType.TEXT_BOX;
 		this.name = dstring::new("TextBox_", &app.tracker);
 		this.name.appendf("%d", tbNumber);
-		this.className = &tbClass[0];
+		this._className = &tbClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = 0x50010080;

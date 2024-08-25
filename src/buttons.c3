@@ -114,7 +114,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	{
 		Button* this = allocator::new(&app.tracker, Button);
 		this.kind = ControlType.BUTTON;
-		this.className = &btnClass[0];
+		this._className = &btnClass[0];
 		this.name = dstring::new("Button_", &app.tracker);
 		this.name.appendf("%d", btnNumber);
 		this._wideText = String.to_new_utf16(text, &app.tracker).ptr!!;

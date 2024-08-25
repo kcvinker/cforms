@@ -1,19 +1,61 @@
 // control module - Created on 25-Jan-2023 19:43
+
+/*=======================================Control Docs==========================================
+	Constructor	: It's a virtual class. No costructor allowed
+	Properties:
+		kind		: ControlType
+		name		: Dstring
+		text		: String
+		handle		: Hwnd
+		backColor	: Color
+		foreColor	: Color
+		width		: int
+		height		: int
+		xpos		: int
+		ypos		: int
+		contextMenu	: ContextMenu*
+	Methods:
+		setFont()		: Set font for a control
+		setForeColor()	: Set foreground color for a control. (Some controls overriding this)
+		setBackColor()	: Set background color for a control. (Some controls overriding this)
+		setText()		: Set text for a control. (Only textable controls are supporting this)
+		getText()		: Get text from a control. (Only textable controls are supporting this)
+		right()			: Get the right most point of a control
+		bottom()		: Get the bottom most point of a control
+		addContextMenu()	: Adding a context menu for a control.
+	Events:
+		EventHandler type events. (fn void(Control*, EventArgs*))
+			onGotFocus
+			onLostFocus
+			onClick
+			onRightClick
+			onMouseEnter
+			onMouseLeave
+		MouseEventHandler type events. (fn void(Control*, MouseEventArgs*))
+			onMouseDown
+			onMouseUp
+			onRightMouseDown
+			onRightMouseUp
+			onMouseWheel
+			onMouseMove
+		KeyEventHandler type events. (fn void(Control*, KeyEventArgs*))
+			onKeyDown
+			onKeyUp
+			onKeyPress
+============================================================================================== */
+
+
+
 module cforms;
-
-
 
 iptr globalCtlID = 100;
 ulong globalSubClsID = 1000;
-
-
 
 struct Control
 {
 	ControlType kind;
 	DString name;
 	String text;
-	Char16* className;
 	Hwnd handle;
 	Color backColor;
 	Color foreColor;
@@ -23,6 +65,7 @@ struct Control
 	int ypos;
 	iptr ctlID;
 	ContextMenu* contextMenu;
+	Char16* _className;
 	Dword _style;
 	Dword _exStyle;
 	uint _drawMode;
@@ -132,23 +175,6 @@ fault StringFault
 		$endif
 	}
 
-
-	fn void Control.setContextMenu1(&this, ContextMenu* cmenu) @private
-	{
-		this.contextMenu = cmenu;
-		if (!cmenu.parent) this.contextMenu.parent = this;
-		this._cmenuUsed = true;
-	}
-
-	fn void Control.setContextMenu2(Control* this, String... menuNames) @private
-	{
-		ContextMenu* cmenu = newContextMenu();
-		cmenu.addMenus(menuNames);
-		cmenu.parent = this;
-		this.contextMenu = cmenu;
-		this._cmenuUsed = true;
-	}
-
 	fn int Control.right(&self)	{ return self.getMappedRect().right;	}
 	fn int Control.bottom(&self)	{ return self.getMappedRect().bottom;	}
 // End Public Functions
@@ -161,7 +187,7 @@ fault StringFault
 		if (!special) ctl.setCtlID();
 		Char16* text = String.to_new_utf16(ctl.text).ptr!!;
 		defer free(text);
-		ctl.handle = api_CreateWindowEx(ctl._exStyle, ctl.className,
+		ctl.handle = api_CreateWindowEx(ctl._exStyle, ctl._className,
 										text, ctl._style,
 										ctl.xpos, ctl.ypos,
 										ctl.width, ctl.height,
@@ -275,6 +301,22 @@ fault StringFault
 			api_SetWindowText(this.handle, this._wideText);
 			if (this._autoSizable) this.setIdealSize();
 		}
+	}
+
+	fn void Control.setContextMenu1(&this, ContextMenu* cmenu) @private
+	{
+		this.contextMenu = cmenu;
+		if (!cmenu.parent) this.contextMenu.parent = this;
+		this._cmenuUsed = true;
+	}
+
+	fn void Control.setContextMenu2(Control* this, String... menuNames) @private
+	{
+		ContextMenu* cmenu = newContextMenu();
+		cmenu.addMenus(menuNames);
+		cmenu.parent = this;
+		this.contextMenu = cmenu;
+		this._cmenuUsed = true;
 	}
 
 	macro Control.setPropInternal(&this, String prop, value)

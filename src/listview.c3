@@ -90,7 +90,7 @@ struct ListViewColumn
 		this.kind = ControlType.LIST_VIEW;
 		this.name = dstring::new("ListView_", &app.tracker);
 		this.name.appendf("%d", lvNumber);
-		this.className = &lvClass[0];
+		this._className = &lvClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this.headerFont = this.font;

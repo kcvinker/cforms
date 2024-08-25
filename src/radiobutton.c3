@@ -28,7 +28,7 @@ struct RadioButton
 		this.kind = ControlType.RADIO_BUTTON;
 		this.name = dstring::new("RadioButton_", &app.tracker);
 		this.name.appendf("%d", rbNumber);
-		this.className = &btnClass[0];
+		this._className = &btnClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON;

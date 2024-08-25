@@ -27,7 +27,7 @@ struct GroupBox
 		this.kind = ControlType.GROUP_BOX;
 		this.name = dstring::new("GroupBox_", &app.tracker);
 		this.name.appendf("%d", gbNumber);
-		this.className = &btnClass[0];
+		this._className = &btnClass[0];
 		this.text = text == "" ? this.name.str_view() : text;
 		this._wideText = String.to_new_utf16(this.text).ptr!!;
 		this._parent = parent;

@@ -39,7 +39,7 @@ struct ListBox
 		this.kind = ControlType.LIST_BOX;
 		this.name = dstring::new("ListBox_", &app.tracker);
 		this.name.appendf("%d", lbxNumber);
-		this.className = &lbxClass[0];
+		this._className = &lbxClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_BORDER  | LBS_NOTIFY | LBS_HASSTRINGS;

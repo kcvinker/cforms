@@ -47,7 +47,7 @@ struct CmbData
 		this.kind = ControlType.COMBO_BOX;
 		this.name = dstring::new("ComboBox_", &app.tracker);
 		this.name.appendf("%d", cmbNumber);
-		this.className = &cmbClass[0];
+		this._className = &cmbClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE;

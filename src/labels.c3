@@ -31,7 +31,7 @@ struct Label
 		this.kind = ControlType.LABEL;
 		this.name = dstring::new("Label_", &app.tracker);
 		this.name.appendf("%d", lbNumber);
-		this.className = &lblClass[0];
+		this._className = &lblClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = LBSTYLE;

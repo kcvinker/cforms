@@ -50,7 +50,7 @@ enum DTPFormat : int(String descrption, int value )
 		this.kind = ControlType.DATE_TIME_PICKER;
 		this.name = dstring::new("DateTimePicker_", &app.tracker);
 		this.name.appendf("%d", dtpNumber);
-		this.className = &dtpClass[0];
+		this._className = &dtpClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;

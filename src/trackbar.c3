@@ -70,7 +70,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.kind = ControlType.TRACK_BAR;
 		this.name = dstring::new("TrackBar_", &app.tracker);
 		this.name.appendf("%d", tkbNumber);
-		this.className = &trkClass[0];
+		this._className = &trkClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS;

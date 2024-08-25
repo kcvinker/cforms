@@ -58,7 +58,7 @@ struct NumberPicker
 		NumberPicker* this = allocator::new(&app.tracker, NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
 		this.name = dstring::new("NumberPicker_", &app.tracker);
-		this.className = &npClass[0];
+		this._className = &npClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = NPSTYLE;

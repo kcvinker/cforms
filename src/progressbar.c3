@@ -37,7 +37,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		this.kind = ControlType.PROGRESS_BAR;
 		this.name = dstring::new("ProgressBar_", &app.tracker);
 		this.name.appendf("%d", pbNumber);
-		this.className = &pgbClass[0];
+		this._className = &pgbClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD;

@@ -28,7 +28,7 @@ struct CheckBox
 		this.kind = ControlType.CHECK_BOX;
 		this.name = dstring::new("CheckBox_", &app.tracker);
 		this.name.appendf("%d", cbNumber);
-		this.className = &btnClass[0];
+		this._className = &btnClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX;

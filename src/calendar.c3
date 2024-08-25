@@ -36,7 +36,7 @@ struct Calendar
 		this.kind = ControlType.CALENDAR;
 		this.name = dstring::new("Calendar_", &app.tracker);
 		this.name.appendf("%d", calNumber);
-		this.className = &calClass[0];
+		this._className = &calClass[0];
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;
