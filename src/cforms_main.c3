@@ -4,11 +4,13 @@ module cforms;
 
 import libc;
 import std::io;
+import std::collections::map;
 
 def print = io::printn;
 def ptf = io::printfn;
 // def log = io::printn;
 def cptf = libc::printf;
+def FormMap = std::collections::map::HashMap(<Hwnd, Form*>);
 
 // Global static data
 struct AppData
@@ -22,6 +24,7 @@ struct AppData
 	Hwnd trayHwnd;
 	Color defWinColor;
     TrackingAllocator tracker;
+	FormMap fmap;
 }
 
 AppData app;
@@ -40,6 +43,7 @@ fn void cforms_init() @init
 	icc.dwSize = InitCommonControls.sizeof;
 	icc.dwICC = ICC_STANDARD_CLASSES;
 	api_InitCommonControlsEx(&icc);
+	app.fmap.new_init();
 	
 }
 
@@ -51,6 +55,7 @@ fn void AppData.finalize(&this)
 	}
 	if (this.cmenuUsed) api_UnregisterClass(&cmenuMsgWinClass[0], this.hins);
 	api_UnregisterClass(&className[0], this.hins);
+	app.fmap.free();
     this.tracker.print_report();
 	this.tracker.free();
 }

@@ -120,7 +120,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		this.backColor = Color{};
 		this.foreColor = Color{};
 		btnNumber += 1;
-		if (evtFn) this.onMouseClick = evtFn;
+		if (evtFn) this.onClick = evtFn;
 		this._parent.controls.push(this);
 		if (auto) this.createHandle();
 

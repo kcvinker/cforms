@@ -10,10 +10,6 @@ A simple GUI library for C3 programming language, based on Win32 API
 
 ```c#
 module cforms;
-import std::io;
-import libc;
-
-def print = io::printn;
 
 Form* frm;
 Button* b1;
@@ -35,56 +31,54 @@ TrackBar* tk;
 TreeView* tv;
 GroupBox* gb;
 ListView* lv;
+int cntr = 1;
 Timer* tm;
-TrayIcon* tray;
-// MenuBar* mb;
-
+TrayIcon* ti;
 
 fn void makeWindow()
 {
-
-	frm = newForm("Cforms gui library", .width = 800, .height = 550);
+	frm = newForm("Cforms gui library", .width = 800, .height = 550);	
 	frm.createHandle();
-
+	
 	// Add a tray icon for our program
-	ti = newTrayIcon("cforms sample tray icon", "cforms.ico");
+	ti = newTrayIcon("cforms sample tray icon!", "cforms.ico");
 	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
-
-	// Now, add a context menu for our tray icon. 
-	// TrayMenuTrigger means the mouse button for triggering the context menu.
-	ti.addContextMenu(TrayMenuTrigger.RIGHT_CLICK, "Windows", "Linux", "MacOS");
-	ti.contextMenu.menus["Linux"]!!.onClick = fn(c,e) => print("Linux menu selected from tray");
+	ti.addContextMenu(TrayMenuTrigger.RIGHT_CLICK, "Button", "|", "CheckBox", "Label");
+	ti.contextMenu.menus(0).onClick = fn(c,e) => print("Button menu selected from tray");
 
 	// Let's add a timer. 400 is the ticking interval in ms.
 	// onTimerTick is the tick event handler
 	tm = frm.addTimer(400, &onTimerTick);
 
 	MenuBar* mb = frm.addMenubar("Windows", "Linux", "MacOS", "ReactOS");
-	mb.menus["Windows"]!!.addItems("Windows8",  "Windows10", "|", "Windows11" );
-	mb.menus["Linux"]!!.addItems("Debian",  "Fedora", "Ubuntu" );
-	mb.menus["Windows"]!!.menus["Windows11"]!!.onClick = &onMenuClick;
+	mb.menus("Windows").addItems("Windows8",  "Windows10", "|", "Windows11" );
+	mb.menus("Linux").addItems("Debian",  "Fedora", "Ubuntu" );
+	mb.menus(0).menus("Windows11").onClick = &onMenuClick;
 
 	b1 = newButton(frm, "Normal Btn", 10, 10, .auto = true);
-	// b1.onMouseClick = &btnClick;
+	b1.onClick = &btnClick;	
 
 	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10, .auto = true);
-	b2.onMouseClick = &onB2Click; // Start the timer in button click.
-	b2.setBackColor(0xa663cc);
+	// b2.onMouseClick = &btnClick2;
+	b2.setBackColor(0xadc178);
+	b2.onClick = &onB2Click;
 
 	b3 = newButton(frm, "Gradient", b2.right() + 10, 10, .auto = true);
 	// // b3.setForeColor(0x1f7a1f);
-	b3.setGradientColor(0xeeef20, 0x70e000);
+	b3.setGradientColor(0xeeef20, 0x70e000); //0xeeef20, 0x70e000, 0xF4F269, 0x82C26E
+
 
 	cmb = newComboBox(frm, b3.right() + 10, 10, .auto = true);
 	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
+	cmb.addItem((any*)&&456.45654);	
 
 	dtp = newDateTimePicker(frm, cmb.right() + 10, 10, .auto = true);
 
 	gb = newGroupBox(frm,"Compiler Options", 10, b1.bottom() + 10, .height = 150, .auto = true);
-	gb.setForeColor(0x007f5f);
+	gb.setForeColor(0x007f5f);	
 
 	cb = newCheckBox(frm, "Threads On", 20, gb.ypos + 30, .auto = true);
-	CheckBox* cb2 = newCheckBox(frm, "Hints Off", 20, cb.bottom() + 10, .auto = true);
+	CheckBox* cb2 = newCheckBox(frm, "Hints Off", 20, cb.bottom() + 10, .auto = true);	
 
 	GroupBox* gb2 = newGroupBox(frm,"Project Data", 10, gb.bottom() + 10, .height = 150, .auto = true);
 	gb2.setForeColor(0xe63946);
@@ -94,7 +88,7 @@ fn void makeWindow()
 
 	Label* lb2 = newLabel(frm, "Thread Count", 20, np1.bottom() + 14, .auto = true);
 	np2 = newNumberPicker(frm, lb2.right() + 10, np1.bottom() + 10, .auto = true, .btnLeft = true);
-	np2.setBackColor(0xcdb4db);
+	np2.setBackColor(0xcdb4db);	
 
 	lbx = newListBox(frm, gb.right() + 10, b1.bottom() + 10, .auto = true);
 	lbx.addItems("Windows", "MacOS", "Linux", "ReactOS");
@@ -102,9 +96,12 @@ fn void makeWindow()
 	lv = newListView(frm, lbx.right() + 10, b3.bottom() + 10, .width = 330, .height = 150, .auto = true);
 	lv.addColumns("Windows", "Linux", "MacOS", 100, 120, 100);
 	lv.addRow("Win7", "openSUSE", "Mojave");
-	lv.addRow("Win8", "Debian:", "Catalina");
+	lv.addRow("Win8", "Debian", "Catalina");
 	lv.addRow("Win10", "Fedora", "Big Sur");
 	lv.addRow("Win11", "Ubuntu", "Monterey");
+
+	lv.addContextMenu("Windows", "|", "Linux", "MacOS");
+	lv.contextMenu.menus(0).onClick = &onMenuClick;
 
 	pb = newProgressBar(frm, 15, np2.bottom() + 15, .auto = true);
 	pb.showPercentage = true;
@@ -112,7 +109,7 @@ fn void makeWindow()
 	rb1 = newRadioButton(frm, "Console App", 20, cb2.bottom() + 10, .auto = true);
 	rb2 = newRadioButton(frm, "Gui App", 20, rb1.bottom() + 10, .auto = true);
 
-	tb = newTextBox(frm, "Enter text", gb2.right() + 10, lbx.bottom() + 10, .auto = true);
+	tb = newTextBox(frm, "Enter some text", gb2.right() + 10, lbx.bottom() + 10, .auto = true);
 	tk = newTrackBar(frm, gb2.right() + 10, tb.bottom() + 40, .auto = true, .evtFn = &onTrackChange );
 	tv = newTreeView(frm, tk.right() + 40, lv.bottom() + 20, .height = 250, .auto = true);
 	tv.addNodeWithChilds("Windows", "Vista", "Win7", "Win8", "Win10", "Win11");
@@ -121,45 +118,54 @@ fn void makeWindow()
 
 	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10, .auto = true);
 
-	frm.show(); // All set. Show the form.
+	frm.show();
 }
 
-fn int main(String[] args)
+
+fn int main(String[] args) 
 {	
-	makeWindow();	
+	makeWindow();
 	return 0;
 }
 
-fn void frmOnMouseDown(Control* f, MouseEventArgs* e)
-{
+fn void frmOnMouseDown(Control* f, MouseEventArgs* e) {
 	frm.printPoint(e);
+	ti.showBalloon("My Balloon", "See this balloon message", 
+					3500, .noSound = true, .icon = BallonIcon.WARNING);
+	// ti.updateIcon("D:\\Icons\\Dakirby309-Windows-8-Metro-Web-Microsoft-Store-Metro.ico");
 }
 
-fn void Control.onleftClick(&self, EventArgs* e)
-{
+fn void frmMouseDown(Control* c, MouseEventArgs* e) {
+	cptf("Mouse hovered %d, %d \n", e.x, e.y);
+}
+
+fn void onB2Click(Control* s, EventArgs* e){
 	print("Button pressed");
+	// tm.start();
+	ti.showBalloon("My Balloon", "this message has sound", 3500, 
+					.icon = BallonIcon.CUSTOM, 
+					.iconpath = "D:\\Icons\\Tatice-Cristal-Intense-Papillon-MSN.ico"
+					);
 }
 
-
-fn void onTrackChange(Control* m, EventArgs* e)
-{
-	pb.setValue(tk.value); // Progress bar will show the updates of track change.
-}
-
-fn void onMenuClick(MenuItem* m, EventArgs* e)
-{
-	ptf("menu text %s", m.text);
-}
-
-fn void onB2Click(Control* s, EventArgs* e)
-{
-	print("Timer Strted");
-	tm.start();
-}
-
-// This is our timer's tick event handling function.
 fn void onTimerTick(Control* f, EventArgs* e) {
 	print("Timer ticked...");
+}
+
+fn void btnClick(Control* c, EventArgs* e) {	
+	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
+	FileOpenDialog fod = newFileOpenDialog(.initialFolder = inf, .typeFilter = "PDF Files\0*.pdf\0");
+	fod.showDialog(frm.handle);
+	ptf("Sel Path : %s", fod.selectedPath);	
+	fod.destroy();
+}
+
+fn void onMenuClick(MenuItem* m, EventArgs* e) {
+	ptf("menu text (191) %s", m.text);
+}
+
+fn void onTrackChange(Control* m, EventArgs* e) {
+	pb.setValue(tk.value);
 }
 
 ```

@@ -10,51 +10,14 @@ import std::time::clock;
 import std::thread;
 import std::io;
 
-
-
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
 
 def ControlList = List(<Control*>);
-
 def CmbMap = std::collections::map::HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
 def MenuItemMap = std::collections::map::HashMap(<uint, MenuItem*>);
 def TimerMap = std::collections::map::HashMap(<Uintptr, Timer*>);
 
-
 int frmNumber = 1;
-
-
-// Helper types	
-
-	struct Timer
-	{
-		uint interval;
-		EventHandler onTick;
-		Uintptr _idNum;
-		Hwnd _parentHwnd;
-		bool _isEnabled;
-	}
-
-	fn void Timer.start(&this)
-	{
-		this._isEnabled = true;
-		api_SetTimer(this._parentHwnd, this._idNum, this.interval, null);
-	}
-
-	fn void Timer.stop(&this)
-	{
-		api_KillTimer(this._parentHwnd, this._idNum);
-		this._isEnabled = false;
-	}
-
-	fn void Timer.dtor(&this)
-	{
-		if (this._isEnabled) api_KillTimer(this._parentHwnd, this._idNum);
-		allocator::free(&app.tracker, this);
-		print("timer freed");
-	}
-
-// End Helper types & Enums
 
 struct Form
 {
@@ -74,9 +37,8 @@ struct Form
 	MenuItemMap _menuItemMap;
 	bool _menuMapInited;
 	bool _menubarCreated;
+	int _formID;
 	Hinstance hinst;
-	Hwnd bhw;
-	Hbrush _bkBrush;
 	ControlList controls;
 	MenuBar* menubar;
 	Font _menuFont;
@@ -86,9 +48,9 @@ struct Form
 	Hbrush _menuFrameBrush;
 	Colorref _menuGrayCref;
 	TimerMap _timerMap;
-	int _formID;
+	
 
-
+	// Common events
 	EventHandler onLoad;
 	EventHandler onActivate;
 	EventHandler onDeActivate;
@@ -105,13 +67,6 @@ struct Form
 	SizeEventHandler onSized;
 	ThreadMsgHandler onThreadMsg;
 }
-
-// Managing menu events;
-// struct MenuEventData {
-// 	MenuEvents event;
-// 	MenuItem* menu;
-// }
-
 
 
 // Public Functions
@@ -137,11 +92,10 @@ struct Form
 		this.hinst = app.hins;
 		this.backColor = app.defWinColor;
 		frmNumber += 1;
-		// ptf("size of name %d\n", int.sizeof);
 		return this;
 	}
 
-	fn void Form.createHandle(Form* this)
+	fn void Form.createHandle(&this)
 	{
 		this.setStyle();
 		this.setPosition();
@@ -159,13 +113,14 @@ struct Form
 		if (this.handle) {
 			
 			this._isCreated = true;
+			app.fmap[this.handle] = this;
 			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
 			this.setFontInternal();
 			// api_ShowWindow(this.handle, 10);
 		}
 	}
 
-	fn void Form.show(Form* this)
+	fn void Form.show(&this)
 	{		
 		// api_UpdateWindow(this.handle);
 		api_ShowWindow(this.handle, 10);
@@ -179,10 +134,10 @@ struct Form
 				api_DispatchMessage(&pMsg);
 			}
 		}
-		app.finalize(); // Print the memory leak report
+		app.finalize(); 
 	}
 
-	fn void Form.setBackColor(Form* this, uint clr)
+	fn void Form.setBackColor(&this, uint clr)
 	{
 		this.backColor.updateColor(clr);
 		this._fDrawMode = FormDrawMode.FLAT_COLOR;
@@ -190,7 +145,7 @@ struct Form
 		if (this._isCreated) api_InvalidateRect(this.handle, null, false);
 	}
 
-	fn MenuBar* Form.addMenubar(Form* this, String... items)
+	fn MenuBar* Form.addMenubar(&this, String... items)
 	{
 		newMenuBar(this);
 		this.menubar.addItems(...items);
@@ -218,25 +173,7 @@ struct Form
 		cptf("X : %d,  Y : %d\n", m.x, m.y);
 	}
 
-	// Set menu bar to this form. Call right after a menu bar instance is created
-	// fn void Form.setMenuBar(Form* this, MenuBar* menu) { 261023
-	// 	this.menubar = menu;
-	// 	menu._parent = this;
-	// 	menu.font = this.font;
-	// 	menu._formHwnd = this.handle;
-	// }
-
 // End Public Functions
-
-
-// Constants
-
-
-
-
-
-
-// End Constants
 
 // Private Functions
 	fn void registerClass() @private
@@ -304,39 +241,39 @@ struct Form
 		this._bkBrush = api_CreateSolidBrush(this.backColor.ref);
 	}
 
-	fn void Form.setPosition(Form* f) @private
+	fn void Form.setPosition(&this) @private
 	{
-		switch (f.formPos) {
+		switch (this.formPos) {
 			case CENTER:
-				f.xpos = (app.screenWidth - f.width) / 2  ;
-                f.ypos = (app.screenHeight - f.height) / 2  ;
-			case TOP_MID: f.xpos = (app.screenWidth - f.width) / 2  ;
-			case TOP_RIGHT: f.xpos = app.screenWidth - f.width ;
-			case MID_LEFT: f.ypos = (app.screenHeight - f.height) / 2 ;
+				this.xpos = (app.screenWidth - this.width) / 2  ;
+                this.ypos = (app.screenHeight - this.height) / 2  ;
+			case TOP_MID: this.xpos = (app.screenWidth - this.width) / 2  ;
+			case TOP_RIGHT: this.xpos = app.screenWidth - this.width ;
+			case MID_LEFT: this.ypos = (app.screenHeight - this.height) / 2 ;
 			case MID_RIGHT:
-				f.xpos = app.screenWidth - f.width ;
-                f.ypos = (app.screenHeight - f.height) / 2  ;
-			case BOTTOM_LEFT: f.ypos = app.screenHeight - f.height ;
+				this.xpos = app.screenWidth - this.width ;
+                this.ypos = (app.screenHeight - this.height) / 2  ;
+			case BOTTOM_LEFT: this.ypos = app.screenHeight - this.height ;
 			case BOTTOM_MID:
-				f.xpos = (app.screenWidth - f.width) / 2  ;
-                f.ypos = app.screenHeight - f.height ;
+				this.xpos = (app.screenWidth - this.width) / 2  ;
+                this.ypos = app.screenHeight - this.height ;
 			case BOTTOM_RIGHT:
-				f.xpos = app.screenWidth - f.width  ;
-                f.ypos = app.screenHeight - f.height ;
+				this.xpos = app.screenWidth - this.width  ;
+                this.ypos = app.screenHeight - this.height ;
 			default: break;
 		}
 	}
 
-	fn void Form.setBackColorInternal(Form* f, Hdc hdc) @private
+	fn void Form.setBackColorInternal(&this, Hdc hdc) @private
 	{
-		Rect rc = f.clientRect();
+		Rect rc = this.clientRect();
 		// defer(api_DeleteObject((Hgdiobj)hbr));
-		// if (f._fDrawMode == FormDrawMode.FLAT_COLOR) {
-		// 	hbr = api_CreateSolidBrush(f.backColor.ref);
-		// } else if (f._fDrawMode == FormDrawMode.GRADIENT) {
+		// if (this._fDrawMode == FormDrawMode.FLAT_COLOR) {
+		// 	hbr = api_CreateSolidBrush(this.backColor.ref);
+		// } else if (this._fDrawMode == FormDrawMode.GRADIENT) {
 
 		// }
-		api_FillRect(hdc, &rc, f._bkBrush);
+		api_FillRect(hdc, &rc, this._bkBrush);
 	}
 
 	fn void trackMouseMove(Hwnd hw) @private
@@ -349,105 +286,101 @@ struct Form
 		api_TrackMouseEvent(&tme);
 	}
 
-	fn void Form.formShownHandler(Form* f) @private
+	fn void Form.formShownHandler(&this) @private
 	{
 		// print("show window");
-		if (!f._isLoaded) {
-			f._isLoaded = true;
-			if (f.onLoad) f.onLoad(f, &&EventArgs{});
+		if (!this._isLoaded) {
+			this._isLoaded = true;
+			if (this.onLoad) this.onLoad(this, &&EventArgs{});
 		}
 	}
 
-	fn void Form.formActivateHandler(Form* f, Wparam wp) @private
+	fn void Form.formActivateHandler(&this, Wparam wp) @private
 	{
-		if (f.onActivate || f.onDeActivate) {
+		if (this.onActivate || this.onDeActivate) {
 			bool flag = (bool) wp;
 			if (!flag) {
-				if (f.onDeActivate) f.onDeActivate(f, &&EventArgs{});
+				if (this.onDeActivate) this.onDeActivate(this, &&EventArgs{});
 			} else {
-				if (f.onActivate) f.onActivate(f, &&EventArgs{});
+				if (this.onActivate) this.onActivate(this, &&EventArgs{});
 			}
 		}
 	}
 
-	fn void Form.formMouseMoveHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private
+	fn void Form.formMouseMoveHandler(&this, uint msg, Wparam wp, Lparam lp) @private
 	{
-		// if (!f._isMouseTracking) {
-		// 	f._isMouseTracking = true;
-		// 	trackMouseMove(f.handle);
-		if (!f._isMouseEntered) {
-			f._isMouseEntered = true;
-			if (f.onMouseEnter) f.onMouseEnter(f, &&EventArgs{});
+		if (!this._isMouseEntered) {
+			this._isMouseEntered = true;
+			if (this.onMouseEnter) this.onMouseEnter(this, &&EventArgs{});
 		} else {
-			if (f.onMouseMove) {
+			if (this.onMouseMove) {
 				MouseEventArgs mea = newMouseEventArgs(msg, wp, lp);
-				f.onMouseMove(f, &mea);
+				this.onMouseMove(this, &mea);
 			}
 		}
 	}
 
-	fn void Form.formMouseLeaveHandler(Form* f) @private
+	fn void Form.formMouseLeaveHandler(&this) @private
 	{
-		if (f._isMouseEntered) f._isMouseEntered = false;
-		if (f.onMouseLeave) f.onMouseLeave(f, &&EventArgs{});
+		if (this._isMouseEntered) this._isMouseEntered = false;
+		if (this.onMouseLeave) this.onMouseLeave(this, &&EventArgs{});
 	}
 
-	fn Lresult Form.formSizingHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private
+	fn Lresult Form.formSizingHandler(&this, uint msg, Wparam wp, Lparam lp) @private
 	{
-		f._isSizing = true;
+		this._isSizing = true;
 		SizeEventArgs sea = newSizeEventArgs(msg, wp, lp);
-		f.width = sea.formRect.right - sea.formRect.left;
-		f.height = sea.formRect.bottom - sea.formRect.top;
-		if (f.onSizing) {
-			f.onSizing(f, &sea);
+		this.width = sea.formRect.right - sea.formRect.left;
+		this.height = sea.formRect.bottom - sea.formRect.top;
+		if (this.onSizing) {
+			this.onSizing(this, &sea);
 			return 1;
 		}
 		return 0;
 	}
 
-	fn Lresult Form.formSizedHandler(Form* f, uint msg, Wparam wp, Lparam lp) @private
+	fn Lresult Form.formSizedHandler(&this, uint msg, Wparam wp, Lparam lp) @private
 	{
-		// f.mSizingStarted = false;
-		f._isSizing = false;
-		if (f.onSized) {
+		this._isSizing = false;
+		if (this.onSized) {
 			SizeEventArgs sea = newSizeEventArgs(msg, wp, lp);
-			f.onSized(f, &sea);
+			this.onSized(this, &sea);
 			return 1;
 		}
    		return 0;
 	}
 
-	fn Lresult Form.formMovingHandler(Form* f, Lparam lp) @private
+	fn Lresult Form.formMovingHandler(&this, Lparam lp) @private
 	{
 		Rect rct = *(Rect*)lp;
-		f.xpos = rct.left;
-		f.ypos = rct.top;
-		if (f.onMoving) {
-			f.onMoving(f, &&EventArgs{});
+		this.xpos = rct.left;
+		this.ypos = rct.top;
+		if (this.onMoving) {
+			this.onMoving(this, &&EventArgs{});
 			return 1;
 		}
    		return 0;
 	}
 
-	fn Lresult Form.formMovedHandler(Form* f, Lparam lp) @private
+	fn Lresult Form.formMovedHandler(&this, Lparam lp) @private
 	{
-		f.xpos = xFromLparam(lp);
-		f.ypos = yFromLparam(lp);
-		if (f.onMoved) f.onMoved(f, &&EventArgs{});
+		this.xpos = xFromLparam(lp);
+		this.ypos = yFromLparam(lp);
+		if (this.onMoved) this.onMoved(this, &&EventArgs{});
    		return 0;
 	}
 
-	fn void Form.formSysCommandHandler(Form* f, Wparam wp) @private
+	fn void Form.formSysCommandHandler(&this, Wparam wp) @private
 	{
 		uint uMsg = (uint) (wp & 0xFFF0);
 		switch (uMsg) {
-			case SC_MINIMIZE: if (f.onMinimized) f.onMinimized(f, &&EventArgs{});
-			case SC_MAXIMIZE : if (f.onMaximized) f.onMaximized(f, &&EventArgs{});
-			case SC_RESTORE : if (f.onRestored) f.onRestored(f, &&EventArgs{});
+		case SC_MINIMIZE: if (this.onMinimized) this.onMinimized(this, &&EventArgs{});
+		case SC_MAXIMIZE : if (this.onMaximized) this.onMaximized(this, &&EventArgs{});
+		case SC_RESTORE : if (this.onRestored) this.onRestored(this, &&EventArgs{});
 		}
 	}
 
-	fn void Form.formCloseHandler(Form* this) @private
+	fn void Form.formCloseHandler(&this) @private
 	{
 		if (this.onClosing) this.onClosing(this, &&EventArgs{});
 	}
@@ -459,13 +392,13 @@ struct Form
 		if (try tm && tm.onTick) tm.onTick(this, &&EventArgs{});
 	}
 
-	fn void Form.formDestroyHandler(Form* this) @private
+	fn void Form.formDestroyHandler(&this) @private
 	{
 		if (this.onClosed) this.onClosed(this, &&EventArgs{});
 		this.dtor();
 	}
 
-	fn MenuItem* Form.getMenuFromHmenu(Form* this, Hmenu hmenu) @private
+	fn MenuItem* Form.getMenuFromHmenu(&this, Hmenu hmenu) @private
 	{
 		@pool()
 		{
@@ -477,31 +410,85 @@ struct Form
 		return null;
 	}
 
-	fn void handleTrayIconEvents(Hwnd hw, Lparam lpm) 
+	fn Lresult Form.commandHandler(&this, Wparam wp, Lparam lp)
 	{
-		static int x = 1;
-		ptf("baloon %d", lpm);
-		switch (lpm) {
-            case WM_LBUTTONDOWN:
-                ptf("Left button down, %d", x);
-                
-            case WM_LBUTTONUP:
-                ptf("Left button up, %d", x);
-                
-            case WM_LBUTTONDBLCLK:
-                ptf("Left button double-click, %d", x);
-                
-            case WM_RBUTTONDOWN:
-                ptf("Right button down, %d", x);
-                
-            case WM_RBUTTONUP:
-                // Display context menu here
-				ptf("Right button up, %d", x);
-                
-            case WM_MOUSEMOVE:
-				ptf("mouse move, %d", x);
+		switch (hiWord(wp)) {
+			case 0:  // menu click commands
+				uint menuID = (uint) loWord(wp);
+				if (try menu = this._menuItemMap[menuID]) {
+					if (menu.onClick) menu.onClick(menu, &&EventArgs{});
+				}
+				return 0;
+			case 1: return 0; // # accelerator key commands
+			default:
+				Hwnd ctlHwnd = (Hwnd)lp;
+				return api_SendMessage(ctlHwnd, MM_CTL_COMMAND, wp, lp);
 		}
-		x += 1;
+	}
+
+	fn Lresult Form.measureItemHandler(&this, Hwnd hw, Lparam lp)
+	{
+		MeasureItemStruct* pmi = (MeasureItemStruct*) lp;
+		MenuItem* mi = (MenuItem*) ((void*) pmi.itemData);
+		if (mi.kind == MenuType.BASE_MENU) {
+			Hdc hdc = api_GetDC(hw);
+			defer api_ReleaseDC(hw, hdc);
+			Size size;
+			api_GetTextExtentPoint32(hdc, mi._wideText, mi.text.len, &size);
+			pmi.itemWidth = size.cx + 3;
+			pmi.itemHeight = size.cy;
+		} else {
+			pmi.itemWidth = 100;
+			pmi.itemHeight = 25;
+		}
+		return 1;
+	}
+
+	fn Lresult Form.drawItemHandler(&this, Lparam lp)
+	{
+		DrawItemStruct* dis = (DrawItemStruct*) lp;
+		MenuItem* mi = (MenuItem*) ((void*) dis.itemData);
+		Colorref txtClrRef = mi.fgColor.ref;
+		if (dis.itemState == 320 || dis.itemState == 257) {
+			if (mi._isEnabled) {
+				Rect rc = {dis.rcItem.left + 5, dis.rcItem.top + 1, dis.rcItem.right, dis.rcItem.bottom};
+				api_FillRect(dis.hDC, &rc, this.menubar._menuHotBgBrush);
+				api_FrameRect(dis.hDC, &rc, this.menubar._menuFrameBrush);
+				txtClrRef = 0x00000000;
+			} else {
+				api_FillRect(dis.hDC, &dis.rcItem, this.menubar._menuGrayBrush);
+				txtClrRef = this.menubar._menuGrayCref;
+			}
+		} else {
+			api_FillRect(dis.hDC, &dis.rcItem, this.menubar._menuDefBgBrush);
+			if (!mi._isEnabled) txtClrRef = this.menubar._menuGrayCref;
+		}
+		api_SetBkMode(dis.hDC, 1);
+		dis.rcItem.left = mi.kind == MenuType.BASE_MENU ? dis.rcItem.left + 10 : dis.rcItem.left + 25;
+		api_SelectObject(dis.hDC, (Hgdiobj)this.menubar.font.handle);
+		api_SetTextColor(dis.hDC, txtClrRef);
+		api_DrawText(dis.hDC, mi._wideText, -1, &dis.rcItem, DT_LEFT | DT_SINGLELINE | DT_VCENTER);
+		return 0;
+	}
+
+	fn Lresult Form.menuSelectHandler(&this, Wparam wp, Lparam lp)
+	{
+		MenuItem* pmenu = this.getMenuFromHmenu((Hmenu) lp);
+
+		// Could be an id of a child menu or an index of a child menu
+		uint mid = (uint)(loWord(wp)); 
+		Word hwwpm = hiWord(wp);
+		if (pmenu) {
+			MenuItem* menu;
+			switch (hwwpm) {
+				case 33152: // A normal child menu. We can use mid ad menu id.
+					menu = this._menuItemMap[mid]!!;
+				case 33168: // A popup child menu. We can use mid as index.
+					menu = pmenu.getChildFromIndex(mid);
+			}
+			if (menu && menu.onFocus) menu.onFocus(menu, &&EventArgs{});
+		}
+		return 0;
 	}
 
 	fault MenuEventError {MED_NOT_FOUND}
@@ -544,25 +531,19 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_SHOWWINDOW:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formShownHandler();
+
 		case WM_ACTIVATEAPP :
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formActivateHandler(wp);
 
-		case MM_TRAY_MSG:
-			handleTrayIconEvents(hw, lp);
-
-		case WM_LBUTTONDOWN:
-			Clock c = clock::now();
-			std::thread::sleep_ms(2);
-			// NanoDuration n = c.mark();
-			io::printfn("time for getting form %s", c.mark());
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-			
-			
+		case WM_LBUTTONDOWN:		
+			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);	
 		 	this.leftMouseDownHandler(msg, wp, lp);
+
 		case WM_LBUTTONUP:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.leftMouseUpHandler(msg, wp, lp);
+
 		case MM_MOUSE_LBCLICK:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.leftClickHandler();
@@ -570,9 +551,11 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_RBUTTONDOWN:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.rightMouseDownHandler(msg, wp, lp);
+
 		case WM_RBUTTONUP:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.rightMouseUpHandler(msg, wp, lp);
+
 		case MM_MOUSE_RBCLICK:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.rightClickHandler();
@@ -580,12 +563,11 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_MOUSEMOVE:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formMouseMoveHandler(msg, wp, lp);
-		// case WM_MOUSEHOVER:
-			// Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	// this.formMouseHoverHandler(msg, wp, lp); // In a later thought, i avoided this.
+		
 		case WM_MOUSELEAVE:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formMouseLeaveHandler();
+
 		case WM_MOUSEWHEEL:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.mouseWheelHandler(msg, wp, lp);
@@ -600,6 +582,7 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_MOVING :
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return this.formMovingHandler(lp);
+
 		case WM_MOVE :
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return this.formMovedHandler(lp);
@@ -607,19 +590,20 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_SYSCOMMAND :
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formSysCommandHandler(wp);
+
 		case WM_CLOSE :
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formCloseHandler();
+
 		case WM_DESTROY:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formDestroyHandler();
 
 		case WM_HSCROLL:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return api_SendMessage((Hwnd) lp, MM_HSCROLL, wp, lp);
+
         case WM_VSCROLL:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	return api_SendMessage((Hwnd) lp, MM_VSCROLL, wp, lp);
+		 	return api_SendMessage((Hwnd)lp, MM_VSCROLL, wp, lp);
 
 		case WM_TIMER:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
@@ -631,12 +615,6 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 
 		case WM_ERASEBKGND :
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-			// if (this._fDrawMode != FormDrawMode.DEFAULT) {
-			// 	this.setBackColorInternal((Hdc)wp);
-			// 	return 1; // We must return non zero value if we handle this message.
-			// } else {
-
-			// }
 			this.setBackColorInternal((Hdc)wp);
 			return 1;
 	// end of commons
@@ -651,7 +629,6 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 
 		case WM_CTLCOLOREDIT :
             Hwnd hc = (Hwnd)lp;
-			// ptf("COLOR EDIT HWND %s", hc );
 			return api_SendMessage(hc, MM_COLOR_EDIT, wp, lp);
 
 		case WM_CTLCOLORLISTBOX:
@@ -665,85 +642,19 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 
 		case WM_MEASUREITEM:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-			MeasureItemStruct* pmi = (MeasureItemStruct*) lp;
-			MenuItem* mi = (MenuItem*) ((void*) pmi.itemData);
-			if (mi.kind == MenuType.BASE_MENU) {
-				Hdc hdc = api_GetDC(hw);
-				defer api_ReleaseDC(hw, hdc);
-				Size size;
-				api_GetTextExtentPoint32(hdc, mi._wideText, mi.text.len, &size);
-				pmi.itemWidth = size.cx + 3;
-				pmi.itemHeight = size.cy;
-			} else {
-				pmi.itemWidth = 100;
-				pmi.itemHeight = 25;
-			}
-			return 1;
+			return this.measureItemHandler(hw, lp);
 
 		case WM_DRAWITEM:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-			DrawItemStruct* dis = (DrawItemStruct*) lp;
-			MenuItem* mi = (MenuItem*) ((void*) dis.itemData);
-			Colorref txtClrRef = mi.fgColor.ref;
-			if (dis.itemState == 320 || dis.itemState == 257) {
-				if (mi._isEnabled) {
-					Rect rc = {dis.rcItem.left + 5, dis.rcItem.top + 1, dis.rcItem.right, dis.rcItem.bottom};
-					api_FillRect(dis.hDC, &rc, this.menubar._menuHotBgBrush);
-					api_FrameRect(dis.hDC, &rc, this.menubar._menuFrameBrush);
-					txtClrRef = 0x00000000;
-				} else {
-					api_FillRect(dis.hDC, &dis.rcItem, this.menubar._menuGrayBrush);
-					txtClrRef = this.menubar._menuGrayCref;
-				}
-			} else {
-				api_FillRect(dis.hDC, &dis.rcItem, this.menubar._menuDefBgBrush);
-				if (!mi._isEnabled) txtClrRef = this.menubar._menuGrayCref;
-			}
-			api_SetBkMode(dis.hDC, 1);
-			dis.rcItem.left = mi.kind == MenuType.BASE_MENU ? dis.rcItem.left + 10 : dis.rcItem.left + 25;
-			api_SelectObject(dis.hDC, (Hgdiobj)this.menubar.font.handle);
-			api_SetTextColor(dis.hDC, txtClrRef);
-			api_DrawText(dis.hDC, mi._wideText, -1, &dis.rcItem, DT_LEFT | DT_SINGLELINE | DT_VCENTER);
-			return 0;
-
-		// case MM_MENU_ADDED:
-		// 	// De-reference the pointer and put the menu item in our map
-		// 	uint menuID = (uint)wp;
-		// 	this._menuItemMap[menuID] = (MenuItem*)((void*) lp);
-		// 	return 0;
+			return this.drawItemHandler(lp);
 
 		case WM_COMMAND:
-			// print("form rcvd command");
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-            switch (hiWord(wp)) {
-				case 0:  // menu click commands
-					uint menuID = (uint) loWord(wp);
-					if (try menu = this._menuItemMap[menuID]) {
-						if (menu.onClick) menu.onClick(menu, &&EventArgs{});
-					}
-					return 0;
-                case 1: return 0; // # accelerator key commands
-                default:
-                    Hwnd ctlHwnd = (Hwnd)lp;
-                    return api_SendMessage(ctlHwnd, MM_CTL_COMMAND, wp, lp);
-			}
-
+            return this.commandHandler(wp, lp);
 
 		case WM_MENUSELECT:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-			MenuItem* pmenu = this.getMenuFromHmenu((Hmenu) lp);
-			uint mid = (uint)(loWord(wp)); // Could be an id of a child menu or an index of a child menu
-			Word hwwpm = hiWord(wp);
-			if (pmenu) {
-				MenuItem* menu;
-				switch (hwwpm) {
-					case 33152: // A normal child menu. We can use mid ad menu id.
-						menu = this._menuItemMap[mid]!!;
-					case 33168: // A popup child menu. We can use mid as index.
-						menu = pmenu.getChildFromIndex(mid);
-				}
-				if (menu && menu.onFocus) menu.onFocus(menu, &&EventArgs{});
-			}
+			return this.menuSelectHandler(wp, lp);
 
 		case WM_INITMENUPOPUP:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);

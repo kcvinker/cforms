@@ -136,12 +136,13 @@ enum BallonIcon : Dword
     CUSTOM
 }
 
-enum TrayMenuTrigger : char
+enum TrayMenuTrigger : int(String desc, char value)
 {
-    NONE,
-    LFET_CLICK,
-    LEFT_DOUBLE_CLICK,
-    RIGHT_CLICK
+    NONE = {"No trigger", 0},
+    LEFT_CLICK = {"Left mouse click", 1},
+    LEFT_DOUBLE_CLICK = {"Left double click", 2},
+    RIGHT_CLICK = {"Right mouse click", 4},
+    ANY_CLICK = {"Any click will work", 7}
 
 }
 

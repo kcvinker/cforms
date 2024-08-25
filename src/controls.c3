@@ -40,7 +40,7 @@ struct Control
 
 	EventHandler onGotFocus;
 	EventHandler onLostFocus;
-	EventHandler onMouseClick;
+	EventHandler onClick;
 	EventHandler onRightClick;
 	EventHandler onMouseEnter;
 	EventHandler onMouseLeave;
@@ -124,8 +124,10 @@ fault StringFault
 	macro void Control.addContextMenu(&self, ...)
 	{
 		$if $vacount == 1 && @typeis($vaarg[0], ContextMenu*):
-			return self.setContextMenu1($vaarg[0]);
+			// One arg and it is ContextMenu ptr
+			return self.setContextMenu1($vaarg[0]); 
 		$else
+			// Multiple args, so it must be strings for menu items.
 			return self.setContextMenu2($vasplat);
 		$endif
 	}
@@ -135,8 +137,6 @@ fault StringFault
 	{
 		this.contextMenu = cmenu;
 		if (!cmenu.parent) this.contextMenu.parent = this;
-		// this.contextMenu.setDummyControl();
-		// this.contextMenu.createMessageWindow();
 		this._cmenuUsed = true;
 	}
 
@@ -146,8 +146,6 @@ fault StringFault
 		cmenu.addMenus(menuNames);
 		cmenu.parent = this;
 		this.contextMenu = cmenu;
-		// this.contextMenu.setDummyControl();
-		// this.contextMenu.createMessageWindow();
 		this._cmenuUsed = true;
 	}
 
@@ -294,33 +292,29 @@ fault StringFault
 // Control Event Handlers
 	fn void Control.setFocusHandler(Control* c) {if (c.onGotFocus) c.onGotFocus(c, &&EventArgs{});}
 	fn void Control.killFocusHandler(Control* c) {if (c.onLostFocus) c.onLostFocus(c, &&EventArgs{});}
-	fn void Control.leftClickHandler(Control* c) {if (c.onMouseClick) c.onMouseClick(c, &&EventArgs{});}
+	fn void Control.leftClickHandler(Control* c) {if (c.onClick) c.onClick(c, &&EventArgs{});}
 	fn void Control.rightClickHandler(Control* c) {if (c.onRightClick) c.onRightClick(c, &&EventArgs{});}
 
 	fn void Control.leftMouseDownHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
 	{
-		c._lbDown = true;
 		if (c.onMouseDown) {
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			ptf("m btn %d", mea.button.value);
 			c.onMouseDown(c, &mea);
 		}
 	}
 
 	fn void Control.leftMouseUpHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
 	{
-		if (c._lbDown) {
-			c._lbDown = false;
-			api_PostMessage(c.handle, MM_MOUSE_LBCLICK, 0, 0);
-		}
 		if (c.onMouseUp) {
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
 			c.onMouseUp(c, &mea);
 		}
+		if (c.onClick) c.onClick(c, &&EventArgs{});		
 	}
 
 	fn void Control.rightMouseDownHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
 	{
-		c._lbDown = true;
 		if (c.onRightMouseDown) {
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
 			c.onRightMouseDown(c, &mea);
@@ -329,14 +323,11 @@ fault StringFault
 
 	fn void Control.rightMouseUpHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
 	{
-		if (c._rbDown) {
-			c._rbDown = false;
-			api_PostMessage(c.handle, MM_MOUSE_RBCLICK, 0, 0);
-		}
 		if (c.onRightMouseUp) {
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
 			c.onRightMouseUp(c, &mea);
 		}
+		if (c.onRightClick) c.onRightClick(c, &&EventArgs{});
 	}
 
 	fn void Control.mouseWheelHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)

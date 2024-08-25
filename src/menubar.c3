@@ -22,8 +22,41 @@ struct MenuBase
 	Hmenu handle;
 	Font font;
 	uint _menuCount;
-	MenuMap menus;
+	// MenuMap menus;
+	MenuItemList _menuList;
 }
+
+fn MenuItem* MenuBase.getItem1(&this, String menuName) @private
+{
+	if (this._menuList.len() > 0) {
+    	foreach(menu: this._menuList) {
+			if (menu.text == menuName) return menu;
+		}
+	}
+	return null;
+}
+
+fn MenuItem* MenuBase.getItem2(&this, int index) @private
+{
+	if (this._menuList.len() > 0) {
+    	foreach(menu: this._menuList) {
+			if (menu._index == index) return menu;
+		}
+	}
+	return null;
+}
+
+// Get menu item from index or menu name.
+macro MenuItem* MenuBase.menus(&this, indexOrName)
+{
+	$switch ($typeof(indexOrName))
+		$case String: return this.getItem1(indexOrName);
+		$case int: return this.getItem2(indexOrName);
+		$default: $error "No overload for this type";
+	$endswitch
+}
+
+//=======================================================================
 
 // MenuBar structure
 struct MenuBar
@@ -36,7 +69,7 @@ struct MenuBar
     Hbrush _menuHotBgBrush ;
     Hbrush _menuFrameBrush ;
     Hbrush _menuGrayBrush ;
-	MenuItemList _menuList;
+	// MenuItemList _menuList;
 }
 
 // MenuItem structure
@@ -81,8 +114,6 @@ fn MenuBar* newMenuBar(Form* frm)
     this._menuGrayBrush = getHbrush(0xced4da);
     this._menuGrayCref = getClrRef(0x979dac);
 	this._pForm.menubar = this;
-	// this.menus.new_init();
-	// this._pForm._menuItemMap.new_init();
 	this._pForm._menuMapInited = true;
 	return this;
 }
@@ -119,7 +150,6 @@ fn MenuItem* MenuBar.addItem(&this, String menuName, uint txtColor = 0x000000)
     mi._formMenu = true;
 	mi._mbar = this;
     this._menuCount += 1;
-    this.menus[menuName] = mi;
 	this._menuList.push(mi);
     this._pForm._menuItemMap[mi.idNum] = mi;
 	return mi;
@@ -133,12 +163,13 @@ fn void MenuBar.addItems(&this, String... menuNames)
 		mi._formHwnd = this._pForm.handle;
 		mi._formMenu = true;
 		mi._mbar = this;
-		this._menuCount += 1;
-		this.menus[name] = mi;
+		this._menuCount += 1;		
 		this._menuList.push(mi);
 		this._pForm._menuItemMap[mi.idNum] = mi;
 	}
 }
+
+
 
 // Create menu handles and set menus in menubar. Must call this after creating menubar struct.
 fn void MenuBar.createHandle(&this)
@@ -149,21 +180,11 @@ fn void MenuBar.createHandle(&this)
 	if (!this.font.handle) this.font.createHandle(this._pForm.handle);
 
 	// If there are menus, we need to create the handles for them too.
-    if (this._menuCount > 0) {
-		// @pool() {
-			// MenuItem*[] mlist = this.menus.value_tlist();
-			// sort::quicksort(mlist, &sortMenuItemList);
-			foreach(menu: this._menuList) {menu.create();}
-		// };
-		this._menuList.free();
+    if (this._menuCount > 0) {		
+			foreach(menu: this._menuList) {menu.create();}		
 	}
     api_SetMenu(this._pForm.handle, this.handle);
 	this._pForm._menubarCreated = true;
-}
-
-fn bool sortMenuItemList(MenuItem* a, MenuItem* b) @private
-{
-	return a.idNum < b.idNum;
 }
 
 fn void MenuItem.insertMenuInternal(&this, Hmenu parentHmenu)
@@ -190,27 +211,8 @@ fn void MenuItem.create(&this)
     	case MenuType.BASE_MENU: nextcase;
 		case MenuType.POPUP:
 			this.insertMenuInternal(this.parentHandle);
-			if (this.menus.count > 0) {
-				@pool() {
-					/*
-						This is a workaround. We faced a strange problem here. `value_tlist()
-						returns an array in reverse order. And there is no sort feature in c3 array.
-						So we need to implement a temporary sort arrangement here.
-					*/
-					MenuItem*[] menuArr = this.menus.value_tlist();
-					int indxVal = 0;
-					int counter = 0;
-					while (true) {
-						MenuItem* mi = menuArr[indxVal];
-						if (mi._index == counter) {
-							mi.create();
-							counter += 1;
-						}
-						if (counter == this.menus.count) break;
-						indxVal += 1;
-						if (indxVal == this.menus.count) indxVal = 0;
-					}
-				};
+			if (this._menuList.len() > 0) {				
+				foreach(menu: this._menuList) {menu.create();}
 			}
     	case MenuType.MENU_ITEM:
         	this.insertMenuInternal(this.parentHandle);
@@ -225,7 +227,7 @@ fn MenuItem* MenuItem.addItem(&this, String menuName, uint txtColor = 0x000000)
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
-		this.menus.new_init();
+		this._menuList.new_init();
 	}
     MenuItem* result = newMenuItem(menuName, MenuType.MENU_ITEM, this.handle, this._menuCount);
     result.fgColor = newColor(txtColor);
@@ -234,7 +236,7 @@ fn MenuItem* MenuItem.addItem(&this, String menuName, uint txtColor = 0x000000)
 	result._mbar = this._mbar;
     if (this.kind != MenuType.BASE_MENU) this.kind = MenuType.POPUP;
     this._menuCount += 1;
-    this.menus[menuName] = result;
+    this._menuList.push(result);
 	this._mbar._pForm._menuItemMap[result.idNum] = result;
     return result;
 }
@@ -245,7 +247,7 @@ fn void MenuItem.addItems(&this, String... menuNames )
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
-		this.menus.new_init();
+		this._menuList.new_init();
 	}
 	if (this.kind != MenuType.BASE_MENU) this.kind = MenuType.POPUP;
 	foreach (name: menuNames) {
@@ -255,33 +257,28 @@ fn void MenuItem.addItems(&this, String... menuNames )
 		menu._formMenu = this._formMenu;
 		menu._mbar = this._mbar;
 		this._menuCount += 1;
-		this.menus[name] = menu;
+		this._menuList.push(menu);
 		this._mbar._pForm._menuItemMap[menu.idNum] = menu;
 	}
 }
 
-// MenuItem constructor.
+fn MenuItem* MenuItem.get(&this, String menuName) 
+{
+	if (this._menuList.len() > 0) {
+    	foreach(menu: this._menuList) {
+			if (menu.text == menuName) return menu;
+		}
+	}
+	return null;
+}
 
-
-// fn MenuItem newBaseMenu(String menuText) {return newMenuItem(menuText, MenuType.BASE_MENU);}
-// fn MenuItem newMenu(String menuText) {return newMenuItem(menuText);}
-// fn MenuItem newPopupMenu(String menuText) {return newMenuItem(menuText, MenuType.POPUP);}
-// fn void newSeparator() {newMenuItem("", MenuType.SEPRATOR);}
-
-// fn void MenuItem.addClickHandler(MenuItem* this, MenuEventHandler pFunc) {
-// 	this.onClick = pFunc;
-// 	if (!(this._evtFlag & 1)) this._evtFlag += 1;
-// 	api_SendMessage(this._formHwnd, MM_MENU_NOTIFY, 0, (Lparam)(void*)this);
-// }
 
 fn MenuItem* MenuItem.getChildFromIndex(&this, uint indx)
 {
-	if (this._menuCount > 0) {
-		@pool() {
-			foreach (menu: this.menus.value_tlist()) {
-				if (menu._index == indx) return menu;
-			}
-		};
+	if (this._menuCount > 0) {		
+		foreach(menu: this._menuList) {
+			if (menu._index == indx) return menu;
+		}
 	}
 	return null;
 }
@@ -289,11 +286,9 @@ fn MenuItem* MenuItem.getChildFromIndex(&this, uint indx)
 // Freeing resources for a menu item
 fn void MenuItem.destroy(&this)
 {
-	if (this._menuCount > 0) {
-		@pool() {
-			foreach (menu: this.menus.value_tlist()) {menu.destroy();}
-			this.menus.free();
-		};
+	if (this._menuCount > 0) {		
+		foreach(menu: this._menuList) {menu.destroy();}
+		this._menuList.free();
 	}
 	free(this._wideText);
 	allocator::free(&app.tracker, this);
@@ -302,11 +297,9 @@ fn void MenuItem.destroy(&this)
 // Freeing resources for a menu bar
 fn void MenuBar.destroy(&this)
 {
-	if (this._menuCount) {
-		@pool() {
-			foreach (menu: this.menus.value_tlist()) {menu.destroy();}
-			this.menus.free();
-		};
+	if (this._menuCount) {		
+			foreach(menu: this._menuList) {menu.destroy();}
+			this._menuList.free();
 	}
 	allocator::free(&app.tracker, this);
 }
@@ -336,8 +329,7 @@ struct ContextMenu
 fn ContextMenu* newContextMenu()
 {
 	ContextMenu* this = allocator::new(&app.tracker, ContextMenu);
-	this.handle = api_CreatePopupMenu();
-	// ptf("cmenu handle %d", this.handle);
+	this.handle = api_CreatePopupMenu();	
 	this.width = 120;
 	this.height = 25;
 	this.rightClick = true;
@@ -348,12 +340,12 @@ fn ContextMenu* newContextMenu()
 	this._grayBrush = getHbrush(0xced4da);
 	this._grayCref = getClrRef(0x979dac);
 
-	/* ************************************************************************
-		We are using a message-only-window to handle all messages from context menu.
-		So just register a window class for the message-only-window. So that we can..
-		create a message-only-windows for each time a context menu appears and...
-		destroy the message-only window when the context menu dissappears.
-	************************************************************************** */
+	/*--------------------------------------------------------------------------
+	We are using a message-only-window to handle all messages from context menu.
+	So just register a window class for the message-only-window. So that we can..
+	create a message-only-windows for each time a context menu appears and...
+	destroy the message-only window when the context menu dissappears.
+	***************************************************************************/
 	if (!cmenuMsgWinCreated) registerCmenuMessageWindow();
 	return this;
 }
@@ -364,8 +356,9 @@ fn void ContextMenu.addMenus(&this, String[] menuNames)
 		MenuType mtyp = name == "|" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;
 		MenuItem* mi = newMenuItem(name, mtyp, this.handle, this._menuCount);
 		this._menuCount += 1;
-		this.menus[name] = mi;
-	}
+		this._menuList.push(mi);
+		// ptf("menu: %s, type: %s", mi.text, mi.kind);
+	}	
 }
 
 fn MenuItem* ContextMenu.addMenu(&this, String menuText)
@@ -373,48 +366,54 @@ fn MenuItem* ContextMenu.addMenu(&this, String menuText)
 	MenuType mtyp = menuText == "_" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;
 	MenuItem* mi = newMenuItem(menuText, mtyp, this.handle, this._menuCount);
 	this._menuCount += 1;
-	this.menus[menuText] = mi;
+	this._menuList.push(mi);
 	return mi;
+}
+
+fn MenuItem* ContextMenu.get(&this, int index) 
+{
+	if (this._menuList.len() > 0) {
+    	foreach(menu: this._menuList) {
+			if (menu._index == index) return menu;
+		}
+	}
+	return null;
 }
 
 fn void MenuItem.insertCmenuInternal(&this) @private
 {
-	if (this.menus.len() > 0) {
-		@pool() {
-			foreach (menu: this.menus.value_tlist()) menu.insertCmenuInternal();
-		};
+	if (this._menuList.len() > 0) {		
+		foreach(menu: this._menuList) {menu.insertCmenuInternal();}		
 	}
+	// ptf("menu: %s, type: %s", this.text, this.kind );
 	if (this.kind == MenuType.MENU_ITEM) {
         this.insertMenuInternal(this.parentHandle);
     } else if (this.kind == MenuType.SEPRATOR) {
-        api_AppendMenu(this.handle, MF_SEPARATOR, 0, null);
+        api_AppendMenu(this.parentHandle, MF_SEPARATOR, 0, null);
 	}
 }
 
 fn void ContextMenu.createHandle(&this)
 {
-	if (this.menus.len() > 0) {
-		@pool() {
-			foreach (menu: this.menus.value_tlist()) menu.insertCmenuInternal();
-		};
+	if (this._menuList.len() > 0) {		
+		foreach(menu: this._menuList) {menu.insertCmenuInternal();}
 	}
 	this._menuInserted = true;
 }
 
 
-// fn bool ContextMenu.isParentForm(&this) @private {return this.parent.kind == ControlType.NONE;}
-
-
-fn MenuItem* ContextMenu.getMenuItem(ContextMenu* this, uint id) @private
-{
-	@pool() {
-		foreach (menu: this.menus.value_tlist()) { if (menu.idNum == id) return menu; }
-	};
+fn MenuItem* ContextMenu.getMenuItem(&this, uint id) @private
+{	
+	if (this._menuList.len() > 0) {
+		foreach(menu: this._menuList) {
+			if (menu.idNum == id) return menu;
+		}
+	}
 	return null;
 }
 
 /**
- * @require this.parent || this._trayParent && this.menus.count "Either parent is null or no menu items added"
+ * @require this.parent || this._trayParent && this._menuList.len() "Either parent is null or no menu items added"
 **/
 fn void ContextMenu.showMenu(&this, Lparam lpm)
 {	
@@ -430,16 +429,12 @@ fn void ContextMenu.showMenu(&this, Lparam lpm)
 	}		
 	if (!this._menuInserted) this.createHandle();
 	Point pt;
-	if (lpm) {
-		pt = getMousePoints(lpm);
-	} else {
-		api_GetCursorPos(&pt);
-	}
+	lpm ? getMousePoints2(&pt, lpm) : api_GetCursorPos(&pt);	
 
-	ptf("pt.x: %d, pt.y: %d", pt.x, pt.y);
 	/*-------------------------------------------------------------------------------------
 	If ContextMenu is generated by a keybord shortcut like 'Ctrl + F10' or 'VK_APPS' key,
 	x & y might be -1. So we need to find the mouse position on our own.
+	NOTE: Short keys are working with only TrayMenuTrigger.RIGHT_CLICK
 	-------------------------------------------------------------------------------------*/
 	if (pt.x == -1 && pt.y == -1) pt = getMousePosOnMsg();
 
@@ -455,7 +450,8 @@ fn void ContextMenu.showMenu(&this, Lparam lpm)
 	We are using TPM_RETURNCMD, so we don't get the WM_COMMAND in our wndproc, 
 	we will get the selected menu id in return value.
 	----------------------------------------------------------------------------*/
-	uint mid = (uint)api_TrackPopupMenu(this.handle, TPM_RETURNCMD, pt.x, pt.y, 0, this._dummyHwnd, null);	
+	uint mid = (uint)api_TrackPopupMenu(this.handle, TPM_RETURNCMD, 
+										pt.x, pt.y, 0, this._dummyHwnd, null);	
 	/*-------------------------------------------------------------
 	We got the result here. So if user has selected any menu item,
 	we need to find the menu item and execute it's onClick handler.
@@ -479,7 +475,7 @@ fn void registerCmenuMessageWindow() @private
 	wc.lpszClassName = &cmenuMsgWinClass[0];
 	api_RegisterClassEx(&wc);
 	cmenuMsgWinCreated = true;
-	// print("context menu message-only window registered");
+	ptf("value of hwnd_message %d", HWND_MESSAGE);
 }
 
 // Creating message only window for handling menu messages.
@@ -499,11 +495,9 @@ fn void ContextMenu.destroy(&this)
 	=====================================================================*/
 
 	// We first clean our menu items.
-	if (this._menuCount > 0) {
-		@pool() {
-			foreach (menu: this.menus.value_tlist()) { menu.destroy();}
-		};
-		this.menus.free();
+	if (this._menuCount > 0) {		
+		foreach(menu: this._menuList) {menu.destroy();}
+		this._menuList.free();
 	}
 	// Destroying our GDI resources.
 	api_DeleteObject((Hgdiobj)this._defBgBrush);
@@ -521,14 +515,8 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {	
 	// log("cmenu wnd proc %d", msg);
 	switch (msg) {
-		case WM_DESTROY:
-			// ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
-			// this.destroy();
-			// api_RemoveWindowSubclass(hw, &cmenuWndProc, scID);;
-			print("context menu's message-only-window destroyed");
-
-		// case WM_INITMENUPOPUP:
-		// 	print("WM_INITMENUPOPUP");
+		//case WM_DESTROY:			
+			//print("context menu's message-only-window destroyed");
 
 		case WM_MEASUREITEM:
 			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
@@ -596,20 +584,7 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 				if (menu && menu._isEnabled) {
 					if (menu.onFocus) menu.onFocus(menu, &&EventArgs{});
 				}
-			}
-
-		// case WM_COMMAND:
-		// 	// print("cmenu wm_command 557");
-		// 	ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);			
-		// 	uint idNum = (uint) loWord(wp);
-		// 	if (idNum > 0) {
-		// 		MenuItem* menu = this.getMenuItem(idNum);
-		// 		// ptf("wm command %s", menu.text);
-		// 		if (menu && menu._isEnabled) {
-		// 			if (menu.onClick) menu.onClick(menu, &&EventArgs{});
-		// 		}
-		// 	}
-			
+			}	
 
 		default:
 			return api_DefWindowProc(hw, msg, wp, lp);

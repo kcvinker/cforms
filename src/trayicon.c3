@@ -13,6 +13,7 @@ struct TrayIcon
     bool _resetIcon;
     bool _cmenuUsed;
     bool _retainIcon;
+    
     TrayMenuTrigger menuTrigger;
     Hicon _hTrayIcon;
     Hwnd _msgWinHwnd;
@@ -64,7 +65,6 @@ fn TrayIcon* newTrayIcon( String tooltip, String iconpath = "")
         this._nid.toolTipText[:tipTxt.len] = tipTxt[:^0];
         api_Shell_NotifyIcon(NIM_ADD, &this._nid);  		
     };
-    log("notify icon size %d, uint size %d", NotifyIconData.sizeof, uint.sizeof);
     return this;
 }
 
@@ -212,9 +212,6 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
                 case NIN_BALLOONSHOW:                    
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
                     if (this.onBalloonShow) this.onBalloonShow(this, &&EventArgs{});
-                    
-                // case NIN_BALLOONHIDE:
-                //     print("NIN_BALLOONHIDE");
 
                 case NIN_BALLOONTIMEOUT:                    
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
@@ -227,11 +224,6 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
                     if (this.onBalloonClick) this.onBalloonClick(this, &&EventArgs{});
                     if (this._resetIcon) this.resetIconInternal(); // Need to revert the default icon
 
-                // case NIN_POPUPOPEN:
-                //     print("NIN_POPUPOPEN");
-                // case NIN_POPUPCLOSE:
-                //     print("NIN_POPUPCLOSE");
-
                 case WM_LBUTTONDOWN:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
                     if (this.onLeftMouseDown) this.onLeftMouseDown(this, &&EventArgs{});                    
@@ -240,15 +232,13 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
                    TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
                     if (this.onLeftMouseUp) this.onLeftMouseUp(this, &&EventArgs{});
                     if (this.onLeftClick) this.onLeftClick(this, &&EventArgs{});
-                    if (this._cmenuUsed && 
-                        this.menuTrigger == TrayMenuTrigger.LFET_CLICK) 
+                    if (this._cmenuUsed && this.menuTrigger.value & 0b00000001) 
                         {this.contextMenu.showMenu(0);}
                     
                 case WM_LBUTTONDBLCLK:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
                     if (this.onLeftDoubleClick) this.onLeftDoubleClick(this, &&EventArgs{});
-                    if (this._cmenuUsed && 
-                        this.menuTrigger == TrayMenuTrigger.LEFT_DOUBLE_CLICK) 
+                    if (this._cmenuUsed && this.menuTrigger.value & 0b00000010) 
                         {this.contextMenu.showMenu(0);}
                     
                 case WM_RBUTTONDOWN:
@@ -259,8 +249,7 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
                     if (this.onRightMouseUp) this.onRightMouseUp(this, &&EventArgs{});
                     if (this.onRightClick) this.onRightClick(this, &&EventArgs{});
-                    if (this._cmenuUsed && 
-                        this.menuTrigger == TrayMenuTrigger.RIGHT_CLICK) 
+                    if (this._cmenuUsed && this.menuTrigger.value & 0b00000100) 
                         {this.contextMenu.showMenu(0);}
                     
                 case WM_MOUSEMOVE:
@@ -274,7 +263,7 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			return api_DefWindowProc(hw, msg, wp, lp);
 	}
     
-	return 0;
+	return api_DefWindowProc(hw, msg, wp, lp);
 }
 
 

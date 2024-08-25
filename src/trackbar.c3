@@ -534,7 +534,8 @@ fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 			if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_HSCROLL:
 			TrackBar* this = bitcast(refData, TrackBar*);
-					case MM_VSCROLL:
+			this.scrollHandler(hw, wp);
+		case MM_VSCROLL:			
 			TrackBar* this = bitcast(refData, TrackBar*);
 			this.scrollHandler(hw, wp);
 		case MM_NOTIFY_REFLECT:

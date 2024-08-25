@@ -14,10 +14,17 @@ macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
 
 // macro uint Hwnd.rehash(Hwnd i) => (uint)((iptr)i);
 
-fn int wordToInt(Word x) @inline {return (int)((short)x);}
-fn Point getMousePoints(Lparam lpm) 
+fn int wordToInt(Word x) @inline {return (int)((short)x);} 
+
+fn Point getMousePoints(Lparam lpm) @inline
 {
 	return Point{wordToInt(loWord(lpm)), wordToInt(hiWord(lpm))};
+}
+fn int getMousePoints2(Point* pt, Lparam lpm) @inline
+{
+	pt.x = wordToInt(loWord(lpm));
+	pt.y = wordToInt(hiWord(lpm));
+	return 0;
 }
 
 fn Point getMousePosOnMsg()
