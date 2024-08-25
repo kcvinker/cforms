@@ -1,7 +1,17 @@
 // button module - Created on 26-Jan-2023 01:36
 
-module cforms;
+/*=========================================Button Docs==========================================
+	Constructor	: newButton()
+	Properties:
+		All public properties inherited from Control struct. (See controls.c3)
+	Methods:
+		createHandle()	: Creates the handle of button. (Usually called automatically)
+		setForeColor()	: Set foreground color for this button
+		setBackColor()	: Set background color for this button
+		setGradientColor()	: Set gradient background for this button
+================================================================================================*/
 
+module cforms;
 
 Dword btnStyle = 1342259200;
 const int BTN_CLICKED = 0b1;
@@ -273,33 +283,6 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	}
 // End of Private functions
 
-fn void Control.leftMouseClickHandler(&self)
-{
-
-	// if ($defined(self.onleftClick))
-	// {
-	// 	self.onleftClick(&&EventArgs{});
-	// }
-	// else
-	// {
-	// 	print("not defined");
-	// }
-
-}
-
-// fn void Button.test(&self) @dynamic
-// {
-// 	print("Button's test method");
-// 	if ($defined(self.onleftClick))
-// 	{
-// 		self.onleftClick(&&EventArgs{});
-// 	}
-// 	else
-// 	{
-// 		print("left click is not defined");
-// 	}
-// }
-
 
 fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
@@ -310,12 +293,15 @@ fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 			Button* this = bitcast(refData, Button*);
 			api_RemoveWindowSubclass(hw, &btnWndProc, scID);;
 			this.dtor(); 
+
 		case WM_LBUTTONDOWN: 
 			Button* this = bitcast(refData, Button*);
 			this.leftMouseDownHandler(msg, wp, lp);
+
 		case WM_LBUTTONUP: 
 			Button* this = bitcast(refData, Button*);
 			this.leftMouseUpHandler(msg, wp, lp);
+
 		case MM_MOUSE_LBCLICK: 
 			Button* this = bitcast(refData, Button*);
 			this.leftClickHandler(); //
@@ -323,9 +309,11 @@ fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 		case WM_RBUTTONDOWN: 
 			Button* this = bitcast(refData, Button*);
 			this.rightMouseDownHandler(msg, wp, lp);
+
 		case WM_RBUTTONUP: 
 			Button* this = bitcast(refData, Button*);
 			this.rightMouseUpHandler(msg, wp, lp);
+
 		case MM_MOUSE_RBCLICK: 
 			Button* this = bitcast(refData, Button*);
 			this.rightClickHandler();
@@ -333,22 +321,25 @@ fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 		case WM_MOUSEMOVE: 
 			Button* this = bitcast(refData, Button*);
 			this.mouseMoveHandler(msg, wp, lp);
+
 		case WM_MOUSELEAVE: 
 			Button* this = bitcast(refData, Button*);
 			this.mouseLeaveHandler();
+
 		case WM_MOUSEWHEEL: 
 			Button* this = bitcast(refData, Button*);
 			this.mouseWheelHandler(msg, wp, lp);
+
 		case WM_CONTEXTMENU: 
 			Button* this = bitcast(refData, Button*);
 			if (this.contextMenu) this.contextMenu.showMenu(lp);
+
 		case MM_NOTIFY_REFLECT: 
 			Button* this = bitcast(refData, Button*);
 			return this.wmNotifyHandler(lp);
+
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
-		// case MM_RUNDTOR: 
-		// this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
