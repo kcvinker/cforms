@@ -99,18 +99,6 @@ struct CmbData
 		}
 	}
 
-	// macro void ComboBox.addItem(ComboBox* this, item) 281023
-	// {
-	// 	var $tp = $typeof(item).typeid;
-	// 	$if ($tp == String.typeid):
-	// 		this.items.push(item);
-	// 	$else
-	// 		$if (isStrLiteral(item)):
-	// 			this.items.push(item);
-	// 		$endif
-	// 	$endif
-	// }
-
 	fn void ComboBox.addItem(&this, any* item)
 	{
 		this.putItemInternal(item);
@@ -322,69 +310,70 @@ fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 			ComboBox* this = bitcast(refData, ComboBox*);
 			api_RemoveWindowSubclass(hw, &cmbWndProc, scID);
 			this.dtor();
+			
 		case WM_LBUTTONDOWN:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.leftMouseDownHandler(msg, wp, lp);
+			
 		case WM_LBUTTONUP:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			ComboBox* this = bitcast(refData, ComboBox*);
-			this.leftClickHandler();
-
+						
 		case WM_RBUTTONDOWN:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.rightMouseDownHandler(msg, wp, lp);
+			
 		case WM_RBUTTONUP:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			ComboBox* this = bitcast(refData, ComboBox*);
-			this.rightClickHandler();
-
+			
 		case WM_MOUSEMOVE:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.mouseMoveHandler(msg, wp, lp);
+			
 		case WM_MOUSELEAVE:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			return this.cmbMouseLeaveHandler();
 		case WM_MOUSEWHEEL:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.mouseWheelHandler(msg, wp, lp);
+			
 		case WM_CONTEXTMENU:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			if (this.contextMenu) this.contextMenu.showMenu(lp);
+			
 		case MM_COLOR_LBOX:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			return (Lresult) this.colorMsgHandler(wp);
 		case MM_CTL_COMMAND:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.wmCommandHandler(wp);
+			
 		case WM_KEYDOWN:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.keyDownHandler(wp);
+			
 		case WM_KEYUP:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.keyUpHandler(wp);
+			
 		case WM_CHAR:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.keyPressHandler(wp);
-
+			
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
-		// case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
 
 fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
-{
-	
+{	
 	switch (msg) {
 		case WM_DESTROY:
-			ComboBox* this = (ComboBox*)((void*)refData);
 			api_RemoveWindowSubclass(hw, &cmbEditWndProc, scID);
+			
 		case MM_COLOR_EDIT:
 			ComboBox* this = (ComboBox*)((void*)refData);
 						if (this._drawMode) {
@@ -393,13 +382,6 @@ fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID,
                 if (this._drawMode & 2) api_SetBkColor(hdc, this.backColor.ref);
 			}
 			return (Lresult)this._bkBrush;
-
-		// case WM_KEYDOWN:
-			// ComboBox* this = (ComboBox*)((void*)refData);
-			// this.keyDownHandler(wp);
-		// case WM_KEYUP:
-			// ComboBox* this = (ComboBox*)((void*)refData);
-			// this.keyUpHandler(wp);
 		case WM_LBUTTONDOWN:
 			ComboBox* this = (ComboBox*)((void*)refData);
 			if (this.hasInput) this.leftMouseDownHandler(msg, wp, lp);

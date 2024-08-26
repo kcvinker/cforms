@@ -341,7 +341,6 @@ fault StringFault
 	{
 		if (c.onMouseDown) {
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
-			ptf("m btn %d", mea.button.value);
 			c.onMouseDown(c, &mea);
 		}
 	}

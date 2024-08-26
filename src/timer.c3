@@ -28,5 +28,5 @@ fn void Timer.dtor(&this)
 {
     if (this._isEnabled) api_KillTimer(this._parentHwnd, this._idNum);
     allocator::free(&app.tracker, this);
-    print("timer freed");
+    // print("timer freed");
 }

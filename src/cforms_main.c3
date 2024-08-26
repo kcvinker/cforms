@@ -39,7 +39,7 @@ fn void cforms_init() @init
 {	
 	app.tracker.init(allocator::heap());
 	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
-	app.defWinColor = colorFromUint(0xF5F5F5); //colorFromRgb(0xED, 0xED, 0xED);
+	app.defWinColor = colorFromUint(0xF0F0F0); //colorFromRgb(0xED, 0xED, 0xED);
 	app.screenWidth = api_GetSystemMetrics(0);
 	app.screenHeight = api_GetSystemMetrics(1);
 	app.scaleFactor = (double)api_GetScaleFactorForDevice(0);

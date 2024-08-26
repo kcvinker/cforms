@@ -9,6 +9,8 @@
 		setForeColor()	: Set foreground color for this button
 		setBackColor()	: Set background color for this button
 		setGradientColor()	: Set gradient background for this button
+	Events:
+		All events inherited from Control struct. (See controls.c3)
 ================================================================================================*/
 
 module cforms;

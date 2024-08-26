@@ -1,10 +1,26 @@
 // checkbox module - Created on 08-Feb-2023 01:50
 
+/*=========================================CheckBox Docs==========================================
+	Constructor	: newCheckBox()
+	Properties:
+		All public properties inherited from Control struct. (See controls.c3)
+		autoSize		: bool
+		checked			: bool
+		rightAlign		: bool
+	Methods:
+		createHandle()	: Creates the handle of CheckBox. (Usually called automatically)
+		setState()		: Set checked for this CheckBox
+	Events:
+		EventHandler type events - fn void(Control*, EventArgs*)
+			onCheckedChanged
+
+================================================================================================*/
+
+
+
 module cforms;
 
-
 int cbNumber = 1;
-
 
 // CheckBox control struct
 struct CheckBox

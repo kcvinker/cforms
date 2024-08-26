@@ -1,5 +1,30 @@
 // calendar module - Created on 12-Feb-2023 06:23
 
+/*=========================================Calendar Docs==========================================
+	Constructor	: newCalendar()
+	Properties:
+		All public properties inherited from Control struct. (See controls.c3)
+		value			: DateTime - date time value from Calendar.
+		showWeekNum		: bool 
+		noTodayCircle	: bool
+		noToday			: bool
+		noTraillDates	: bool
+		shortDateNames	: bool
+		viewMode		: ViewMode enum. (See enums.c3)
+		oldViewMode		: ViewMode enum
+	Methods:
+		createHandle()	: Creates the handle of Calendar. (Usually called automatically)
+		setValue()		: Set value for this calendar
+		setViewMode()	: Set view mode color for this Calendar
+	Events:
+		EventHandler type events - fn void(Control*, EventArgs*)
+			onSelectionCommitted
+			onValueChanged
+			onViewChanged
+
+================================================================================================*/
+
+
 module cforms;
 
 

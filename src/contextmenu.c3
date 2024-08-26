@@ -177,7 +177,6 @@ fn void registerCmenuMessageWindow() @private
 	wc.lpszClassName = &cmenuMsgWinClass[0];
 	api_RegisterClassEx(&wc);
 	cmenuMsgWinCreated = true;
-	ptf("value of hwnd_message %d", HWND_MESSAGE);
 }
 
 // Creating message only window for handling menu messages.
