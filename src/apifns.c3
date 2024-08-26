@@ -131,6 +131,7 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_SHGetPathFromIDList(PcIdList_Absolute, Lpwstr) @extern("SHGetPathFromIDListW");
 	extern fn void api_CoTaskMemFree(void*) @extern("CoTaskMemFree");
 	extern fn Bool api_Shell_NotifyIcon(Dword, NotifyIconData*) @extern("Shell_NotifyIconW");
+	extern fn int api_GetScaleFactorForDevice(int) @extern("GetScaleFactorForDevice");
 //
 
 

@@ -238,7 +238,7 @@ fault StringFault
 	fn void Control.setFontInternal(Control* ctl) @private
 	{
 		// if (!ctl.font._isCreated) ctl.font.createFontHandle(ctl.handle);
-		if (!ctl.font._isCreated) ctl.font.createHandle(ctl.handle); //Not working properly.
+		if (!ctl.font._isCreated) ctl.font.createHandle(); //Not working properly.
 		ctl.sendMsg(WM_SETFONT, (Wparam)ctl.font.handle, (Lparam)true);
 	}
 

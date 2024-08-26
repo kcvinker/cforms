@@ -185,7 +185,7 @@ fn void ContextMenu.createMessageWindow(&this) @private
 {	
 	this._dummyHwnd = api_CreateWindowEx(0, &cmenuMsgWinClass[0], null, 0, 0, 0, 0, 0, HWND_MESSAGE, null, app.hins, null);    
     api_SetWindowLongPtr(this._dummyHwnd, GWLP_USERDATA, bitcast(this, Longptr));
-	if (!this.font.handle) this.font.createHandle(this._dummyHwnd);
+	if (!this.font.handle) this.font.createHandle();
 	// ptf("Cmenu message only win handle %d", this._dummyHwnd);
 }
 

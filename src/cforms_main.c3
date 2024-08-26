@@ -20,7 +20,10 @@ struct AppData
     bool nidUsed;
 	bool cmenuUsed;
     int screenWidth;
-    int screenHeight;
+    int screenHeight;	
+	int sysDPI;
+	double scaleFactor;
+	
 	Hinstance hins;
 	Hwnd trayHwnd;
 	Color defWinColor;
@@ -39,13 +42,22 @@ fn void cforms_init() @init
 	app.defWinColor = colorFromUint(0xF5F5F5); //colorFromRgb(0xED, 0xED, 0xED);
 	app.screenWidth = api_GetSystemMetrics(0);
 	app.screenHeight = api_GetSystemMetrics(1);
+	app.scaleFactor = (double)api_GetScaleFactorForDevice(0);
 	registerClass();
+	getSystemDPI();
 	InitCommonControls icc;
 	icc.dwSize = InitCommonControls.sizeof;
 	icc.dwICC = ICC_STANDARD_CLASSES;
 	api_InitCommonControlsEx(&icc);
 	app.fmap.new_init();
 	
+}
+
+fn void getSystemDPI()
+{
+	Hdc hdc = api_GetDC(null);
+    defer api_ReleaseDC(null, hdc);
+    app.sysDPI = api_GetDeviceCaps(hdc, LOGPIXELSY); 
 }
 
 

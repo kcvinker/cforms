@@ -177,7 +177,7 @@ fn void MenuBar.createHandle(&this)
 	this._menuDefBgBrush = getHbrush(0xe9ecef);
     this._menuHotBgBrush = getHbrush(0x90e0ef);
     this._menuFrameBrush = getHbrush(0x0077b6);
-	if (!this.font.handle) this.font.createHandle(this._pForm.handle);
+	if (!this.font.handle) this.font.createHandle();
 
 	// If there are menus, we need to create the handles for them too.
     if (this._menuCount > 0) {		

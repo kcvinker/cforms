@@ -33,25 +33,25 @@ fn Font newFont(String fontName, int fontSize,
 
 // }
 
-fn void Font.createHandle(Font* f, Hwnd hwnd)
+fn void Font.createHandle(&this)
 {
-	Hdc hdc = api_GetDC(hwnd);
-	int iHeight = -api_MulDiv(f.size, api_GetDeviceCaps(hdc, LOGPIXELSY), 72);
-	api_ReleaseDC(hwnd, hdc);
+	double scale = app.scaleFactor / 100;
+    int fsiz = (int)(scale * (double)this.size);  
+    int iHeight = -api_MulDiv(fsiz , app.sysDPI, 72);    
 
 	LogFont lf;
-	Char16[] s = String.to_new_utf16(f.name)!!;
+	Char16[] s = String.to_new_utf16(this.name)!!;
 	defer free(s);
 	lf.lfFaceName[:s.len] = s[:^0]; // Copying wchar array to lfFaceName
 	lf.lfHeight = iHeight;
-	lf.lfWeight =  (long)((int)f.weight * 100) + 100;
+	lf.lfWeight =  (long)((int)this.weight * 100) + 100;
 	lf.lfCharSet = DEFAULT_CHARSET;
 	lf.lfOutPrecision = OUT_STRING_PRECIS;
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 	lf.lfQuality = PROOF_QUALITY;
 	lf.lfPitchAndFamily = DEFAULT_PITCH;
-	f.handle = api_CreateFontIndirect(&lf);
-	if (f.handle) f._isCreated = true;
+	this.handle = api_CreateFontIndirect(&lf);
+	if (this.handle) this._isCreated = true;
 
 }
 
