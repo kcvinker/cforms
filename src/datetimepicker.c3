@@ -1,7 +1,7 @@
 // datetimepicker module - Created on 09-Feb-2023 01:30
 
 /*================================DateTimePicker Docs==================
-	Constructor: newDateTimePicker()
+	Constructor - newDateTimePicker()	: DateTimePicker*
 	Properties:
 		All Control struct properties are inherited
 		value				: DateTime
@@ -67,8 +67,7 @@ enum DTPFormat : int(String descrption, int value )
 
 // Public functions
 	// DateTimePicker constructor
-	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10,
-											bool auto = false)
+	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10)
 	{
 		DateTimePicker* this = allocator::new(&app.tracker, DateTimePicker);
 		this.kind = ControlType.DATE_TIME_PICKER;
@@ -89,7 +88,7 @@ enum DTPFormat : int(String descrption, int value )
 		this.foreColor = newColor(0x000000);
 		dtpNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

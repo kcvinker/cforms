@@ -8,6 +8,7 @@
 			formPos			: FormPos enum (See enums.c3)
 			formStyle		: FormStyle enum
 			formState		: FormState enum
+			createChilds	: bool (If set to true, child's ctors will create the handles)
 			topMost			: bool
 			maximizeBox		: bool
 			minimizeBox		: bool
@@ -66,16 +67,17 @@ struct Form
 	FormState formState;
 	FormDrawMode _fDrawMode;
 	bool topMost;
+	bool createChilds;
 	bool maximizeBox;
 	bool minimizeBox;
 	bool _isLoaded;
 	bool _isMainWindow;
 	bool _isMouseTracking;
 	bool _isSizing;
-	CmbMap _comboMap;
-	MenuItemMap _menuItemMap;
 	bool _menuMapInited;
 	bool _menubarCreated;
+	CmbMap _comboMap;
+	MenuItemMap _menuItemMap;	
 	int _formID;
 	Hinstance hinst;
 	ControlList controls;

@@ -31,8 +31,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 // Public functions
 	// TextBox constructor
 	fn TextBox* newTextBox(Form* parent, String text, int x = 10, int y = 10,
-							int width = 140, int height = 27,
-							bool auto = false)
+							int width = 140, int height = 27)
 	{
 		TextBox* this = allocator::new(&app.tracker, TextBox);
 		this.kind = ControlType.TEXT_BOX;
@@ -55,7 +54,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.textAlign = Alignment.CENTER;
 		tbNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

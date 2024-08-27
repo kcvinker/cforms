@@ -30,8 +30,7 @@ struct GroupBox
 // Public functions
 	// GroupBox constructor - Create and returns a New GroupBox struct
 	fn GroupBox* newGroupBox(Form* parent, String text = "",
-								int x = 10, int y = 10, int width = 230, int height = 250,
-								bool auto = false)
+								int x = 10, int y = 10, int width = 230, int height = 250)
 	{
 		GroupBox* this = allocator::new(&app.tracker, GroupBox);
 		this.kind = ControlType.GROUP_BOX;
@@ -54,7 +53,7 @@ struct GroupBox
 		this._normalText = true;
 		gbNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

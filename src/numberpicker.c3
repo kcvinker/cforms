@@ -52,7 +52,7 @@ struct NumberPicker
 	// NumberPicker constructor
 	fn NumberPicker* newNumberPicker(Form* parent, int x = 10, int y = 10,
 										int width = 75, int height = 25,
-										bool auto = false, EventHandler evtFn = null,
+										EventHandler evtFn = null,
 										bool btnLeft = false)
 	{
 		NumberPicker* this = allocator::new(&app.tracker, NumberPicker);
@@ -83,8 +83,8 @@ struct NumberPicker
 		this.foreColor = newColor(0x000000);
 		this._parent.controls.push(this);
 		if (evtFn) this.onValueChanged = evtFn;
-		if (auto) this.createHandle();
 		npNumber += 1;
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

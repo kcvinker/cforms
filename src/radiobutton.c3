@@ -21,8 +21,7 @@ struct RadioButton
 // Public functions
 	// RadioButton constructor
 	fn RadioButton* newRadioButton(Form* parent, String text, int x = 10, int y = 10,
-									int width = 0, int height = 0, EventHandler evtFn = null,
-									bool auto = false)
+									int width = 0, int height = 0, EventHandler evtFn = null)
 	{
 		RadioButton* this = allocator::new(&app.tracker, RadioButton);
 		this.kind = ControlType.RADIO_BUTTON;
@@ -47,7 +46,7 @@ struct RadioButton
 		rbNumber += 1;
 		this.onCheckedChanged = evtFn;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

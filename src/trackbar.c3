@@ -63,7 +63,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 // Public functions
 	// TrackBar constructor - Create and returns a New TrackBar struct
 	fn TrackBar* newTrackBar(Form* parent, int x = 10, int y = 10,
-								int width = 200, int height = 35, bool auto = false,
+								int width = 200, int height = 35,
 								EventHandler evtFn = null)
 	{
 		TrackBar* this = allocator::new(&app.tracker, TrackBar);
@@ -98,7 +98,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		tkbNumber += 1;
 		this.onValueChanged = evtFn;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

@@ -69,8 +69,7 @@ struct ListBox
 // Public functions
 	// ListBox constructor
 	fn ListBox* newListBox(Form* parent, int x = 10, int y = 10,
-							int width = 150, int height = 150,
-							bool auto = false)
+							int width = 150, int height = 150)
 	{
 		ListBox* this = allocator::new(&app.tracker, ListBox);
 		this.kind = ControlType.LIST_BOX;
@@ -91,7 +90,7 @@ struct ListBox
 		this.selectedIndex = -1;
 		lbxNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

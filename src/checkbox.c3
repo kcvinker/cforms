@@ -1,7 +1,7 @@
 // checkbox module - Created on 08-Feb-2023 01:50
 
 /*=========================================CheckBox Docs==========================================
-	Constructor	: newCheckBox()
+	Constructor	- newCheckBox()	: CheckBox*
 	Properties:
 		All public properties inherited from Control struct. (See controls.c3)
 		autoSize		: bool
@@ -9,9 +9,9 @@
 		rightAlign		: bool
 	Methods:
 		createHandle()	: Creates the handle of CheckBox. (Usually called automatically)
-		setState()		: Set checked for this CheckBox
+		setState()		: Set checked state for this CheckBox
 	Events:
-		EventHandler type events - fn void(Control*, EventArgs*)
+		EventHandler type event - fn void(Control*, EventArgs*)
 			onCheckedChanged
 
 ================================================================================================*/
@@ -38,7 +38,7 @@ struct CheckBox
 	fn CheckBox* newCheckBox(Form* parent, String text,
 								int x = 10, int y = 10,
 								int width = 140, int height = 27,
-								bool auto = false, EventHandler evtFn = null)
+								EventHandler evtFn = null)
 	{
 		CheckBox* this = allocator::new(&app.tracker, CheckBox);
 		this.kind = ControlType.CHECK_BOX;
@@ -62,7 +62,7 @@ struct CheckBox
 		this._autoSizable = true;
 		cbNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		
 		return this;
 	}

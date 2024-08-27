@@ -60,8 +60,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 // Public functions
 	// TreeView constructor - Create and returns a New TreeView struct
 	fn TreeView* newTreeView(Form* parent, int x = 10, int y = 10,
-								int width = 200, int height = 200,
-								bool auto = false)
+								int width = 200, int height = 200)
 	{
 		TreeView* this = allocator::new(&app.tracker, TreeView);
 		this.kind = ControlType.TREE_VIEW;
@@ -82,7 +81,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.uniqNodeID = 100;
 		tvNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

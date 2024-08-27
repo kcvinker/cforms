@@ -1,7 +1,7 @@
 // cforms.contextmenu - Moved on 25-Aug-2024 19:19
 
 /*==============================ContextMenu Docs=============================================
-    Constructor : newContextMenu()
+    Constructor - newContextMenu()	: ContextMenu*
     Properties:
         parent  : Control* - Any windows control which host a context menu.
         tray    : TrayIcon* - A TrayIcon can host a context menu.

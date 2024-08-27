@@ -112,7 +112,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 	fn Button* newButton(Form* parent, String text,
 							int x = 10, int y = 10,
 							int width = 120, int height = 35,
-							bool auto = false, EventHandler evtFn = null)
+							EventHandler evtFn = null)
 	{
 		Button* this = allocator::new(&app.tracker, Button);
 		this.kind = ControlType.BUTTON;
@@ -134,7 +134,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		btnNumber += 1;
 		if (evtFn) this.onClick = evtFn;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 
 		return this;
 	}

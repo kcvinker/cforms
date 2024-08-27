@@ -31,6 +31,7 @@ fn void makeWindow()
 {
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	frm.onMouseDown = fn(c, e) => print("left mouse down on frm");	
+	frm.createChilds = true; // Child controls will create their hwnd immediately.
 	frm.createHandle();
 	
 	// Add a tray icon for our program
@@ -48,46 +49,46 @@ fn void makeWindow()
 	mb.menus("Linux").addItems("Debian",  "Fedora", "Ubuntu" );
 	mb.menus(0).menus("Windows11").onClick = &onMenuClick;
 
-	b1 = newButton(frm, "Normal Btn", 10, 10, .auto = true);
+	b1 = newButton(frm, "Normal Btn", 10, 10);
 	b1.onClick = &btnClick;
 	
 
-	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10, .auto = true);
+	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10);
 	// b2.onMouseClick = &btnClick2;
 	b2.setBackColor(0xadc178);
 	b2.onClick = &onB2Click;
 
-	b3 = newButton(frm, "Gradient", b2.right() + 10, 10, .auto = true);
+	b3 = newButton(frm, "Gradient", b2.right() + 10, 10);
 	// // b3.setForeColor(0x1f7a1f);
 	b3.setGradientColor(0xeeef20, 0x70e000); //0xeeef20, 0x70e000, 0xF4F269, 0x82C26E
 
 
-	cmb = newComboBox(frm, b3.right() + 10, 10, .auto = true);
+	cmb = newComboBox(frm, b3.right() + 10, 10);
 	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
 	cmb.addItem((any*)&&456.45654);	
 
-	dtp = newDateTimePicker(frm, cmb.right() + 10, 10, .auto = true);
+	dtp = newDateTimePicker(frm, cmb.right() + 10, 10);
 
-	gb = newGroupBox(frm,"Compiler Options", 10, b1.bottom() + 10, .height = 150, .auto = true);
+	gb = newGroupBox(frm,"Compiler Options", 10, b1.bottom() + 10, .height = 150);
 	gb.setForeColor(0x007f5f);	
 
-	cb = newCheckBox(frm, "Threads On", 20, gb.ypos + 30, .auto = true);
-	CheckBox* cb2 = newCheckBox(frm, "Hints Off", 20, cb.bottom() + 10, .auto = true);	
+	cb = newCheckBox(frm, "Threads On", 20, gb.ypos + 30);
+	CheckBox* cb2 = newCheckBox(frm, "Hints Off", 20, cb.bottom() + 10);	
 
-	GroupBox* gb2 = newGroupBox(frm,"Project Data", 10, gb.bottom() + 10, .height = 150, .auto = true);
+	GroupBox* gb2 = newGroupBox(frm,"Project Data", 10, gb.bottom() + 10, .height = 150);
 	gb2.setForeColor(0xe63946);
-	lb = newLabel(frm, "Line Space", 20, gb2.ypos + 30, .auto = true);
+	lb = newLabel(frm, "Line Space", 20, gb2.ypos + 30);
 
-	np1 = newNumberPicker(frm, lb.right() + 30, gb2.ypos + 30, .auto = true);
+	np1 = newNumberPicker(frm, lb.right() + 30, gb2.ypos + 30);
 
-	Label* lb2 = newLabel(frm, "Thread Count", 20, np1.bottom() + 14, .auto = true);
-	np2 = newNumberPicker(frm, lb2.right() + 10, np1.bottom() + 10, .auto = true, .btnLeft = true);
+	Label* lb2 = newLabel(frm, "Thread Count", 20, np1.bottom() + 14);
+	np2 = newNumberPicker(frm, lb2.right() + 10, np1.bottom() + 10, .btnLeft = true);
 	np2.setBackColor(0xcdb4db);	
 
-	lbx = newListBox(frm, gb.right() + 10, b1.bottom() + 10, .auto = true);
+	lbx = newListBox(frm, gb.right() + 10, b1.bottom() + 10);
 	lbx.addItems("Windows", "MacOS", "Linux", "ReactOS");
 
-	lv = newListView(frm, lbx.right() + 10, b3.bottom() + 10, .width = 330, .height = 150, .auto = true);
+	lv = newListView(frm, lbx.right() + 10, b3.bottom() + 10, .width = 330, .height = 150);
 	lv.addColumns("Windows", "Linux", "MacOS", 100, 120, 100);
 	lv.addRow("Win7", "openSUSE", "Mojave");
 	lv.addRow("Win8", "Debian", "Catalina");
@@ -97,20 +98,20 @@ fn void makeWindow()
 	lv.addContextMenu("Windows", "|", "Linux", "MacOS");
 	lv.contextMenu.menus(0).onClick = &onMenuClick;
 
-	pb = newProgressBar(frm, 15, np2.bottom() + 15, .auto = true);
+	pb = newProgressBar(frm, 15, np2.bottom() + 15);
 	pb.showPercentage = true;
 
-	rb1 = newRadioButton(frm, "Console App", 20, cb2.bottom() + 10, .auto = true);
-	rb2 = newRadioButton(frm, "Gui App", 20, rb1.bottom() + 10, .auto = true);
+	rb1 = newRadioButton(frm, "Console App", 20, cb2.bottom() + 10);
+	rb2 = newRadioButton(frm, "Gui App", 20, rb1.bottom() + 10);
 
-	tb = newTextBox(frm, "Enter some text", gb2.right() + 10, lbx.bottom() + 10, .auto = true);
-	tk = newTrackBar(frm, gb2.right() + 10, tb.bottom() + 40, .auto = true, .evtFn = &onTrackChange );
-	tv = newTreeView(frm, tk.right() + 40, lv.bottom() + 20, .height = 250, .auto = true);
+	tb = newTextBox(frm, "Enter some text", gb2.right() + 10, lbx.bottom() + 10);
+	tk = newTrackBar(frm, gb2.right() + 10, tb.bottom() + 40, .evtFn = &onTrackChange );
+	tv = newTreeView(frm, tk.right() + 40, lv.bottom() + 20, .height = 250);
 	tv.addNodeWithChilds("Windows", "Vista", "Win7", "Win8", "Win10", "Win11");
     tv.addNodeWithChilds("MacOS", "Mountain Lion", "Mavericks", "Catalina", "Big Sur", "Monterey");
     tv.addNodeWithChilds("Linux", "RedHat", "Mint", "Ubuntu", "Debian", "Kali");
 
-	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10, .auto = true);
+	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10);
 
 	frm.show();
 }

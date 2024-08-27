@@ -2,7 +2,7 @@
 
 
 /*=========================================ComboBox Docs==========================================
-	Constructor	: newComboBox()
+	Constructor	- newComboBox()	: ComboBox*
 	Properties:
 		All public properties inherited from Control struct. (See controls.c3)
 		selectedIndex	: int
@@ -66,8 +66,7 @@ struct CmbData
 // Public functions
 	// ComboBox constructor
 	fn ComboBox* newComboBox(Form* parent, int x = 10, int y = 10,
-								int width = 140, int height = 27,
-								bool auto = false)
+								int width = 140, int height = 27)
 	{
 		ComboBox* this = allocator::new(&app.tracker, ComboBox);
 		this.kind = ControlType.COMBO_BOX;
@@ -91,7 +90,7 @@ struct CmbData
 			noComboUsed = false;
 		}
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

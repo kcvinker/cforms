@@ -39,8 +39,7 @@ struct Label
 // Public functions
 	// Label constructor
 	fn Label* newLabel(Form* parent, String text,
-						int x = 10, int y = 10, int width = 0, int height = 0,
-						bool auto = false)
+						int x = 10, int y = 10, int width = 0, int height = 0)
 	{
 		Label* this = allocator::new(&app.tracker, Label);
 		this.kind = ControlType.LABEL;
@@ -63,7 +62,7 @@ struct Label
 		this._autoSizable = true;
 		lbNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 
 	}

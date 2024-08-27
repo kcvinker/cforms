@@ -83,8 +83,7 @@ struct ListViewColumn
 // Public functions
 	// ListView constructor - Create and returns a New ListView struct
 	fn ListView* newListView(Form* parent, int x = 10, int y = 10,
-								int width = 300, int height = 200,
-								bool auto = false)
+								int width = 300, int height = 200)
 	{
 		ListView* this = allocator::new(&app.tracker, ListView);
 		this.kind = ControlType.LIST_VIEW;
@@ -115,7 +114,7 @@ struct ListViewColumn
 		this.headerForeColor = newColor(0x000000);
 		lvNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 

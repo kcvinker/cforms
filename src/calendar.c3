@@ -55,7 +55,7 @@ struct Calendar
 
 // Public functions
 	// Calendar constructor
-	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10, bool auto = false)
+	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10)
 	{
 		Calendar* this = allocator::new(&app.tracker, Calendar);
 		this.kind = ControlType.CALENDAR;
@@ -75,7 +75,7 @@ struct Calendar
 		this.foreColor = newColor(0x000000);
 		calNumber += 1;
 		this._parent.controls.push(this);
-		if (auto) this.createHandle();
+		if (parent.createChilds) this.createHandle();
 		return this;
 	}
 
