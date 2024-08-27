@@ -1,11 +1,46 @@
 // dialogs module - Created on 16-May-2023 21:31
+/*==================================================Dialog Docs===============================
+    Common Dialogs to Ope & save files and Get Folder paths.
+       (1) FileOpenDialog:
+            Constructor: newFileOpenDialog()
+            Properties:
+                Inherits all properties from DialogBase struct
+                multiSelection      : bool
+                showHiddenFiles     : bool
+                fileNames           : List<String>
+            Methods:
+                showDialog()        : bool
+                setFilters()        : void
+                deleteFileNames()   : void
+                destroy()           : void
+        
+       (2) FileSaveDialog:
+            Constructor: newFileSaveDialog()
+            Properties:
+                Inherits all properties from DialogBase struct
+                defaultExt  : String
+            Methods:
+                showDialog()    : bool
 
+       (3) FolderBrowserDialog:
+            Constructor: newFolderBrowserDialog()
+            Properties:
+                Inherits all properties from DialogBase struct
+                newFolderButton : bool
+                showFiles       : bool
+            Methods:
+                showDialog()    : bool
+
+       (4) DialogBase: Abstract type
+            Properties:
+                title           : String
+                initFolder      : String
+                filter          : String
+                selectedPath    : String  
+==================================================================================================== */
 module cforms;
 import std::collections::list;
 
-
-
-// enum DialogType {OPEN, SAVE} Not needed
 
 def FileList = List(<String>);
 

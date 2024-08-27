@@ -1,7 +1,33 @@
 // combobox module - Created on 04-Feb-2023 21:58
 
-module cforms;
 
+/*=========================================ComboBox Docs==========================================
+	Constructor	: newComboBox()
+	Properties:
+		All public properties inherited from Control struct. (See controls.c3)
+		selectedIndex	: int
+		hasInput		: bool (Set true if you want to type inputs in combo)
+		items			: List<String>
+	Methods:
+		createHandle()	: Creates the handle of ComboBox. (Usually called automatically)
+		enableInput()	: Enables text input in ComboBox
+		addItem()		: Add single item
+		addItems()		: Add items in bulk
+		setSelIndex()	: Set selection index
+	Events:
+		EventHandler type events - fn void(Control*, EventArgs*)
+			onSelectionChanged
+			onTextChanged
+			onTextUpdated
+			onListOpened
+			onListClosed
+			onSelectionCommitted
+			onSelectionCancelled
+
+================================================================================================*/
+
+
+module cforms;
 
 // import libc;
 
@@ -373,7 +399,7 @@ fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID,
 	switch (msg) {
 		case WM_DESTROY:
 			api_RemoveWindowSubclass(hw, &cmbEditWndProc, scID);
-			
+
 		case MM_COLOR_EDIT:
 			ComboBox* this = (ComboBox*)((void*)refData);
 						if (this._drawMode) {

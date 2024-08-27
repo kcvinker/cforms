@@ -1,4 +1,14 @@
 // groupbox module - Created on 16-Feb-2023 06:55
+/*=======================================================GroupBox Docs====================================
+	GroupBox type:
+		Constructor: newGroupBox()	: GroupBox*
+		Properties:
+			Inherits all properties from Control struct
+		Methods:
+			createHandle()	: Creates the handle of GroupBox
+		Events:
+			Inherits all the events from Control struct
+========================================================================================================*/
 
 module cforms;
 // import std::io;

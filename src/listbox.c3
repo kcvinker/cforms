@@ -1,5 +1,42 @@
 // listbox module - Created on 08-Feb-2023 11:32
 // Note: Add selectedIndices property
+/*==================================================ListBox Docs======================================
+	ListBox type
+		Constructor: newListBox()	: ListBox*
+		Properties:
+			Inherits all properties from Control struct
+			hasSort				: bool
+			noSelection			: bool
+			multiColumn			: bool
+			keyPreview			: bool
+			verticalScroll		: bool
+			horizontalScroll	: bool
+			multiSelection		: bool
+			selectedIndices		: Lis<int>
+			items				: List<String>
+			selectedIndex		: int
+		Methods:
+			createHandle()		: void. Creates the handle
+			addItem()			: void. Add an item
+			addItems()			: void. Add items in bulk
+			insertItem()		: void. Insert an Item
+			removeItem()		: void. Remove an item
+			clearItems()		: void. Clear all items
+			selectedItem()		: String. Get the selected item
+			selectedItems()		: List<String>. Get the selected items from multi selection listbox
+			selectAll()			: void. Select all the items
+			clearSelection()	: void. Clear the selection
+			indexOf()			: int. Get the index of given item
+			hotIndex()			: int. Get the index of the item under mouse pointer
+			hotItem()			: String. Get the item under mouse pointer
+		Events:
+			Inherits all events from Control struct
+			EventHandler type events - (fn void(Control*, EventArgs*))
+				onSelectionChanged
+				onSelectionCancelled
+				onDoubleClick
+
+=====================================================================================================*/
 module cforms;
 import std::collections::list;
 // import std::io;

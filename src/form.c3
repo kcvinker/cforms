@@ -1,5 +1,44 @@
 
 // cforms.form - Created on 24-Jan-2023
+/* ========================================================Form Docs==================================
+	Form type:
+		Constructor: newForm() : Form*
+		Properties:
+			Inherits all properties from Control type.
+			formPos			: FormPos enum (See enums.c3)
+			formStyle		: FormStyle enum
+			formState		: FormState enum
+			topMost			: bool
+			maximizeBox		: bool
+			minimizeBox		: bool
+			controls		: List<Controls*>
+			menubar			: MenuBar	(See menubar.c3)
+		Methods:
+			createHandle()	: Created form's handle
+			show()			: Show the form and enters the main loop.
+			setBackColor()	: Set the form back color
+			addMenubar()	: Add a menubar to this form
+			addTimer()		: Add a timer to this form
+			printPoint()	: Print the x & y coordinates where you clicked on Form.
+		Events:
+			EventHandler type events: (fn void(Control* EventArgs*))
+				onLoad
+				onActivate
+				onDeActivate
+				onMoving
+				onMoved
+				onMinimized
+				onMaximized
+				onRestored
+				onClosing
+				onClosed
+			SizeEventHandler type events: (fn void(Control*, SizeEventArgs*))
+				onSizing
+				onSized
+			ThreadMsgHandler type event: (fn void(WPARAM, LPARAM))
+				onThreadMsg
+
+======================================================================================================*/
 
 module cforms;
 

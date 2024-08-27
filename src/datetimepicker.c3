@@ -1,5 +1,29 @@
 // datetimepicker module - Created on 09-Feb-2023 01:30
 
+/*================================DateTimePicker Docs==================
+	Constructor: newDateTimePicker()
+	Properties:
+		All Control struct properties are inherited
+		value				: DateTime
+		format				: DTPFormat (See enums.c3)
+		formatStr			: String
+		rightAlign			: bool
+		fourDigitYear		: bool
+		showWeekNum			: bool
+		noTodayCircle		: bool
+		noToday				: bool
+		noTraillDates		: bool
+		shortDateNames		: bool
+		showUpdown			: bool
+	Methods
+		createHandle()		: Create DTP's handle
+	Events
+		Inheriting Control struct events
+		onTextChanged		: DateTimeEventHandler (fn void(Control*, DateTimeEventArgs*))
+		onCalendarOpened	: EventHandler
+		onValueChanged		: EventHandler
+		onCalendarClosed	: EventHandler
+================================================================= */
 module cforms;
 
 

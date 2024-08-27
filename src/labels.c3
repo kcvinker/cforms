@@ -1,4 +1,19 @@
 // label module - Created on 04-Feb-2023 01:15
+/*===================================================Label Docs==========================================
+	Labe type
+		Constructor: newLabel() 	: Label*
+		Properties:
+			Inherits all properties from Control struct
+			autoSize	: bool
+			multiLine	: bool
+			hasBorder	: bool
+			textAlign	: TextAlignment enum (See enums.c3)
+		Methods:
+			createHandle()
+		Events:
+			Inherits all Events from Control struct
+
+==========================================================================================*/
 
 module cforms;
 // import std::io;
