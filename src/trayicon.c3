@@ -1,4 +1,33 @@
 // Created on 29-Jul-2024 03:58
+/*================================TrayIcon Docs==================
+	Constructor - newTrayIcon -> TrayIcon*
+	Properties:
+		menuTrigger     : TrayMenuTrigger enum
+        contextMenu     : ContextMenu*
+        userData        : any*
+		
+	Methods:
+		showBalloon
+        updateTooltip
+        updateIcon
+        addContextMenu
+		
+	Events:
+		TrayIconEventHandler type - fn void(TryIcon*, EventArgs*)
+			onBalloonShow
+            onBalloonClose
+            onBalloonClick    
+            onMouseMove    
+            onLeftMouseDown
+            onLeftMouseUp    
+            onRightMouseDown
+            onRightMouseUp
+            onLeftClick
+            onRightClick
+            onLeftDoubleClick
+		
+======================================================================================== */
+
 
 module cforms;
 
@@ -18,7 +47,7 @@ struct TrayIcon
     Hicon _hTrayIcon;
     Hwnd _msgWinHwnd;
     ContextMenu* contextMenu;
-    void* userData;
+    any* userData;
     NotifyIconData _nid;
 
     TrayIconEventHandler onBalloonShow;

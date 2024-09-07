@@ -15,6 +15,7 @@
 		addItems()		: Add items in bulk
 		setSelIndex()	: Set selection index
 	Events:
+		All public events inherited from Control struct. (See controls.c3)
 		EventHandler type events - fn void(Control*, EventArgs*)
 			onSelectionChanged
 			onTextChanged

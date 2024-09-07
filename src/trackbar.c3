@@ -1,4 +1,46 @@
 // trackbar module - Created on 13-Feb-2023 13:07
+/*================================TrackBar Docs==================
+	Constructor - newTrackBar -> TrackBar*
+	Properties:
+		All Control struct properties are inherited
+		vertical		: bool
+		reversed		: bool
+		noTics			: bool
+		selRange		: bool
+		defaultTics		: bool
+		noThumb			: bool
+		toolTip			: bool
+		customDraw		: bool
+		freeMove		: bool
+		ticColor		: Color
+		channelColor	: Color
+		selColor		: Color
+		channelStyle 	: ChannelStyle
+    	trackChange 	: TrackChange
+    	ticPos 			: TicPosition
+		minRange		: int
+		maxRange		: int
+		ticWidth		: int
+		frequency		: int
+		pageSize		: int
+		lineSize		: int
+		ticLen			: int
+		ticCount		: int
+		value			: int
+		
+	Methods
+		createHandle
+		showSelection
+		setBackColor
+	Events
+		All public events inherited from Control struct. (See controls.c3)
+		EventHandler type - fn void(Control*, EventArgs*);
+			onValueChanged
+			onDragging
+			onDragged
+		
+======================================================================================== */
+
 
 module cforms;
 // import std::io;

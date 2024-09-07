@@ -1,5 +1,19 @@
 
 // cforms.timer - Created on 25-Aug-2024 19:14
+/*================================Timer Docs==================
+	Constructor - Abstract type. Use Form's addTimer function to create a timer.
+	Properties:
+		interval
+		
+	Methods:
+		start
+        stop
+
+	Events:
+		EventHandler type - fn void(Control*, EventArgs*);
+			onTick		
+======================================================================================== */
+
 
 module cforms;
 

@@ -1,4 +1,31 @@
 // progressbar module - Created on 12-Feb-2023 08:51
+/*================================ProgressBar Docs==================
+	Constructor - newProgressBar -> ProgressBar*
+	Properties:
+		All Control struct properties are inherited
+		barState			: ProgressBarState enum [See enums.c3]
+		barStyle			: ProgressBarStyle enum [See enums.c3]
+		vertical			: bool
+		showPercentage		: bool
+		minValue			: int
+		maxValue			: int
+		step				: int
+		value				: int	
+		marqueeSpeed		: int
+	Methods
+		createHandle
+		setValue
+		increment
+		setStep
+		setState
+		setStyle
+		setMarqueeAnimation
+		
+	Events
+		All public events inherited from Control struct. (See controls.c3)
+		EventHandler type - fn void(Control* c, EventArgs* e);
+			onValueChanged
+======================================================================================== */
 
 module cforms;
 // import std::io;

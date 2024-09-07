@@ -8,7 +8,8 @@ def KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
 def DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
 def ThreadMsgHandler = fn void(Wparam wpm, Lparam lpm);
 def TrayIconEventHandler = fn void(TrayIcon* c, EventArgs* e);
-
+def MenuEventHandler = fn void(MenuItem*, EventArgs*);
+def NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, void* data);
 
 struct Area
 {

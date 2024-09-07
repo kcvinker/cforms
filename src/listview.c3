@@ -1,5 +1,44 @@
 // listview module - Created on 14-Feb-2023 01:13
 
+/*=========================================ListView Docs==========================================
+	Constructor	- newListView()	: ListView*
+	Properties:
+		All public properties inherited from Control struct. (See controls.c3)
+		selectedIndex		: int
+		headerHeight		: int
+		selectedItem		: string
+		editLabel			: bool
+		hideSelection		: bool
+		multiSelection		: bool
+		hasCheckBox			: bool
+		fullRowSelect		: bool
+		showGrid			: bool
+		oneClickActivate	: bool
+		hotTrackSelection	: bool	
+		noHeader			: bool
+		headerClickable		: bool
+		checkBoxLast		: bool
+		viewStyle			: ViewStyle enum
+		headerBackColor		: Color
+		headerForeColor		: Color
+		headerFont			: Font
+		columns				: List<ListViewColumns*>
+		items				: List<ListViewItem*>
+
+	Methods:
+		createHandle
+		addColumn
+		addColumns
+		addItem
+		addRow
+		addItems
+		addSubItems
+	Events:
+		All public events inherited from Control struct. (See controls.c3)
+		EventHandler type events - fn void(Control*, EventArgs*)		
+
+================================================================================================*/
+
 module cforms;
 // import std::io;
 import std::collections::list;
@@ -79,7 +118,6 @@ struct ListViewColumn
 }
 
 
-
 // Public functions
 	// ListView constructor - Create and returns a New ListView struct
 	fn ListView* newListView(Form* parent, int x = 10, int y = 10,
@@ -157,8 +195,6 @@ struct ListViewColumn
 		return item;
 	}
 
-
-
 	// Create the handle of ListView
 	fn void ListView.createHandle(ListView* this)
 	{
@@ -175,7 +211,8 @@ struct ListViewColumn
 
 	/* Add a column to listview. There are two overloads for this.
 	 * 1. textOrCol = Name of the column. In this case, you can use width & imgIndx.
-	 * 2. textOrCol = ListViewColumn*. In this case, width & imgIndex are irrelevent. */
+	 * 2. textOrCol = ListViewColumn*. In this case, width & imgIndex are irrelevent. 
+	 */
 	macro ListViewColumn* ListView.addColumn(ListView* this, textOrCol, width = 100, imgIndx = -1)
 	{
 		$switch ($typeof(textOrCol))
@@ -185,25 +222,10 @@ struct ListViewColumn
 		$endswitch
 	}
 
-	// Helper function for the above macro
-	fn ListViewColumn* ListView.addColumnStr(ListView* this, String txt,
-											int width = 100, int imgIndx = -1) @private
-	{
-		ListViewColumn* lvc = newListViewColumn(txt, width, imgIndx);
-		this.addColumnInternal(lvc);
-		return lvc;
-	}
-
-
-	// Helper function for the above macro
-	fn void ListView.addColumnLvc(ListView* this, ListViewColumn* lvc) @private
-	{
-		this.addColumnInternal(lvc);
-	}
-
 	/* Adding columns to listview. There are two overloads for this.
 	 * 1. lv.addColumns(ListViewColumn*... params) // A collection of ListViewColumn pointers
-	 * 2. lv.addColumns(String... colNames, int... colWidths)	 */
+	 * 2. lv.addColumns(String... colNames, int... colWidths)	 
+	 */
 	macro void ListView.addColumns(ListView* this, params...)
 	{
 		any p1 = params[0]; // This may be the column count or a ListViewColumn pointer
@@ -233,33 +255,10 @@ struct ListViewColumn
 		}
 	}
 
-	// // Add more than one column. Use newListViewColumn function to create a column
-	fn ListViewItem* ListView.addItem1(ListView* this, String txt) @private
-	{
-		ListViewItem* item = newListViewItem(txt);
-		this.addItem2(item);
-		return item;
-	}
-
-	// Add an item to ListView. Use newListViewItem function to create an item.
-	fn void ListView.addItem2(ListView* this, ListViewItem* item) @private
-	{
-		if (this._itemIndex == -1) this._itemIndex = 0;
-		item.index = this._itemIndex;
-		item.font = this.font;
-		this.addItemInternal(item);
-
-		// We will add sub items too. But only for Report View style.
-		if (item.subItems.len() && this.viewStyle == ListViewStyle.REPORT_VIEW) {
-			foreach (i, sitem: item.subItems) {
-				this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);
-			}
-		}
-	}
-
 	/* Add Item to ListView. There are two overloads for this.
-	 * 1. textOrItemPtr = String - The text for listview item. In this case, macro returns the ListViewItem*
-	 * 2. textOrItemPtr = ListViewItem* */
+	 * 1. textOrItemPtr = String - The text for listview item. Macro returns the ListViewItem*
+	 * 2. textOrItemPtr = ListViewItem* 
+	 */
 	macro ListViewItem* ListView.addItem(ListView* this, textOrItemPtr)
 	{
 		$switch ($typeof(textOrItemPtr))
@@ -279,7 +278,6 @@ struct ListViewColumn
 		this.addItem2(lvitem);
 	}
 
-
 	// Add string items or ListViewItem pointers,
 	macro void ListView.addItems(ListView* this, txtOrItems...)
 	{
@@ -296,7 +294,7 @@ struct ListViewColumn
 
 // End of Public functions
 
-// Private functions
+//========================================== Private functions==================================
 
 	// Setting control's style bits.
 	fn void ListView.setLVStyle(ListView* this) @private
@@ -468,7 +466,7 @@ struct ListViewColumn
 		return CDRF_DODEFAULT;
 	}
 
-	fn ListViewItem* ListView.findLvItemStr(&this, String itemTxt)
+	fn ListViewItem* ListView.findLvItemStr(&this, String itemTxt) @private
 	{
 		if (this.items.len() > 0) {
 			foreach (item: this.items) {
@@ -478,7 +476,7 @@ struct ListViewColumn
 		return null;
 	}
 
-	fn ListViewItem* ListView.findLvItemInt(&this, int indx)
+	fn ListViewItem* ListView.findLvItemInt(&this, int indx) @private
 	{
 		if (this.items.len() > 0) {
 			foreach (item: this.items) {
@@ -486,6 +484,45 @@ struct ListViewColumn
 			}
 		}
 		return null;
+	}
+
+	// Helper function for the above macro
+	fn ListViewColumn* ListView.addColumnStr(ListView* this, String txt,
+											int width = 100, int imgIndx = -1) @private
+	{
+		ListViewColumn* lvc = newListViewColumn(txt, width, imgIndx);
+		this.addColumnInternal(lvc);
+		return lvc;
+	}
+
+	// Add more than one column. Use newListViewColumn function to create a column
+	fn ListViewItem* ListView.addItem1(ListView* this, String txt) @private
+	{
+		ListViewItem* item = newListViewItem(txt);
+		this.addItem2(item);
+		return item;
+	}
+
+	// Add an item to ListView. Use newListViewItem function to create an item.
+	fn void ListView.addItem2(ListView* this, ListViewItem* item) @private
+	{
+		if (this._itemIndex == -1) this._itemIndex = 0;
+		item.index = this._itemIndex;
+		item.font = this.font;
+		this.addItemInternal(item);
+
+		// We will add sub items too. But only for Report View style.
+		if (item.subItems.len() && this.viewStyle == ListViewStyle.REPORT_VIEW) {
+			foreach (i, sitem: item.subItems) {
+				this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);
+			}
+		}
+	}
+
+	// Helper function for the above macro
+	fn void ListView.addColumnLvc(ListView* this, ListViewColumn* lvc) @private
+	{
+		this.addColumnInternal(lvc);
 	}
 
 	// Destructor for ListViewColumn

@@ -1,4 +1,27 @@
 // textbox module - Created on 04-Feb-2023 12:35
+/*================================TextBox Docs==================
+	Constructor - newTextBox -> TextBox*
+	Properties:
+		All Control struct properties are inherited
+		autoSize		: bool
+		multiLine		: bool
+		hasBorder		: bool
+		hideSelection	: bool
+		readOnly		: bool
+		textType		: TextType
+		textCase		: TextCase
+		textAlign		: Alignment
+		cueStr			: DString
+		
+	Methods
+		createHandle
+		setCue
+	Events
+		All public events inherited from Control struct. (See controls.c3)
+		EventHandler type - fn void(Control*, EventArgs*);
+			onTextChanged
+		
+======================================================================================== */
 
 module cforms;
 // import std::io;

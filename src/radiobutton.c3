@@ -1,4 +1,22 @@
 // radiobutton module - Created on 08-Feb-2023 08:13
+/*================================RadioButton Docs==================
+	Constructor - newRadioButton()	: RadioButton*
+	Properties:
+		All Control struct properties are inherited
+		autoSize		: bool
+		checked			: bool
+		rightAlign		: bool
+		checkOnClick	: bool
+
+	Methods
+		createHandle
+		setState
+
+	Events
+		All public events inherited from Control struct. (See controls.c3)
+		EventHandler type - fn void(Control*, EventArgs*);
+			onCheckedChanged
+======================================================================================== */
 
 module cforms;
 // import std::io;

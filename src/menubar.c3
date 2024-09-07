@@ -1,5 +1,41 @@
 // menubar module - Created on 19-Feb-2023 07:58
+/* =====================================Menu Docs=============================================
+	MenuBase:
+		Base type menu bar, menu item & context menu. Abstract type.
+		Properties:
+			handle	: HMENU
+			font	: Font
+		Function:
+			menus
+	MenuBar:
+		Constructor : newMenuBar -> MenuBar*
+		Functions:
+			addItem
+			addItems
+			createHandle
 
+	MenuItem:
+		Constructor : newMenuItem -> MenuItem*
+		Properties:
+			All props from MenuBase
+			parentHandle	: Hmenu
+			bgColor			: Color
+			fgColor			: Color
+			idNum			: uint
+			hasCheckMark	: bool
+			text			: String
+			kind			: MenuType enum [See enums.c3]
+		Functions:
+			addItem
+			addItems
+			get
+		Events:
+			MenuEventHandler type - [fn void(MenuItem*, EventArgs*)]
+				onClick
+				onPopup
+				onCloseup
+				onFocus
+=============================================================================================*/
 module cforms;
 // import std::io;
 // import std::core::mem;
@@ -11,7 +47,7 @@ Wstring cmenuMsgWinClass = {'c', 'f', 'o', 'r', 'm', 's', '_', 'C', 'm', 'e', 'n
 def MenuItemList = List(<MenuItem*>);
 def MenuMap = std::collections::map::HashMap(<String, MenuItem*>);
 enum MenuType : char {BASE_MENU, MENU_ITEM, POPUP, SEPRATOR }
-def MenuEventHandler = fn void(MenuItem*, EventArgs*);
+
 uint menuNumber = 101;
 Hmenu nullMenu = (Hmenu)0;
 const uint TPM_RETURNCMD = 0x100;
@@ -169,8 +205,6 @@ fn void MenuBar.addItems(&this, String... menuNames)
 	}
 }
 
-
-
 // Create menu handles and set menus in menubar. Must call this after creating menubar struct.
 fn void MenuBar.createHandle(&this)
 {
@@ -187,7 +221,7 @@ fn void MenuBar.createHandle(&this)
 	this._pForm._menubarCreated = true;
 }
 
-fn void MenuItem.insertMenuInternal(&this, Hmenu parentHmenu)
+fn void MenuItem.insertMenuInternal(&this, Hmenu parentHmenu) @private
 {
 	MenuItemInfoW mii;
     mii.cbSize = (uint) MenuItemInfoW.sizeof;
@@ -203,9 +237,8 @@ fn void MenuItem.insertMenuInternal(&this, Hmenu parentHmenu)
 	// ptf("inserted : %s, id: %d, index : %d", this.text, this.idNum, this._index);
 }
 
-
 // Create menu item and append the handle in parent menu.
-fn void MenuItem.create(&this)
+fn void MenuItem.create(&this) @private
 {
 	switch (this.kind) {
     	case MenuType.BASE_MENU: nextcase;

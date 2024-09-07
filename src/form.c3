@@ -22,6 +22,7 @@
 			addTimer()		: Add a timer to this form
 			printPoint()	: Print the x & y coordinates where you clicked on Form.
 		Events:
+			All public events inherited from Control struct. (See controls.c3)
 			EventHandler type events: (fn void(Control* EventArgs*))
 				onLoad
 				onActivate

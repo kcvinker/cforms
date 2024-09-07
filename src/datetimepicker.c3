@@ -18,12 +18,12 @@
 	Methods
 		createHandle()		: Create DTP's handle
 	Events
-		Inheriting Control struct events
+		All public events inherited from Control struct. (See controls.c3)
 		onTextChanged		: DateTimeEventHandler (fn void(Control*, DateTimeEventArgs*))
 		onCalendarOpened	: EventHandler
 		onValueChanged		: EventHandler
 		onCalendarClosed	: EventHandler
-================================================================= */
+======================================================================================== */
 module cforms;
 
 

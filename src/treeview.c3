@@ -1,18 +1,74 @@
 // treeview module - Created on 14-Feb-2023 01:13
+/*================================TreeView Docs==================
+	TreeView------------------------------------------------
+		Constructor - newTreeView -> TreeView*
+		Properties:
+			All Control struct properties are inherited
+			noLine				: bool
+			noButton			: bool
+			hasCheckBox			: bool
+			fullRowSelection	: bool
+			editable			: bool
+			showSelection		: bool
+			hotTrack			: bool
+			lineColor			: Color
+			selNode				: TreeNode*
+			nodes				: List<TreeNode*>
+			
+		Methods:
+			createHandle
+			addNode
+			addNodes
+			addChildNode
+			addChildNodes
+			insertNode
+			insertChildNode
+			addNodeWithChilds
+			deleteNode
+			getNode
+			
+		Events:
+			All public events inherited from Control struct. (See controls.c3)
+			EventHandler type - fn void(Control*, EventArgs*);
+	
+	TreeeNode
+		Constructor - newTreeNode -> TreeNode*
+		Properties:
+			handle			: Htreeitem
+			parentNode		: TreeNode*
+			nodes			: List<TreeNode*>
+			imageIndex		: int
+			selImageIndex	: int
+			index			: int
+			nodeID			: int
+			foreColor		: Color
+			backColor		: Color
+			text			: String
+			checked			: bool
+			
+		Methods:
+			createHandle
+			addChildNode
+			insertChildNode
+			
+		Events:
+			NodeNotifyHandler 
+				notifyHandler
+			
+		
+======================================================================================== */
+
 
 module cforms;
 // import std::io;
 import std::collections::list;
 
 def TreeNodeList = List(<TreeNode*>);
-def NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, void* data);
+
 // def NodeDisposeHandler = fn void(TreeNode* this);
 
 int tvNumber = 1;
 Wstring tvClass = {'S', 'y', 's', 'T', 'r', 'e', 'e', 'V', 'i', 'e', 'w', '3', '2', 0};
-
-const TVSTYLE = WS_BORDER | WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT | TVS_DISABLEDRAGDROP;
-
 enum NodeOps : char {ADDNODE, INSERTNODE, ADDCHILD, INSERTCHILD}
 
 // TreeView control struct
@@ -29,29 +85,30 @@ struct TreeView
 	Color lineColor;
 	TreeNode selNode;
 	TreeNodeList nodes;
-	int nodeCount;
-	int uniqNodeID;
+	int _nodeCount;
+	int _uniqNodeID;
 }
 
 struct TreeNode
 {
 	Htreeitem handle;
-	TreeView* treePtr;
+	TreeView* _treePtr;
 	TreeNode* parentNode;
-	Hwnd treeHwnd;
+	Hwnd _treeHwnd;
 	TreeNodeList nodes;
 	int imageIndex;
 	int selImageIndex;
-	int childCount;
+	int _childCount;
 	int index;
 	int nodeID;
-	int nodeCount;
+	int _nodeCount;
 	Color foreColor;
 	Color backColor;
 	String text;
 	bool checked;
 	bool _isCreated;
-	NodeNotifyHandler notifyHandler;
+
+	NodeNotifyHandler _notifyHandler;
 	// NodeDisposeHandler disposeHandler;
 }
 
@@ -78,7 +135,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.backColor = newColor(0xFFFFFF);
 		this.foreColor = newColor(0x000000);
 		this.lineColor = newColor(0x000000);
-		this.uniqNodeID = 100;
+		this._uniqNodeID = 100;
 		tvNumber += 1;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -92,7 +149,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.selImageIndex = -sel_image_index;
 		this.imageIndex = image_index;
 		this.index = -1;
-		this.nodeCount = 0;
+		this._nodeCount = 0;
 		this.imageIndex = -1;
 		this.foreColor = newColor(0x000000);
 		this.backColor = newColor(0xFFFFFF);
@@ -111,19 +168,6 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
             if (this.foreColor.value != 0x000000) this.sendMsg(TVM_SETTEXTCOLOR, 0, this.foreColor.ref);
             if (this.lineColor.value != 0x000000) this.sendMsg(TVM_SETLINECOLOR, 0, this.lineColor.ref);
 		}
-	}
-
-
-	fn TreeNode* TreeView.addNode1(TreeView* this, String txt, int img, int selImg) @private
-	{
-		TreeNode* node = newTreeNode(txt, img, selImg);
-		this.addNodeInternal(NodeOps.ADDNODE, node);
-		return node;
-	}
-
-	fn void TreeView.addNode2(TreeView* this, TreeNode* node) @private
-	{
-		this.addNodeInternal(NodeOps.ADDNODE, node);
 	}
 
 	/**
@@ -166,24 +210,6 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		foreach (node: nodes) this.addNodeInternal(NodeOps.ADDNODE, node);
 	}
 
-	/**
-	 * @require this._isCreated
-	 **/
-	fn TreeNode* TreeView.addChildNode1(TreeView* this, String nodeTxt, TreeNode* parentNode,
-											Allocator using = allocator::heap()) @private
-	{
-			TreeNode* tn = newTreeNode(nodeTxt);
-			this.addNodeInternal(NodeOps.ADDCHILD, tn, parentNode);
-			return tn;
-	}
-
-	/**
-	 * @require this._isCreated
-	 **/
-	fn void TreeView.addChildNode2(TreeView* this, TreeNode* node, TreeNode* parent) @private
-	{
-		this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
-	}
 
 	macro TreeNode* TreeView.addChildNode(TreeView* this, TreeNode* parent, nodeOrText, Allocator using = allocator::heap())
 	{
@@ -194,20 +220,6 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 				return null;
 			$default: $error "No overload for type";
 		$endswitch
-	}
-
-	fn void TreeView.addChildNodes1(TreeView* this, TreeNode* parent, nodeTexts...) @private
-	{
-		foreach (txt: nodeTexts) {
-			String* nodeTxt = (String*)txt;
-			TreeNode* node = newTreeNode(*nodeTxt);
-			this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
-		}
-	}
-
-	fn void TreeView.addChildNodes2(TreeView* this, TreeNode* parent, TreeNode*... nodes) @private
-	{
-		foreach (node: nodes) this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
 	}
 
 	/**
@@ -223,18 +235,6 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		}
 	}
 
-	fn TreeNode* TreeView.insertNode1(TreeView* this, String nodeTxt, int index, Allocator using = allocator::heap()) @private
-	{
-		TreeNode* node = newTreeNode(nodeTxt);
-		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
-		return node;
-	}
-
-	fn void TreeView.insertNode2(TreeView* this, TreeNode* node, int index) @private
-	{
-		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
-	}
-
 	macro TreeNode* TreeView.insertNode(TreeView* this, nodeOrText, indexNum, Allocator using = allocator::heap())
 	{
 		$switch ($typeof(nodeOrText))
@@ -244,19 +244,6 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 				return null;
 			$default: $error "No overload for type";
 		$endswitch
-	}
-
-	fn TreeNode* TreeView.insertChildNode1(TreeView* this, String nodeTxt, TreeNode* parent,
-												int index, Allocator using = allocator::heap()) @private
-	{
-		TreeNode* tn = newTreeNode(nodeTxt);
-		this.addNodeInternal(NodeOps.INSERTCHILD, tn, parent, index);
-		return tn;
-	}
-
-	fn void TreeView.insertChildNode2(TreeView* this, TreeNode* node, TreeNode* parent, int index) @private
-	{
-		this.addNodeInternal(NodeOps.INSERTCHILD, node, parent, index);
 	}
 
 	macro TreeNode* TreeView.insertChildNode(TreeView* this, TreeNode* parent, nodeOrText,
@@ -280,8 +267,91 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		}
 	}
 
+	// Delete a node. Parameter textOrIndex can be String or int.
+	macro void TreeView.deleteNode(TreeView* this, textOrIndex)
+	{
+		deleteNodeFromStringOrInt(this, textOrIndex);
+	}
 
-	// This macro can be used by both TreeView & TreeNode.
+	// Get a node by giving the text or index.
+	macro TreeNode* TreeView.getNode(TreeView* this, txtOrIndex)
+	{
+		return getNodeFromStringOrInt(this, txtOrIndex);
+	}
+
+	//===========================Private Functions=============================================
+	fn TreeNode* TreeView.addNode1(TreeView* this, String txt, int img, int selImg) @private
+	{
+		TreeNode* node = newTreeNode(txt, img, selImg);
+		this.addNodeInternal(NodeOps.ADDNODE, node);
+		return node;
+	}
+
+	fn void TreeView.addNode2(TreeView* this, TreeNode* node) @private
+	{
+		this.addNodeInternal(NodeOps.ADDNODE, node);
+	}
+
+	/**
+	 * @require this._isCreated
+	 **/
+	fn TreeNode* TreeView.addChildNode1(TreeView* this, String nodeTxt, TreeNode* parentNode,
+											Allocator using = allocator::heap()) @private
+	{
+			TreeNode* tn = newTreeNode(nodeTxt);
+			this.addNodeInternal(NodeOps.ADDCHILD, tn, parentNode);
+			return tn;
+	}
+
+	/**
+	 * @require this._isCreated
+	 **/
+	fn void TreeView.addChildNode2(TreeView* this, TreeNode* node, TreeNode* parent) @private
+	{
+		this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
+	}
+
+	fn void TreeView.addChildNodes1(TreeView* this, TreeNode* parent, nodeTexts...) @private
+	{
+		foreach (txt: nodeTexts) {
+			String* nodeTxt = (String*)txt;
+			TreeNode* node = newTreeNode(*nodeTxt);
+			this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
+		}
+	}
+
+	fn void TreeView.addChildNodes2(TreeView* this, TreeNode* parent, TreeNode*... nodes) @private
+	{
+		foreach (node: nodes) this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
+	}
+
+	fn TreeNode* TreeView.insertNode1(TreeView* this, String nodeTxt, int index, 
+										Allocator using = allocator::heap()) @private
+	{
+		TreeNode* node = newTreeNode(nodeTxt);
+		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
+		return node;
+	}
+
+	fn void TreeView.insertNode2(TreeView* this, TreeNode* node, int index) @private
+	{
+		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
+	}
+
+	fn TreeNode* TreeView.insertChildNode1(TreeView* this, String nodeTxt, TreeNode* parent,
+												int index, Allocator using = allocator::heap()) @private
+	{
+		TreeNode* tn = newTreeNode(nodeTxt);
+		this.addNodeInternal(NodeOps.INSERTCHILD, tn, parent, index);
+		return tn;
+	}
+
+	fn void TreeView.insertChildNode2(TreeView* this, TreeNode* node, TreeNode* parent, int index) @private
+	{
+		this.addNodeInternal(NodeOps.INSERTCHILD, node, parent, index);
+	}
+
+		// This macro can be used by both TreeView & TreeNode.
 	macro TreeNode* getNodeFromStringOrInt(parent, txtOrIndex) @private
 	{
 		$switch ($typeof(txtOrIndex))
@@ -330,23 +400,11 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 					parent.nodes.remove(theNode);
 					theNode.destroy();
 				$case TreeNode*:
-					api_SendMessage(parent.treeHwnd, MM_NODE_DELETED, 0, theNode.toWpm());
+					api_SendMessage(parent._treeHwnd, MM_NODE_DELETED, 0, theNode.toWpm());
 			$endswitch
 		} else {
 			print("The node is null");
 		}
-	}
-
-	// Delete a node. Parameter textOrIndex can be String or int.
-	macro void TreeView.deleteNode(TreeView* this, textOrIndex)
-	{
-		deleteNodeFromStringOrInt(this, textOrIndex);
-	}
-
-	// Get a node by giving the text or index.
-	macro TreeNode* TreeView.getNode(TreeView* this, txtOrIndex)
-	{
-		return getNodeFromStringOrInt(this, txtOrIndex);
 	}
 
 	//======================================TREENODE FUNCTIONS============================================================
@@ -365,14 +423,14 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		fn TreeNode* TreeNode.addChildNode1(TreeNode* this, String nodeTxt, Allocator using = allocator::heap()) @private
 		{
 			TreeNode* node = newTreeNode(nodeTxt);
-			api_SendMessage(this.treeHwnd, MM_NODE_ADDED, node.toWpm(), this.toLpm());
+			api_SendMessage(this._treeHwnd, MM_NODE_ADDED, node.toWpm(), this.toLpm());
 			return node;
 		}
 
 		// Helper function for adding a child node
 		fn void TreeNode.addChildNode2(TreeNode* this, TreeNode* node) @private
 		{
-			api_SendMessage(this.treeHwnd, MM_NODE_ADDED, node.toWpm(), this.toLpm());
+			api_SendMessage(this._treeHwnd, MM_NODE_ADDED, node.toWpm(), this.toLpm());
 		}
 
 		// Add child node node. Parameter nodeOrText can be string or node pointer.
@@ -403,7 +461,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 			$endswitch
 			np.parent = this;
 			np.indexNum = indexNum;
-			api_SendMessage(this.treeHwnd, MM_NODE_INSERTED, 0, (Lparam)((void*) &np));
+			api_SendMessage(this._treeHwnd, MM_NODE_INSERTED, 0, (Lparam)((void*) &np));
 			return ret;
 		}
 
@@ -463,9 +521,9 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 											TreeNode* pnode = null, int pos = -1) @private
 	{
 		node._isCreated = true;
-		node.treeHwnd = this.handle;
-		node.nodeID = this.uniqNodeID; // We can identify any node with this
-		node.treePtr = this;
+		node._treeHwnd = this.handle;
+		node.nodeID = this._uniqNodeID; // We can identify any node with this
+		node._treePtr = this;
 		Char16* newtxtp;
 		defer free(newtxtp);
 		TVItemEx tvi = newTVItem(node, &newtxtp);
@@ -479,29 +537,29 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		switch(nop) {
 			case NodeOps.ADDNODE:
 				tis.hParent = TVI_ROOT;
-				tis.hInsertAfter = this.nodeCount > 0 ? this.nodes[(usz)this.nodeCount - 1].handle : TVI_FIRST;
+				tis.hInsertAfter = this._nodeCount > 0 ? this.nodes[(usz)this._nodeCount - 1].handle : TVI_FIRST;
 				isRootNode = true;
-				node.index = this.nodeCount;
+				node.index = this._nodeCount;
 
 			case NodeOps.INSERTNODE:
 				tis.hParent = TVI_ROOT;
 				tis.hInsertAfter = pos == 0 ? TVI_FIRST : this.nodes[(usz)pos - 1].handle;
 				isRootNode = true;
-				node.index = this.nodeCount;
+				node.index = this._nodeCount;
 				errMsg = "Can't Insert";
 
 			case NodeOps.ADDCHILD:
 				tis.hInsertAfter = TVI_LAST;
 				tis.hParent = pnode.handle;
 				node.parentNode = pnode;
-				node.index = pnode.nodeCount;
+				node.index = pnode._nodeCount;
 				errMsg = "Can't Add Child";
 
 			case NodeOps.INSERTCHILD:
 				tis.hParent = pnode.handle;
 				tis.hInsertAfter = pos == 0 ? TVI_FIRST : pnode.nodes[(usz)pos - 1].handle;
 				node.parentNode = pnode;
-				node.index = pnode.nodeCount;
+				node.index = pnode._nodeCount;
 				errMsg = "Can't Insert Child";
 		}
 
@@ -509,13 +567,13 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 		if (hItem) {
 			node.handle = (Htreeitem)hItem;
-			this.uniqNodeID += 1;
+			this._uniqNodeID += 1;
 			if (isRootNode) {
 				this.nodes.push(node);
-				this.nodeCount += 1;
+				this._nodeCount += 1;
 			} else {
 				pnode.nodes.push(node);
-				pnode.nodeCount += 1;
+				pnode._nodeCount += 1;
 			}
 		} else {
 			ptf("%s node!, Error - %s", errMsg, api_GetLastError());
@@ -529,7 +587,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 	fn void TreeNode.destroy(TreeNode* this) @private
 	{
-		// ptf("Node is destroying, node text %s, count : %s", this.text, this.nodeCount);
+		// ptf("Node is destroying, node text %s, count : %s", this.text, this._nodeCount);
 		if (this.nodes.len()) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free(); // Finally free the container too.
 		allocator::free(&app.tracker, this);
@@ -541,7 +599,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
-		if (this.nodeCount > 0) {
+		if (this._nodeCount > 0) {
 			foreach (node: this.nodes) { node.destroy();} // Recursive destruction
 		}
 		this.nodes.free();
