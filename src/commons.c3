@@ -192,6 +192,49 @@ fn void printTrackReport(TrackingAllocator tal)
 	};
 }
 
+// Get current EXE path. Callee should use @pool 
+fn String getExePathTemp()
+{
+	Char16[260] buffer;
+	Dword res = api_GetModuleFileName(null, &buffer[0], 260);
+	if (res) {
+		return string::temp_from_utf16(buffer[:res])!!;
+	} else {
+		return "";
+	}	
+}
+
+// Get current EXE path. Callee must free the string 
+fn String getExePath()
+{
+	Char16[260] buffer;
+	Dword res = api_GetModuleFileName(null, &buffer[0], 260);
+	if (res) {
+		return string::new_from_utf16(buffer[:res], &app.tracker)!!;
+	} else {
+		return "";
+	}	
+}
+
+// Get current EXE's directory path. Callee must free the result 
+fn String getExeDir()
+{
+	Char16[260] buffer;
+	Dword res = api_GetModuleFileName(null, &buffer[0], 260);
+	if (res) {		
+		for (int i = res; i >= 0; i--) {
+			if (buffer[i] == 92) {
+				res = i;
+				break;
+			}
+    	}
+		ptf("res %d", res);
+		return string::new_from_utf16(buffer[:res], &app.tracker)!!;
+	} else {
+		return "";
+	}	
+} // C:\Users\kcvin\OneDrive\Programming\C3\Automation_Dll\autoc3.h
+
 // You can use this function to update ui components from another thread.
 // There is a 'onThreadMsg' property for Form struct. It is a function ptr.
 // Assign a function with this signature - fn void(Wparam, Lparam)

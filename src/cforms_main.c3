@@ -11,7 +11,7 @@ def print = io::printn;
 def ptf = io::printfn;
 // def log = io::printn;
 def cptf = libc::printf;
-def FormMap = std::collections::map::HashMap(<Hwnd, Form*>);
+def FormMap = HashMap(<Hwnd, Form*>);
 
 // Global static data
 struct AppData
@@ -66,8 +66,8 @@ fn void AppData.finalize(&this)
 	if (this.nidUsed) {		
 		if(this.trayHwnd) api_DestroyWindow(this.trayHwnd);
 	}
-	if (this.cmenuUsed) api_UnregisterClass(&cmenuMsgWinClass[0], this.hins);
-	api_UnregisterClass(&className[0], this.hins);
+	// if (this.cmenuUsed) api_UnregisterClass(&cmenuMsgWinClass[0], this.hins);
+	// api_UnregisterClass(&className[0], this.hins);
 	app.fmap.free();
     this.tracker.print_report();
 	this.tracker.free();

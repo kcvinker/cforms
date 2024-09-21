@@ -54,9 +54,9 @@ import std::io;
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
 
 def ControlList = List(<Control*>);
-def CmbMap = std::collections::map::HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
-def MenuItemMap = std::collections::map::HashMap(<uint, MenuItem*>);
-def TimerMap = std::collections::map::HashMap(<Uintptr, Timer*>);
+def CmbMap = HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
+def MenuItemMap = HashMap(<uint, MenuItem*>);
+def TimerMap = HashMap(<Uintptr, Timer*>);
 
 int frmNumber = 1;
 
@@ -423,7 +423,7 @@ struct Form
 	}
 
 	fn void Form.formCloseHandler(&this) @private
-	{
+	{		
 		if (this.onClosing) this.onClosing(this, &&EventArgs{});
 	}
 

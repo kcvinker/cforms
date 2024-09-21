@@ -278,7 +278,7 @@ fault StringFault
         api_MoveWindow(this.handle, this.xpos, this.ypos, ss.cx, ss.cy, true);
 	}
 
-	// Get the string from this control. Don't remember to free the buffer.
+	// Get the string from this control. Don't forget to free the buffer.
 	fn String Control.getTextInternal(Control* this, Hwnd hw = null) @private
 	{
 		Hwnd hwnd = hw ? hw : this.handle;

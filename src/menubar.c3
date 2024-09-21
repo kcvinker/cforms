@@ -45,7 +45,7 @@ import std::collections::map;
 // import libc;
 Wstring cmenuMsgWinClass = {'c', 'f', 'o', 'r', 'm', 's', '_', 'C', 'm', 'e', 'n', 'u', '_', 'M', 's','g','_','w', 'i','n', 0};
 def MenuItemList = List(<MenuItem*>);
-def MenuMap = std::collections::map::HashMap(<String, MenuItem*>);
+def MenuMap = HashMap(<String, MenuItem*>);
 enum MenuType : char {BASE_MENU, MENU_ITEM, POPUP, SEPRATOR }
 
 uint menuNumber = 101;

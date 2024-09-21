@@ -26,9 +26,10 @@ ListView* lv;
 int cntr = 1;
 Timer* tm;
 TrayIcon* ti;
-
+String exePath;
 fn void makeWindow()
 {
+	exePath = getExeDir();
 	frm = newForm("Cforms gui library", .width = 800, .height = 550);
 	frm.onMouseDown = fn(c, e) => print("left mouse down on frm");	
 	frm.createChilds = true; // Child controls will create their hwnd immediately.
@@ -113,7 +114,14 @@ fn void makeWindow()
 
 	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10);
 
+	@pool() {
+		ptf("temp path %s", getExePathTemp());
+	};
+	
+	
+	frm.onClosing = fn (c, e) => exePath.free(&app.tracker);
 	frm.show();
+	// exePath.free(&app.tracker);
 }
 
 
@@ -137,10 +145,7 @@ fn void frmMouseDown(Control* c, MouseEventArgs* e) {
 fn void onB2Click(Control* s, EventArgs* e){
 	print("Button pressed");
 	// tm.start();
-	ti.showBalloon("My Balloon", "this message has sound", 3500, 
-					.icon = BallonIcon.CUSTOM, 
-					.iconpath = "D:\\Icons\\Tatice-Cristal-Intense-Papillon-MSN.ico"
-					);
+	ti.showBalloon("My Balloon", "this message has sound", 3500)
 }
 
 fn void onTimerTick(Control* f, EventArgs* e) {

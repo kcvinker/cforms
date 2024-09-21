@@ -132,6 +132,7 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn void api_CoTaskMemFree(void*) @extern("CoTaskMemFree");
 	extern fn Bool api_Shell_NotifyIcon(Dword, NotifyIconData*) @extern("Shell_NotifyIconW");
 	extern fn int api_GetScaleFactorForDevice(int) @extern("GetScaleFactorForDevice");
+	extern fn Dword api_GetModuleFileName(Hmodule, Lpwstr, Dword) @extern("GetModuleFileNameW");
 //
 
 
