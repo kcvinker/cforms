@@ -103,7 +103,7 @@ fn void TrayIcon.showBalloon(&this, String title,
                                 String message, 
                                 uint timeout,                           // In milliseconds. 
                                 bool noSound = false,                   // Do you want a silent balloon?
-                                BallonIcon icon = BallonIcons.INFO,     // Use any system icon or custom icon.
+                                BalloonIcon icon = BalloonIcon.INFO,     // Use any system icon or custom icon.
                                 String iconpath = "")                   // If custom icon, give the path.
 {
     bool modifyIcon = false;
@@ -114,7 +114,7 @@ fn void TrayIcon.showBalloon(&this, String title,
 		this._nid.balloonTitle[:bTitle.len] = bTitle[:^0];
 		this._nid.balloonText[:bMsg.len] = bMsg[:^0];
 
-        if (icon == BallonIcon.CUSTOM && iconpath != "") {
+        if (icon == BalloonIcon.CUSTOM && iconpath != "") {
             this._nid.hIcon  = api_LoadImage(null, String.to_temp_utf16(iconpath)!!, IMAGE_ICON, 0, 0, LIMG_FLAG);
 
             // If any error happened, we will use our base icon.

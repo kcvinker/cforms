@@ -13,6 +13,9 @@
                 setFilters()        : void
                 deleteFileNames()   : void
                 destroy()           : void
+
+            Macros:
+                @withFileOpenDialog : void
         
        (2) FileSaveDialog:
             Constructor: newFileSaveDialog()
@@ -86,6 +89,16 @@ fn FileOpenDialog newFileOpenDialog(String title = "Select a file",
     this.initFolder = initialFolder;
     this.filter = typeFilter;
     return this;
+}
+
+// Use this macro to use FileOpenDialog safe. This will call the destructor automatically
+macro void @withFileOpenDialog(String title = "Select a file",
+                                String initialFolder = "",
+                                String typeFilter = "All files\0*.*\0" ; @body(x))
+{
+    FileOpenDialog fod = newFileOpenDialog(title, initialFolder, typeFilter);
+    defer fod.destroy();
+    @body(fod);
 }
 
 // Constructor for FileSaveDialog struct
@@ -247,4 +260,5 @@ fn void FileOpenDialog.destroy(FileOpenDialog* this)
     } else {
         free(this.selectedPath);
     }
+    print("File Open dialog destroyed");
 }

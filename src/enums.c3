@@ -127,7 +127,7 @@ enum SizedPosition : int
     BOTTOMRIGHTCORNER
 }
 
-enum BallonIcon : Dword 
+enum BalloonIcon : Dword 
 {
     NONE,
     INFO,

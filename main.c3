@@ -134,7 +134,7 @@ fn int main(String[] args)
 fn void frmOnMouseDown(Control* f, MouseEventArgs* e) {
 	frm.printPoint(e);
 	ti.showBalloon("My Balloon", "See this balloon message", 
-					3500, .noSound = true, .icon = BallonIcon.WARNING);
+					3500, .noSound = true, .icon = BalloonIcon.WARNING);
 	// ti.updateIcon("D:\\Icons\\Dakirby309-Windows-8-Metro-Web-Microsoft-Store-Metro.ico");
 }
 
@@ -145,7 +145,7 @@ fn void frmMouseDown(Control* c, MouseEventArgs* e) {
 fn void onB2Click(Control* s, EventArgs* e){
 	print("Button pressed");
 	// tm.start();
-	ti.showBalloon("My Balloon", "this message has sound", 3500)
+	ti.showBalloon("My Balloon", "this message has sound", 3500);
 }
 
 fn void onTimerTick(Control* f, EventArgs* e) {
@@ -154,10 +154,15 @@ fn void onTimerTick(Control* f, EventArgs* e) {
 
 fn void btnClick(Control* c, EventArgs* e) {	
 	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
-	FileOpenDialog fod = newFileOpenDialog(.initialFolder = inf, .typeFilter = "PDF Files\0*.pdf\0");
-	fod.showDialog(frm.handle);
-	ptf("Sel Path : %s", fod.selectedPath);	
-	fod.destroy();
+	String tf = "PDF Files\0*.pdf\0";
+	// FileOpenDialog fod = newFileOpenDialog(.initialFolder = inf, .typeFilter = "PDF Files\0*.pdf\0");
+	// fod.showDialog(frm.handle);
+	// ptf("Sel Path : %s", fod.selectedPath);	
+	// fod.destroy();
+	@withFileOpenDialog("Testing fod", inf, tf; FileOpenDialog fod) {
+		fod.showDialog(frm.handle);
+		ptf("Sel Path : %s", fod.selectedPath);
+	};
 }
 
 fn void onMenuClick(MenuItem* m, EventArgs* e) {

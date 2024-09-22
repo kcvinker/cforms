@@ -150,11 +150,12 @@ fn void onTimerTick(Control* f, EventArgs* e) {
 }
 
 fn void btnClick(Control* c, EventArgs* e) {	
-	String inf = "Give\A\Valid\Path\Here";
-	FileOpenDialog fod = newFileOpenDialog(.initialFolder = inf, .typeFilter = "PDF Files\0*.pdf\0");
-	fod.showDialog(frm.handle);
-	ptf("Sel Path : %s", fod.selectedPath);	
-	fod.destroy();
+	String inf = "Type\\A_Path\\Here";
+	String tf = "PDF Files\0*.pdf\0";
+	@withFileOpenDialog("Testing fod", inf, tf; FileOpenDialog fod) {
+		fod.showDialog(frm.handle);
+		ptf("Sel Path : %s", fod.selectedPath);
+	};
 }
 
 fn void onMenuClick(MenuItem* m, EventArgs* e) {
