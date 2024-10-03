@@ -329,13 +329,13 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 										Allocator using = allocator::heap()) @private
 	{
 		TreeNode* node = newTreeNode(nodeTxt);
-		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
+		this.addNodeInternal(NodeOps.INSERTNODE, node, pos: index);
 		return node;
 	}
 
 	fn void TreeView.insertNode2(TreeView* this, TreeNode* node, int index) @private
 	{
-		this.addNodeInternal(NodeOps.INSERTNODE, node, .pos = index);
+		this.addNodeInternal(NodeOps.INSERTNODE, node, pos: index);
 	}
 
 	fn TreeNode* TreeView.insertChildNode1(TreeView* this, String nodeTxt, TreeNode* parent,

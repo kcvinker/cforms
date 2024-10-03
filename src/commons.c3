@@ -183,7 +183,7 @@ fn void printTrackReport(TrackingAllocator tal)
 	@pool() {
 		if (tal.map.len() > 0) {
 			print("Showing memory tracking reports....");
-			foreach (k: tal.map.key_tlist()) {
+			foreach (k: tal.map.tcopy_keys()) {
 				ptf("map key: %p, map value: %d bytes", k, tal.map.get(k))!!;
 			}
 		} else {

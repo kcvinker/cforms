@@ -187,26 +187,40 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	}
 
 	// Drawing the percentage digits upon progressbar.
-	fn Lresult ProgressBar.paintHandler(ProgressBar* this) @private
+	// fn Lresult ProgressBar.paintHandler(ProgressBar* this) @private
+	// {
+	// 	Size ss;
+	// 	String ptext = progressStr(this.value);
+	// 	Char16* wtext = String.to_new_utf16(ptext).ptr!!;
+	// 	defer free(ptext);//
+	// 	defer free(wtext);
+
+	// 	Hdc hdc = api_GetDC(this.handle);
+	// 	defer api_ReleaseDC(this.handle, hdc);
+
+	// 	api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
+	// 	api_GetTextExtentPoint32(hdc,  wtext, ptext.len, &ss);
+
+	// 	int x = (this.width - ss.cx) / 2;
+    //     int y = (this.height - ss.cy) / 2;
+    //     api_SetBkMode(hdc, TRANSPARENT);
+    //     api_SetTextColor(hdc, this.foreColor.ref);
+    //     api_TextOut(hdc, x, y,  wtext, ptext.len );
+	// 	return 0;
+	// }
+
+	fn Lresult ProgressBar.paintHandler2(ProgressBar* this) @private
 	{
-		Size ss;
-		// int value = (int)this.sendMsg(PBM_GETPOS, 0, 0);
 		String ptext = progressStr(this.value);
 		Char16* wtext = String.to_new_utf16(ptext).ptr!!;
 		defer free(ptext);//
 		defer free(wtext);
-
-		Hdc hdc = api_GetDC(this.handle);
-		defer api_ReleaseDC(this.handle, hdc);
-
-		api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
-		api_GetTextExtentPoint32(hdc,  wtext, ptext.len, &ss);
-
-		int x = (this.width - ss.cx) / 2;
-        int y = (this.height - ss.cy) / 2;
-        api_SetBkMode(hdc, TRANSPARENT);
-        api_SetTextColor(hdc, this.foreColor.ref);
-        api_TextOut(hdc, x, y,  wtext, ptext.len );
+		@using(newGraphics(DCMode.GET_DC, this.handle); Graphics gx) {
+			Size ss = gx.getStringSize(wtext, ptext.len, this.font.handle, true);
+			int x = (this.width - ss.cx) / 2;
+        	int y = (this.height - ss.cy) / 2;
+			gx.textOut(wtext, x, y, ptext.len, this.foreColor);
+		};
 		return 0;
 	}
 
@@ -277,7 +291,7 @@ fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 			ProgressBar* this = bitcast(refData, ProgressBar*);
 						if (this.showPercentage && this.barStyle != ProgressBarStyle.MARQUEE_STYLE) {
 				api_DefSubclassProc(hw, msg, wp, lp);
-				return this.paintHandler();
+				return this.paintHandler2();
 			} else {
 				return api_DefSubclassProc(hw, msg, wp, lp);
 			}

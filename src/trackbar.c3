@@ -375,7 +375,8 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 	fn void TrackBar.drawTics(TrackBar* this, Hdc hdc) @private
 	{
-		api_SelectObject(hdc, (Hgdiobj)this._ticPen);
+		Hgdiobj oldpen = api_SelectObject(hdc, (Hgdiobj)this._ticPen);
+		defer api_SelectObject(hdc, oldpen);
 		if (this.vertical) {
 			switch (this.ticPos) {
 				case TicPosition.RIGHTSIDE:
@@ -486,8 +487,11 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 							if (this.channelStyle == ChannelStyle.CLASSIC) {
 								api_DrawEdge(nmcd.hdc, &nmcd.rc, BDR_SUNKENOUTER, this._chnFlag);
 							} else {
-								api_SelectObject(nmcd.hdc, (Hgdiobj)this._chanPen);
-								api_Rectangle(nmcd.hdc, nmcd.rc.left, nmcd.rc.top, nmcd.rc.right, nmcd.rc.bottom );
+								// api_SelectObject(nmcd.hdc, (Hgdiobj)this._chanPen);
+								// api_Rectangle(nmcd.hdc, nmcd.rc.left, nmcd.rc.top, nmcd.rc.right, nmcd.rc.bottom );
+								@withGraphics(nmcd.hdc, this._chanPen; Graphics gfx) {
+									gfx.drawRectangle(nmcd.rc);
+								};
 							}
 
 							if (this.selRange) { // Fill the selection range

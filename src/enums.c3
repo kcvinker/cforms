@@ -146,6 +146,16 @@ enum TrayMenuTrigger : int(String desc, char value)
 
 }
 
+enum DCMode : char 
+{
+    NONE,
+    ON_PAINT,
+    GET_DC,
+    WIN_DC,
+    FREE_DC,
+
+}
+
 enum Keys : int (String description, int value)
 {
 	MODIFIER = {"Modifier Key", -65_536},

@@ -60,6 +60,7 @@ struct NumberPicker
 	uint deciPrec;
 	int _linex; // The x coordinate for drawing line over the right/left border.
 	Hbrush _borderBrush; // Used to cover the three borders of buddy control.
+	Hpen _borderPen;
 	Dword _buddyStyle;
 	Dword _buddyExStyle;
 	Dword _topEdgeFlag;
@@ -200,6 +201,11 @@ struct NumberPicker
 		$endswitch
 	}
 
+	// fn void NumberPicker.setBackColor(&this, uint clr)
+	// {
+
+	// }
+
 // End of Public functions
 
 // Private functions
@@ -224,7 +230,15 @@ struct NumberPicker
 		this._bkBrush = this.backColor.getBrush();
 		
 		Color clr = newColor(0xABABAB);		
-		this._borderBrush = api_CreateSolidBrush(clr.ref);		
+		this._borderBrush = api_CreateSolidBrush(clr.ref);	
+		this._borderPen = api_CreatePen(PS_SOLID, 2, this.backColor.ref);
+	}
+
+	// When user changes back color, we need to re-create the border pen.
+	fn void NumberPicker.changeBackColorHelper(&this)
+	{
+		if (this._borderPen) api_DeleteObject((Hgdiobj)this._borderPen);
+		this._borderPen = api_CreatePen(PS_SOLID, 2, this.backColor.ref);
 	}
 
 	fn void NumberPicker.createUpdown(NumberPicker* this) @private
@@ -286,7 +300,7 @@ struct NumberPicker
 		api_SetWindowText(this._buddyHandle, this._wideText);
 	}
 
-	fn void NumberPicker.paintBuddyBorder(&this, Hdc hdc)
+	fn void NumberPicker.paintBuddyBorder(&this, Hwnd hwnd)
 	{
 		/*-------------------------------------------------------------------------
 		Edit control needs WS_BORDER style to place the text properly aligned.
@@ -298,12 +312,16 @@ struct NumberPicker
 		This line has the same back color of edit control. So the border is hidden. 
 		And the control will look like the one in .NET.  
 		----------------------------------------------------------------------------------*/
-		api_FrameRect(hdc, &this._tbRect, this._borderBrush);
-		Hpen fpen = api_CreatePen(PS_SOLID, 2, this.backColor.ref);
-		defer api_DeleteObject((Hgdiobj)fpen);
-		api_SelectObject(hdc, (Hgdiobj)fpen);
-		api_MoveToEx(hdc, this._linex, 1, null);
-		api_LineTo(hdc, this._linex, this._tbRect.bottom - 2);
+		// api_FrameRect(hdc, &this._tbRect, this._borderBrush);
+		// Hpen fpen = api_CreatePen(PS_SOLID, 2, this.backColor.ref);
+		// defer api_DeleteObject((Hgdiobj)fpen);
+		// api_SelectObject(hdc, (Hgdiobj)fpen);
+		// api_MoveToEx(hdc, this._linex, 1, null);
+		// api_LineTo(hdc, this._linex, this._tbRect.bottom - 2);
+		@using(newGraphics(DCMode.WIN_DC, hwnd); Graphics gfx) {
+			gfx.drawFrameRect(&this._tbRect, this._borderBrush);
+			gfx.drawLine(this._linex, 1, this._tbRect.bottom - 2, this._borderPen);
+		};
 	}
 
 	fn void NumberPicker.setValueInternal(NumberPicker* this, int delta) @private
@@ -381,6 +399,7 @@ struct NumberPicker
 		free(this._wideText);
 		api_DeleteObject((Hgdiobj)(this.font.handle));
 		api_DeleteObject((Hgdiobj)this._borderBrush);
+		api_DeleteObject((Hgdiobj)this._borderPen);
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
@@ -478,9 +497,9 @@ fn Lresult buddyWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, D
 		case WM_PAINT:			
 			NumberPicker* this = bitcast(refData, NumberPicker*);			
 			Lresult rs = api_DefSubclassProc(hw, msg, wp, lp); // Let the control do it's basic painting.			
-			Hdc hdc = api_GetWindowDC(hw);
-			defer api_ReleaseDC(hw, hdc);		
-			this.paintBuddyBorder(hdc);				
+			// Hdc hdc = api_GetWindowDC(hw);
+			// defer api_ReleaseDC(hw, hdc);		
+			this.paintBuddyBorder(hw);				
 			return rs;
 
 		case EM_SETSEL: return 1; // To eliminate the selection back color in edit.

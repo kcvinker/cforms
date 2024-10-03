@@ -92,7 +92,7 @@ fn FileOpenDialog newFileOpenDialog(String title = "Select a file",
 }
 
 // Use this macro to use FileOpenDialog safe. This will call the destructor automatically
-macro void @withFileOpenDialog(String title = "Select a file",
+macro void @newFileOpenDialog(String title = "Select a file",
                                 String initialFolder = "",
                                 String typeFilter = "All files\0*.*\0" ; @body(x))
 {

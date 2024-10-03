@@ -514,7 +514,7 @@ struct ListViewColumn
 		// We will add sub items too. But only for Report View style.
 		if (item.subItems.len() && this.viewStyle == ListViewStyle.REPORT_VIEW) {
 			foreach (i, sitem: item.subItems) {
-				this.addSubItemInternal(item, sitem, (int)i + 1, .appendSubItem = false);
+				this.addSubItemInternal(item, sitem, (int)i + 1, appendSubItem: false);
 			}
 		}
 	}

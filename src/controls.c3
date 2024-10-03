@@ -133,6 +133,9 @@ fault StringFault
 	{
 		this.backColor.updateColor(clr);
 		if ((this._drawMode & 2) != 2) this._drawMode += 2;
+		if (this.kind == ControlType.NUM_PICKER) {
+			((NumberPicker*)this).changeBackColorHelper();
+		}
 		if (this._isCreated) {
 			this._bkBrush = this.backColor.getBrush();
 			api_InvalidateRect(this.handle, null, false);
@@ -278,7 +281,7 @@ fault StringFault
         api_MoveWindow(this.handle, this.xpos, this.ypos, ss.cx, ss.cy, true);
 	}
 
-	// Get the string from this control. Don't forget to free the buffer.
+	// Get the string from this control. Free the return value when you are done.
 	fn String Control.getTextInternal(Control* this, Hwnd hw = null) @private
 	{
 		Hwnd hwnd = hw ? hw : this.handle;
