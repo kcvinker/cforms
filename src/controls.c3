@@ -102,6 +102,7 @@ fault StringFault
 {
 	NOT_CREATED,
 	NOT_TEXTABLE,
+	
 }
 
 // Public functions 
@@ -151,10 +152,11 @@ fault StringFault
 				((GroupBox*)this).textSetter(value);
 			} else {
 				if (this._wideText) free(this._wideText);
-				this._wideText = String.to_new_utf16(value).ptr!!;
+				this._wideText = String.to_new_utf16(value).ptr;
 				api_SetWindowText(this.handle, this._wideText);
 			}
 		}
+		// $echo("Compile check");
 	}
 
 	//Get this control's text. The caller must free the string buffer.
@@ -188,7 +190,7 @@ fault StringFault
 	fn void Control.createInternal(Control* ctl, bool special = false) @private
 	{
 		if (!special) ctl.setCtlID();
-		Char16* text = String.to_new_utf16(ctl.text).ptr!!;
+		Char16* text = String.to_new_utf16(ctl.text).ptr;
 		defer free(text);
 		ctl.handle = api_CreateWindowEx(ctl._exStyle, ctl._className,
 										text, ctl._style,
@@ -201,6 +203,7 @@ fault StringFault
 			// ptf("control %s's handle is created.", ctl.name.str());
 			ctl._isCreated = true;
 		}
+		$echo("Compile check");
 	}
 
 	fn Rect Control.getMappedRect(&self)
@@ -300,7 +303,7 @@ fault StringFault
 	{
 		this.text = txt;
 		if (this._isCreated) {
-			this._wideText = String.to_new_utf16(this.text).ptr!!;
+			this._wideText = String.to_new_utf16(this.text).ptr;
 			api_SetWindowText(this.handle, this._wideText);
 			if (this._autoSizable) this.setIdealSize();
 		}

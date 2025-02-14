@@ -119,7 +119,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		this._className = &btnClass[0];
 		this.name = dstring::new("Button_", &app.tracker);
 		this.name.appendf("%d", btnNumber);
-		this._wideText = String.to_new_utf16(text, &app.tracker).ptr!!;
+		this._wideText = String.to_new_utf16(text, &app.tracker).ptr;
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = btnStyle;

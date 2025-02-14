@@ -296,7 +296,7 @@ struct NumberPicker
 		this._valStr.clear();
 		this._valStr.appendf(this.fmtStr.str_view(), this.value);
 		if (this._wideText) free(this._wideText);
-		this._wideText = String.to_new_utf16(this._valStr.str_view()).ptr!!;
+		this._wideText = String.to_new_utf16(this._valStr.str_view()).ptr;
 		api_SetWindowText(this._buddyHandle, this._wideText);
 	}
 

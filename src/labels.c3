@@ -55,7 +55,7 @@ struct Label
 		this.width = width;
 		this.height = height;
 		this.text = text;
-		this._wideText = String.to_new_utf16(text).ptr!!;
+		this._wideText = String.to_new_utf16(text).ptr;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;

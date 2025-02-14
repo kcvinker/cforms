@@ -38,7 +38,7 @@ struct GroupBox
 		this.name.appendf("%d", gbNumber);
 		this._className = &btnClass[0];
 		this.text = text == "" ? this.name.str_view() : text;
-		this._wideText = String.to_new_utf16(this.text).ptr!!;
+		this._wideText = String.to_new_utf16(this.text).ptr;
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_GROUPBOX | BS_NOTIFY | BS_TEXT | BS_TOP;
@@ -140,7 +140,7 @@ struct GroupBox
 	fn void GroupBox.textSetter(GroupBox* this, String value) @private
 	{
 		if (this._wideText) free(this._wideText);
-		this._wideText = String.to_new_utf16(value).ptr!!;
+		this._wideText = String.to_new_utf16(value).ptr;
 		this.getTextBounds();
 		api_SetWindowText(this.handle, this._wideText);
 		api_InvalidateRect(this.handle, null, false);

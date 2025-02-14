@@ -262,6 +262,6 @@ fn DateTime dateTimeFromSysTime(SystemTime st) {
 	this.minute = st.wMinute ;
 	this.second = st.wSecond ;
 	this.milliSeconds = st.wMilliseconds ;
-	this.dayOfWeek = (WeekDays) st.wDayOfWeek;
+	this.dayOfWeek = WeekDays.from_ordinal(st.wDayOfWeek);
 	return this;
 }

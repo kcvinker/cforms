@@ -338,7 +338,7 @@ struct ListViewColumn
 		lvcol.index = this._colIndex;
         LVColumn lvc;
         lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT | LVCF_SUBITEM;
-        lvc.fmt = (int)lvcol.textAlign;
+        lvc.fmt = (int)lvcol.textAlign.ordinal;
         lvc.cx = lvcol.width;
         lvc.pszText = lvcol._wideText;//  String.to_new_utf16(lvcol.text).ptr!!;
         // # lvc.iOrder = lvcol.index
@@ -362,7 +362,7 @@ struct ListViewColumn
 		LVItem lvi;
         lvi.mask = LVIF_TEXT | LVIF_PARAM | LVIF_STATE;
         if (item.imageIndex != -1) lvi.mask |= LVIF_IMAGE;
-		Char16* sitem = String.to_new_utf16(item.text).ptr!!;
+		Char16* sitem = String.to_new_utf16(item.text).ptr;
 		defer free(sitem);
         lvi.state = 0;
         lvi.stateMask = 0;
@@ -384,7 +384,7 @@ struct ListViewColumn
         LVItem lvi;
         // # lvi.mask = con.LVIF_TEXT | con.LVIF_STATE
         // # lvi.iItem = item_index
-		Char16* sitem = String.to_new_utf16(subitem).ptr!!;
+		Char16* sitem = String.to_new_utf16(subitem).ptr;
 		defer free(sitem);
         lvi.iSubItem = subIndex;
         lvi.pszText = sitem;

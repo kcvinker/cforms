@@ -139,7 +139,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	fn void ProgressBar.setState(ProgressBar* this, ProgressBarState value)
 	{
 		this.barState = value;
-		if (this._isCreated) this.sendMsg(PBM_SETSTATE, value, 0);
+		if (this._isCreated) this.sendMsg(PBM_SETSTATE, value.ordinal, 0);
 	}
 
 	// Set the style of this progressbar. Style 1: Block, 2: Marquee
@@ -212,7 +212,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	fn Lresult ProgressBar.paintHandler2(ProgressBar* this) @private
 	{
 		String ptext = progressStr(this.value);
-		Char16* wtext = String.to_new_utf16(ptext).ptr!!;
+		Char16* wtext = String.to_new_utf16(ptext).ptr;
 		defer free(ptext);//
 		defer free(wtext);
 		@using(newGraphics(DCMode.GET_DC, this.handle); Graphics gx) {

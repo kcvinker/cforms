@@ -128,7 +128,7 @@ fn void TrayIcon.showBalloon(&this, String title,
                 this._resetIcon = true;        
             }
         }
-		this._nid.dwInfoFlags = (Dword)icon; 		
+		this._nid.dwInfoFlags = (Dword)icon.ordinal; 		
 		this._nid.uVersionOrTimeout = timeout;        
         if (noSound) this._nid.dwInfoFlags |= NIIF_NOSOUND;
 		api_Shell_NotifyIcon(NIM_MODIFY, &this._nid);

@@ -44,7 +44,7 @@ fn void Font.createHandle(&this)
 	defer free(s);
 	lf.lfFaceName[:s.len] = s[:^0]; // Copying wchar array to lfFaceName
 	lf.lfHeight = iHeight;
-	lf.lfWeight =  (long)((int)this.weight * 100) + 100;
+	lf.lfWeight =  (long)((int)this.weight.ordinal * 100) + 100;
 	lf.lfCharSet = DEFAULT_CHARSET;
 	lf.lfOutPrecision = OUT_STRING_PRECIS;
 	lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;

@@ -103,7 +103,7 @@ struct Calendar
 	fn void Calendar.setViewMode(Calendar* this, ViewMode value)
 	{
 		this.viewMode = value;
-		if (this._isCreated) this.sendMsg(MCM_SETCURRENTVIEW, 0, this.viewMode);
+		if (this._isCreated) this.sendMsg(MCM_SETCURRENTVIEW, 0, this.viewMode.ordinal);
 	}
 
 // End of Public functions
@@ -133,7 +133,7 @@ struct Calendar
 	fn void Calendar.setValueInternal(Calendar* this, SystemTime st) @private
 	{
 		this.value = DateTime{st.wYear, st.wMonth, st.wDay, st.wHour,
-								st.wMinute, st.wSecond, st.wMilliseconds, (WeekDays) st.wDayOfWeek};
+								st.wMinute, st.wSecond, st.wMilliseconds, WeekDays.from_ordinal(st.wDayOfWeek)};
 	}
 
 
@@ -153,8 +153,8 @@ struct Calendar
 
 			case MCN_VIEWCHANGE:
 				NMViewChange* nmv = (NMViewChange*)lpm;
-				this.viewMode = (ViewMode)nmv.dwNewView;
-				this.oldViewMode = (ViewMode)nmv.dwOldView;
+				this.viewMode = ViewMode.from_ordinal(nmv.dwNewView);
+				this.oldViewMode = ViewMode.from_ordinal(nmv.dwOldView);
 				if (this.onViewChanged) this.onViewChanged(this, &&EventArgs{});
 		}
 		return 0;
@@ -251,7 +251,7 @@ fn SystemTime sysTimeFromDateTime(DateTime dt)
 	this.wMinute = (Word)dt.minute;
 	this.wSecond = (Word)dt.second;
 	this.wMilliseconds = (Word)dt.milliSeconds;
-	this.wDayOfWeek = (Word)dt.dayOfWeek;
+	this.wDayOfWeek = (Word)dt.dayOfWeek.ordinal;
 	return this;
 }
 

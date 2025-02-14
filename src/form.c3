@@ -114,6 +114,7 @@ struct Form
 // Public Functions
 	fn Form* newForm(String title, int width = 500, int height = 400)
 	{
+		
 		Form* this = allocator::new(&app.tracker, Form);
 		this.kind = ControlType.NONE;
 		this.name = dstring::new("Form_", &app.tracker);
@@ -134,6 +135,7 @@ struct Form
 		this.hinst = app.hins;
 		this.backColor = app.defWinColor;
 		frmNumber += 1;
+		// $echo("newForm is okay");
 		return this;
 	}
 
@@ -141,7 +143,7 @@ struct Form
 	{
 		this.setStyle();
 		this.setPosition();
-		Char16* title = String.to_new_utf16(this.text).ptr!!;
+		Char16* title = String.to_new_utf16(this.text).ptr;
 		defer free(title);
 		this.handle = api_CreateWindowEx(this._exStyle,
 										&className[0],
@@ -158,6 +160,7 @@ struct Form
 			app.fmap[this.handle] = this;
 			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
 			this.setFontInternal();
+			// $echo("163");
 			// api_ShowWindow(this.handle, 10);
 		}
 	}
@@ -171,6 +174,7 @@ struct Form
 			app.mainLoopOn = true;
 			this._isMainWindow = true;
 			Msg pMsg;
+			// $echo("177");
 			while (api_GetMessage(&pMsg, null, 0, 0) > 0) {
 				api_TranslateMessage(&pMsg);
 				api_DispatchMessage(&pMsg);
@@ -561,6 +565,7 @@ struct Form
 			api_PostQuitMessage(0);
 		}
 		allocator::free(&app.tracker, this);
+		// $echo("Compile check");
 	}
 
 // End Private Functions
@@ -568,6 +573,7 @@ struct Form
 fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {
 	// log("WIn Message %s", msg);
+	// $echo("575");
 	switch (msg) {
 	// Common msgs
 		case WM_SHOWWINDOW:
