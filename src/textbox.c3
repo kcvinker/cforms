@@ -90,7 +90,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 			this.setSubClass(&tbWndProc);
 			this.setFontInternal();
 			if (this._cueReady) {
-				Char16* cuetext = String.to_new_utf16(this.cueStr.str_view()).ptr;
+				Char16* cuetext = String.to_new_utf16(this.cueStr.str_view())!!.ptr;
 				defer free(cuetext);
 				api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 			}
@@ -102,7 +102,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	{
 		this.cueStr = dstring::new(s);
 		if (this._isCreated) {
-			Char16* cuetext = String.to_new_utf16(this.cueStr.str_view()).ptr;
+			Char16* cuetext = String.to_new_utf16(this.cueStr.str_view())!!.ptr;
 			defer free(cuetext);
 			api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 		} else {

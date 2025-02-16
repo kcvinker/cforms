@@ -111,7 +111,7 @@ struct ListBox
 	{
 		this.items.push(item);
 		if (this._isCreated) {
-			Char16* lbtext = String.to_new_utf16(item).ptr;
+			Char16* lbtext = String.to_new_utf16(item)!!.ptr;
 			defer free(lbtext);
 			this.sendMsg(LB_ADDSTRING, 0, lbtext);
 		}
@@ -122,7 +122,7 @@ struct ListBox
 	{
 		foreach (item: items) {
 			if (this._isCreated) {
-				Char16* sitem = String.to_new_utf16(item).ptr;
+				Char16* sitem = String.to_new_utf16(item)!!.ptr;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
@@ -135,7 +135,7 @@ struct ListBox
 	{
 		this.items.insert_at(index, item);
 		if (this._isCreated) {
-			Char16* sitem = String.to_new_utf16(item).ptr;
+			Char16* sitem = String.to_new_utf16(item)!!.ptr;
 			defer free(sitem);
 			this.sendMsg(LB_INSERTSTRING, index, sitem);
 		}
@@ -256,7 +256,7 @@ struct ListBox
 	{
 		if (this.items.len() > 0)  {// We need to add those items to list box
             foreach (item: this.items) {
-				Char16* sitem = String.to_new_utf16(item).ptr;
+				Char16* sitem = String.to_new_utf16(item)!!.ptr;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}

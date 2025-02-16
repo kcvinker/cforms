@@ -212,7 +212,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	fn Lresult ProgressBar.paintHandler2(ProgressBar* this) @private
 	{
 		String ptext = progressStr(this.value);
-		Char16* wtext = String.to_new_utf16(ptext).ptr;
+		Char16* wtext = String.to_new_utf16(ptext)!!.ptr;
 		defer free(ptext);//
 		defer free(wtext);
 		@using(newGraphics(DCMode.GET_DC, this.handle); Graphics gx) {

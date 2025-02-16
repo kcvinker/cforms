@@ -500,7 +500,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		TVItemEx tvi;
 		tvi.mask = TVIF_TEXT | TVIF_PARAM;
 		// print($typeof(node.text).nameof);
-		Char16* nodtext = String.to_new_utf16(node.text).ptr;
+		Char16* nodtext = String.to_new_utf16(node.text)!!.ptr;
 		// defer free(nodtext);
 		*newTxtPtr = nodtext;
 		tvi.pszText = nodtext;

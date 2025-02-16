@@ -165,7 +165,7 @@ struct CmbData
 		switch (item) {
 			case String:
 				@pool() {
-					Char16* witem = String.to_temp_utf16(*item).ptr;
+					Char16* witem = String.to_temp_utf16(*item)!!.ptr;
 					// defer free(witem);
 					this.sendMsg(CB_ADDSTRING, 0, witem);
 					this.items.push(*item);
@@ -174,7 +174,7 @@ struct CmbData
 			default:
 				@pool() {
 					String sitem = numeralsToString(item);
-					Char16* witem = String.to_temp_utf16(sitem).ptr;
+					Char16* witem = String.to_temp_utf16(sitem)!!.ptr;
 					// defer {free(witem); free(sitem);}
 					this.sendMsg(CB_ADDSTRING, 0, witem);
 					this.items.push(sitem);
@@ -224,7 +224,7 @@ struct CmbData
 		if (this.items.len() > 0 ) {
 			// log("items are ready");
 			foreach (item: this.items) {
-				Char16* cmbtext = String.to_new_utf16(item).ptr;
+				Char16* cmbtext = String.to_new_utf16(item)!!.ptr;
 				defer free(cmbtext);
 				this.sendMsg(CB_ADDSTRING, 0, cmbtext);
 			}

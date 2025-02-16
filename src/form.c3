@@ -143,7 +143,7 @@ struct Form
 	{
 		this.setStyle();
 		this.setPosition();
-		Char16* title = String.to_new_utf16(this.text).ptr;
+		Char16* title = String.to_new_utf16(this.text)!!.ptr;
 		defer free(title);
 		this.handle = api_CreateWindowEx(this._exStyle,
 										&className[0],
