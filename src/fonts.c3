@@ -33,15 +33,14 @@ fn Font newFont(String fontName, int fontSize,
 
 // }
 
-fn void Font.createHandle(&this)
+fn void Font.createHandle(&this) => @pool()
 {
 	double scale = app.scaleFactor / 100;
     int fsiz = (int)(scale * (double)this.size);  
     int iHeight = -api_MulDiv(fsiz , app.sysDPI, 72);    
-
+	
 	LogFont lf;
-	Char16[] s = String.to_new_utf16(this.name)!!;
-	defer free(s);
+	Char16[] s = this.name.to_temp_utf16()!!;	 
 	lf.lfFaceName[:s.len] = s[:^0]; // Copying wchar array to lfFaceName
 	lf.lfHeight = iHeight;
 	lf.lfWeight =  (long)((int)this.weight.ordinal * 100) + 100;
@@ -63,7 +62,7 @@ fn void Font.createHandle(&this)
 // 	f.handle = api_CreateFont(iHeight, 0, 0, 0, fweight, (Dword)f.italics,
 // 								(Dword)f.underline, (Dword)false, (Dword)1,
 // 								(Dword)OUT_DEFAULT_PRECIS, (Dword)CLIP_DEFAULT_PRECIS,
-// 								(Dword)DEFAULT_QUALITY, (Dword)DEFAULT_PITCH, String.to_new_utf16(f.name))!!;
+// 								(Dword)DEFAULT_QUALITY, (Dword)DEFAULT_PITCH, String.to_utf16(f.name))!!;
 // 	// io::printfn("font hwnd %d", f.handle);
 // 	if (f.handle) f._isCreated = true;
 

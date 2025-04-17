@@ -6,8 +6,8 @@ module cforms;
 import libc;
 import std::collections::list;
 
-def StrList = List(<String>);
-def IntList = List(<int>);
+alias StrList = List{String};
+alias IntList = List{int};
 
 const uint WHITE = 0xffffff;
 macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);
@@ -18,7 +18,7 @@ fn int wordToInt(Word x) @inline {return (int)((short)x);}
 
 fn Point getMousePoints(Lparam lpm) @inline
 {
-	return Point{wordToInt(loWord(lpm)), wordToInt(hiWord(lpm))};
+	return {wordToInt(loWord(lpm)), wordToInt(hiWord(lpm))};
 }
 fn int getMousePoints2(Point* pt, Lparam lpm) @inline
 {
@@ -47,11 +47,11 @@ macro isStrLiteral(x)
 	return $res;
 }
 
-fn String makeStringFromAny(any value)
+fn String makeStringFromAny( any value)
 {
-	switch (value) {
-		case String: return *value;
-		default: return string::new_format("%s", value);
+	switch (value.type) {
+		case String: return *(String*)value;
+		default: return string::tformat("%s", value);
 	}
 }
 
@@ -66,11 +66,11 @@ fn void printWchars(Char16* txt, int count)
 
 fn String numeralsToString(any value) @private
 {
-	// DString ds = dstring::tnew_with_capacity(16);
-	switch (value) {
-		case int: return string::tformat("%d", value);
+	// DString ds = dstring::tnew_with_capacity(16);  *(int*)value
+	switch (value.type) {
+		case int: return string::tformat("%d", *(int*)value);
 		case float: nextcase;
-		case double: return string::tformat("%.2f", *value);
+		case double: return string::tformat("%.2f", *(double*)value);
 		default: break;
 	}
 		// if (perc) {ds.printf("%d%%", *i);} else {ds.printf("%d", *i);}
@@ -106,7 +106,7 @@ fn double strToDouble(String s) @private
 macro String toStr(x)
 {
 	var $Type = $typeof(x);
-	$switch ($Type)
+	$switch $Type:
 		$case int: return int_to_string(x);
 		$case double: return dbl_to_string(x);
 		$default:
@@ -183,9 +183,9 @@ fn void printTrackReport(TrackingAllocator tal)
 	@pool() {
 		if (tal.map.len() > 0) {
 			print("Showing memory tracking reports....");
-			foreach (k: tal.map.tcopy_keys()) {
-				ptf("map key: %p, map value: %d bytes", k, tal.map.get(k))!!;
-			}
+			// foreach (k: tal.map.tkeys()) {
+			// 	ptf("map key: %p, map value: %d bytes", k, tal.map.get(k))!!;
+			// }
 		} else {
 			print("No memory leaks found....");
 		}
@@ -198,7 +198,7 @@ fn String getExePathTemp()
 	Char16[260] buffer;
 	Dword res = api_GetModuleFileName(null, &buffer[0], 260);
 	if (res) {
-		return string::temp_from_utf16(buffer[:res])!!;
+		return string::from_utf16(&app.tracker, buffer[:res])!!;
 	} else {
 		return "";
 	}	
@@ -210,7 +210,7 @@ fn String getExePath()
 	Char16[260] buffer;
 	Dword res = api_GetModuleFileName(null, &buffer[0], 260);
 	if (res) {
-		return string::new_from_utf16(buffer[:res], &app.tracker)!!;
+		return string::from_utf16( &app.tracker, buffer[:res],)!!;
 	} else {
 		return "";
 	}	
@@ -229,7 +229,7 @@ fn String getExeDir()
 			}
     	}
 		ptf("res %d", res);
-		return string::new_from_utf16(buffer[:res], &app.tracker)!!;
+		return string::from_utf16(&app.tracker, buffer[:res] )!!;
 	} else {
 		return "";
 	}	

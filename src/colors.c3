@@ -114,7 +114,7 @@ macro clip(x) {
 
 	fn RgbColor RgbColor.changeShadeRGB(RgbColor* self, double adj)
 	{
-		RgbColor rc = RgbColor{};
+		RgbColor rc = {};
 		rc.red = clip((uint)((double)self.red * adj));
 		rc.green = clip((uint)((double)self.green * adj));
 		rc.blue = clip((uint)((double)self.blue * adj));
@@ -125,7 +125,7 @@ macro clip(x) {
 
 	fn Colorref RgbColor.changeShadeCREF(RgbColor* self, double adj)
 	{
-		RgbColor rc = RgbColor{};
+		RgbColor rc = {};
 		rc.red = clip((uint)((double)self.red * adj));
 		rc.green = clip((uint)((double)self.green * adj));
 		rc.blue = clip((uint)((double)self.blue * adj));

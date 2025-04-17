@@ -43,7 +43,7 @@ struct RadioButton
 	{
 		RadioButton* this = allocator::new(&app.tracker, RadioButton);
 		this.kind = ControlType.RADIO_BUTTON;
-		this.name = dstring::new("RadioButton_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "RadioButton_");
 		this.name.appendf("%d", rbNumber);
 		this._className = &btnClass[0];
 		this._parent = parent;
@@ -56,11 +56,12 @@ struct RadioButton
 		this.width = width;
 		this.height = height;
 		this.text = text;
-		this._wideText = String.to_new_utf16(text)!!.ptr;
+		this._wideText = String.to_utf16(text, &app.tracker)!!.ptr;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
 		this._autoSizable = true;
+		this._textable = true;
 		rbNumber += 1;
 		this.onCheckedChanged = evtFn;
 		this._parent.controls.push(this);
@@ -106,7 +107,7 @@ struct RadioButton
 	{
 		if (hiWord(wpm) == 0) {
 			this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);
-            if (this.onCheckedChanged) this.onCheckedChanged(this, &&EventArgs{});
+            if (this.onCheckedChanged) this.onCheckedChanged(this, &gea);
 		}
 	}
 
@@ -128,7 +129,7 @@ struct RadioButton
 				// Adjusing rect. Otherwise, text will be drawn upon the check area
 				if (!this.rightAlign) {nmc.rc.left += 18;} else {nmc.rc.right -= 18;}
 				if (this._drawMode & 1) api_SetTextColor(nmc.hdc, this.foreColor.ref);
-				// this._wtxt = String.to_new_utf16(this.text).ptr!!;
+				// this._wtxt = String.to_utf16(this.text).ptr!!;
 				api_DrawText(nmc.hdc, this._wideText, -1, &nmc.rc, this._textStyle);
 				return CDRF_SKIPDEFAULT;
 		}
@@ -140,7 +141,7 @@ struct RadioButton
 	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
-		free(this._wideText);
+		allocator::free(&app.tracker, this._wideText);
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);

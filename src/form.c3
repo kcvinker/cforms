@@ -53,10 +53,10 @@ import std::io;
 
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
 
-def ControlList = List(<Control*>);
-def CmbMap = HashMap(<Hwnd, Hwnd>); //To hold the handle of combobox's listbox
-def MenuItemMap = HashMap(<uint, MenuItem*>);
-def TimerMap = HashMap(<Uintptr, Timer*>);
+alias ControlList = List{Control*};
+alias CmbMap = HashMap{Hwnd, Hwnd}; //To hold the handle of combobox's listbox
+alias MenuItemMap = HashMap{uint, MenuItem*};
+alias TimerMap = HashMap{Uintptr, Timer*};
 
 int frmNumber = 1;
 
@@ -117,7 +117,7 @@ struct Form
 		
 		Form* this = allocator::new(&app.tracker, Form);
 		this.kind = ControlType.NONE;
-		this.name = dstring::new("Form_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "Form_");
 		this.name.appendf("%d", frmNumber);
 		this._formID = frmNumber;
 		this.text = title;
@@ -139,12 +139,11 @@ struct Form
 		return this;
 	}
 
-	fn void Form.createHandle(&this)
+	fn void Form.createHandle(&this) => @pool()
 	{
 		this.setStyle();
 		this.setPosition();
-		Char16* title = String.to_new_utf16(this.text)!!.ptr;
-		defer free(title);
+		Char16* title = this.text.to_temp_utf16()!!.ptr;		
 		this.handle = api_CreateWindowEx(this._exStyle,
 										&className[0],
 										title,
@@ -158,6 +157,7 @@ struct Form
 			
 			this._isCreated = true;
 			app.fmap[this.handle] = this;
+			this.controls.init(&app.tracker);
 			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
 			this.setFontInternal();
 			// $echo("163");
@@ -180,6 +180,7 @@ struct Form
 				api_DispatchMessage(&pMsg);
 			}
 		}
+		print("app is fully freed 183");
 		app.finalize(); 
 	}
 
@@ -337,7 +338,7 @@ struct Form
 		// print("show window");
 		if (!this._isLoaded) {
 			this._isLoaded = true;
-			if (this.onLoad) this.onLoad(this, &&EventArgs{});
+			if (this.onLoad) this.onLoad(this, &gea);
 		}
 	}
 
@@ -346,9 +347,9 @@ struct Form
 		if (this.onActivate || this.onDeActivate) {
 			bool flag = (bool) wp;
 			if (!flag) {
-				if (this.onDeActivate) this.onDeActivate(this, &&EventArgs{});
+				if (this.onDeActivate) this.onDeActivate(this, &gea);
 			} else {
-				if (this.onActivate) this.onActivate(this, &&EventArgs{});
+				if (this.onActivate) this.onActivate(this, &gea);
 			}
 		}
 	}
@@ -357,7 +358,7 @@ struct Form
 	{
 		if (!this._isMouseEntered) {
 			this._isMouseEntered = true;
-			if (this.onMouseEnter) this.onMouseEnter(this, &&EventArgs{});
+			if (this.onMouseEnter) this.onMouseEnter(this, &gea);
 		} else {
 			if (this.onMouseMove) {
 				MouseEventArgs mea = newMouseEventArgs(msg, wp, lp);
@@ -369,7 +370,7 @@ struct Form
 	fn void Form.formMouseLeaveHandler(&this) @private
 	{
 		if (this._isMouseEntered) this._isMouseEntered = false;
-		if (this.onMouseLeave) this.onMouseLeave(this, &&EventArgs{});
+		if (this.onMouseLeave) this.onMouseLeave(this, &gea);
 	}
 
 	fn Lresult Form.formSizingHandler(&this, uint msg, Wparam wp, Lparam lp) @private
@@ -402,7 +403,7 @@ struct Form
 		this.xpos = rct.left;
 		this.ypos = rct.top;
 		if (this.onMoving) {
-			this.onMoving(this, &&EventArgs{});
+			this.onMoving(this, &gea);
 			return 1;
 		}
    		return 0;
@@ -412,7 +413,7 @@ struct Form
 	{
 		this.xpos = xFromLparam(lp);
 		this.ypos = yFromLparam(lp);
-		if (this.onMoved) this.onMoved(this, &&EventArgs{});
+		if (this.onMoved) this.onMoved(this, &gea);
    		return 0;
 	}
 
@@ -420,27 +421,30 @@ struct Form
 	{
 		uint uMsg = (uint) (wp & 0xFFF0);
 		switch (uMsg) {
-		case SC_MINIMIZE: if (this.onMinimized) this.onMinimized(this, &&EventArgs{});
-		case SC_MAXIMIZE : if (this.onMaximized) this.onMaximized(this, &&EventArgs{});
-		case SC_RESTORE : if (this.onRestored) this.onRestored(this, &&EventArgs{});
+		case SC_MINIMIZE: if (this.onMinimized) this.onMinimized(this, &gea);
+		case SC_MAXIMIZE : if (this.onMaximized) this.onMaximized(this, &gea);
+		case SC_RESTORE : if (this.onRestored) this.onRestored(this, &gea);
 		}
 	}
 
 	fn void Form.formCloseHandler(&this) @private
 	{		
-		if (this.onClosing) this.onClosing(this, &&EventArgs{});
+		if (this.onClosing) {
+			EventArgs ea;
+			this.onClosing(this, &ea);
+		}
 	}
 
 	fn void Form.timerHandler(&this, Wparam wpm)
 	{
 		Uintptr key = (Uintptr)wpm;
-		Timer*! tm = this._timerMap.get(key);
-		if (try tm && tm.onTick) tm.onTick(this, &&EventArgs{});
+		Timer*? tm = this._timerMap.get(key);
+		if (try tm && tm.onTick) tm.onTick(this, &gea);
 	}
 
 	fn void Form.formDestroyHandler(&this) @private
 	{
-		if (this.onClosed) this.onClosed(this, &&EventArgs{});
+		if (this.onClosed) this.onClosed(this, &gea);
 		this.dtor();
 	}
 
@@ -448,7 +452,7 @@ struct Form
 	{
 		@pool()
 		{
-			foreach (menu: this._menuItemMap.value_tlist())
+			foreach (menu: this._menuItemMap.tvalues())
 			{
 				if (menu.handle == hmenu) return menu;
 			}
@@ -462,7 +466,7 @@ struct Form
 			case 0:  // menu click commands
 				uint menuID = (uint) loWord(wp);
 				if (try menu = this._menuItemMap[menuID]) {
-					if (menu.onClick) menu.onClick(menu, &&EventArgs{});
+					if (menu.onClick) menu.onClick(menu, &gea);
 				}
 				return 0;
 			case 1: return 0; // # accelerator key commands
@@ -532,12 +536,12 @@ struct Form
 				case 33168: // A popup child menu. We can use mid as index.
 					menu = pmenu.getChildFromIndex(mid);
 			}
-			if (menu && menu.onFocus) menu.onFocus(menu, &&EventArgs{});
+			if (menu && menu.onFocus) menu.onFocus(menu, &gea);
 		}
 		return 0;
 	}
 
-	fault MenuEventError {MED_NOT_FOUND}
+	//fault MenuEventError {MED_NOT_FOUND}
 
 	// This will execute when a Form destroyed
 	fn void Form.dtor(Form* this) @private
@@ -548,23 +552,30 @@ struct Form
 		api_DeleteObject((Hgdiobj)this.font.handle);
 
 		this.controls.free();
+		
 		this.name.free();
 		if (this.menubar) {
 			this.menubar.destroy();			
 		}
 		if (this._timerMap.len()) {
 			@pool() {
-				foreach (tmr: this._timerMap.value_tlist()) tmr.dtor();
+				foreach (tmr: this._timerMap.tvalues()) tmr.dtor();
 			};
 			this._timerMap.free();
 		}
+		
 		if (this._menuMapInited) this._menuItemMap.free();
+		
 		if (!noComboUsed) this._comboMap.free();
+		
 		if (this._cmenuUsed) this.contextMenu.destroy();
+		
 		if (this._isMainWindow) {
+			print("posinting quit msg");
 			api_PostQuitMessage(0);
 		}
 		allocator::free(&app.tracker, this);
+		
 		// $echo("Compile check");
 	}
 
@@ -573,7 +584,6 @@ struct Form
 fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {
 	// log("WIn Message %s", msg);
-	// $echo("575");
 	switch (msg) {
 	// Common msgs
 		case WM_SHOWWINDOW:
@@ -707,12 +717,12 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_INITMENUPOPUP:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
-			if (menu && menu.onPopup) menu.onPopup(menu, &&EventArgs{});
+			if (menu && menu.onPopup) menu.onPopup(menu, &gea);
 
 		case WM_UNINITMENUPOPUP:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
         	MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
-        	if (menu && menu.onCloseup) menu.onCloseup(menu, &&EventArgs{});
+        	if (menu && menu.onCloseup) menu.onCloseup(menu, &gea);
 
 		case WM_CONTEXTMENU: 
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);

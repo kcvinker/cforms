@@ -240,50 +240,50 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
             switch(lp) {
                 case NIN_BALLOONSHOW:                    
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onBalloonShow) this.onBalloonShow(this, &&EventArgs{});
+                    if (this.onBalloonShow) this.onBalloonShow(this, &gea);
 
                 case NIN_BALLOONTIMEOUT:                    
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onBalloonClose) this.onBalloonClose(this, &&EventArgs{});
+                    if (this.onBalloonClose) this.onBalloonClose(this, &gea);
                     if (this._resetIcon) this.resetIconInternal(); // Need to revert the default icon
                     
                 case NIN_BALLOONUSERCLICK:
                     // print("NIN_BALLOONUSERCLICK");
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onBalloonClick) this.onBalloonClick(this, &&EventArgs{});
+                    if (this.onBalloonClick) this.onBalloonClick(this, &gea);
                     if (this._resetIcon) this.resetIconInternal(); // Need to revert the default icon
 
                 case WM_LBUTTONDOWN:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onLeftMouseDown) this.onLeftMouseDown(this, &&EventArgs{});                    
+                    if (this.onLeftMouseDown) this.onLeftMouseDown(this, &gea);                    
                 
                 case WM_LBUTTONUP:
                    TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onLeftMouseUp) this.onLeftMouseUp(this, &&EventArgs{});
-                    if (this.onLeftClick) this.onLeftClick(this, &&EventArgs{});
+                    if (this.onLeftMouseUp) this.onLeftMouseUp(this, &gea);
+                    if (this.onLeftClick) this.onLeftClick(this, &gea);
                     if (this._cmenuUsed && this.menuTrigger.value & 0b00000001) 
                         {this.contextMenu.showMenu(0);}
                     
                 case WM_LBUTTONDBLCLK:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onLeftDoubleClick) this.onLeftDoubleClick(this, &&EventArgs{});
+                    if (this.onLeftDoubleClick) this.onLeftDoubleClick(this, &gea);
                     if (this._cmenuUsed && this.menuTrigger.value & 0b00000010) 
                         {this.contextMenu.showMenu(0);}
                     
                 case WM_RBUTTONDOWN:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onRightMouseDown) this.onRightMouseDown(this, &&EventArgs{});
+                    if (this.onRightMouseDown) this.onRightMouseDown(this, &gea);
                     
                 case WM_RBUTTONUP:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onRightMouseUp) this.onRightMouseUp(this, &&EventArgs{});
-                    if (this.onRightClick) this.onRightClick(this, &&EventArgs{});
+                    if (this.onRightMouseUp) this.onRightMouseUp(this, &gea);
+                    if (this.onRightClick) this.onRightClick(this, &gea);
                     if (this._cmenuUsed && this.menuTrigger.value & 0b00000100) 
                         {this.contextMenu.showMenu(0);}
                     
                 case WM_MOUSEMOVE:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
-                    if (this.onMouseMove) this.onMouseMove(this, &&EventArgs{});
+                    if (this.onMouseMove) this.onMouseMove(this, &gea);
 
                 default: break;
             }       

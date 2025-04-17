@@ -58,7 +58,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	{
 		TextBox* this = allocator::new(&app.tracker, TextBox);
 		this.kind = ControlType.TEXT_BOX;
-		this.name = dstring::new("TextBox_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "TextBox_");
 		this.name.appendf("%d", tbNumber);
 		this._className = &tbClass[0];
 		this._parent = parent;
@@ -75,6 +75,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.textCase = TextCase.NORMAL;
 		this.textType = TextType.NORMAL;
 		this.textAlign = Alignment.CENTER;
+		this._textable = true;
 		tbNumber += 1;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -90,7 +91,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 			this.setSubClass(&tbWndProc);
 			this.setFontInternal();
 			if (this._cueReady) {
-				Char16* cuetext = String.to_new_utf16(this.cueStr.str_view())!!.ptr;
+				Char16* cuetext = String.to_utf16(this.cueStr.str_view(), &app.tracker)!!.ptr;
 				defer free(cuetext);
 				api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 			}
@@ -100,9 +101,9 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	// Set the cue banner text for this textbox
 	fn void TextBox.setCue(TextBox* this, String s)
 	{
-		this.cueStr = dstring::new(s);
+		this.cueStr = dstring::new(&app.tracker, s);
 		if (this._isCreated) {
-			Char16* cuetext = String.to_new_utf16(this.cueStr.str_view())!!.ptr;
+			Char16* cuetext = String.to_utf16(this.cueStr.str_view(), &app.tracker)!!.ptr;
 			defer free(cuetext);
 			api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 		} else {
@@ -222,7 +223,7 @@ fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case MM_CTL_COMMAND:
 			TextBox* this = bitcast(refData, TextBox*);
 						Word ncode = hiWord(wp);
-			if ((ncode == EN_CHANGE) && this.onTextChanged) this.onTextChanged(this, &&EventArgs{});
+			if ((ncode == EN_CHANGE) && this.onTextChanged) this.onTextChanged(this, &gea);
 
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);

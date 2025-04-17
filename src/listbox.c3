@@ -2,7 +2,7 @@
 // Note: Add selectedIndices property
 /*==================================================ListBox Docs======================================
 	ListBox type
-		Constructor: newListBox()	: ListBox*
+		Constructor: newListBox(...)	: ListBox*
 		Properties:
 			Inherits all properties from Control struct
 			hasSort				: bool
@@ -73,7 +73,7 @@ struct ListBox
 	{
 		ListBox* this = allocator::new(&app.tracker, ListBox);
 		this.kind = ControlType.LIST_BOX;
-		this.name = dstring::new("ListBox_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "ListBox_");
 		this.name.appendf("%d", lbxNumber);
 		this._className = &lbxClass[0];
 		this._parent = parent;
@@ -111,19 +111,18 @@ struct ListBox
 	{
 		this.items.push(item);
 		if (this._isCreated) {
-			Char16* lbtext = String.to_new_utf16(item)!!.ptr;
+			Char16* lbtext = String.to_utf16(item, &app.tracker)!!.ptr;
 			defer free(lbtext);
 			this.sendMsg(LB_ADDSTRING, 0, lbtext);
 		}
 	}
 
 	// Add multiple items to listbox
-	fn void ListBox.addItems(ListBox* this, String... items)
+	fn void ListBox.addItems(ListBox* this, String... items) => @pool()
 	{
 		foreach (item: items) {
 			if (this._isCreated) {
-				Char16* sitem = String.to_new_utf16(item)!!.ptr;
-				defer free(sitem);
+				Char16* sitem = item.to_temp_utf16()!!.ptr;
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
 			this.items.push(item);
@@ -131,12 +130,11 @@ struct ListBox
 	}
 
 	// Insert an item at given index
-	fn void ListBox.insertItem(ListBox* this, String item, int index)
+	fn void ListBox.insertItem(ListBox* this, String item, int index) => @pool()
 	{
 		this.items.insert_at(index, item);
 		if (this._isCreated) {
-			Char16* sitem = String.to_new_utf16(item)!!.ptr;
-			defer free(sitem);
+			Char16* sitem = item.to_temp_utf16()!!.ptr;			
 			this.sendMsg(LB_INSERTSTRING, index, sitem);
 		}
 	}
@@ -185,7 +183,7 @@ struct ListBox
 			int selCount = (int)this.sendMsg(LB_GETSELCOUNT, 0, 0);
 			if (selCount != LB_ERR) {
 				@pool() {
-					int[] buffer = mem::temp_alloc_array(int, selCount);
+					int[] buffer = mem::talloc_array(int, selCount);
 					this.sendMsg(LB_GETSELITEMS, selCount, &buffer[0]);
 					foreach (indx: buffer) { sItems.push(this.getItemInternal(indx));}
 				};
@@ -213,7 +211,7 @@ struct ListBox
 	// Returns the index of given item
 	fn int ListBox.indexOf(ListBox* this, String item)
 	{
-		Char16[] witem = String.to_new_utf16(item)!!;
+		Char16[] witem = String.to_utf16(item, &app.tracker)!!;
 		defer free(witem);
 		return (int) this.sendMsg(LB_FINDSTRINGEXACT, -1, witem.ptr);
 	}
@@ -256,7 +254,7 @@ struct ListBox
 	{
 		if (this.items.len() > 0)  {// We need to add those items to list box
             foreach (item: this.items) {
-				Char16* sitem = String.to_new_utf16(item)!!.ptr;
+				Char16* sitem = String.to_utf16(item, &app.tracker)!!.ptr;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
@@ -271,7 +269,7 @@ struct ListBox
 		api_UpdateWindow(this.handle);
 	}
 
-	fault ArrayResult {EMPTY_ARRAY}
+	//fault ArrayResult {EMPTY_ARRAY}
 
 	// Internal function to get an item. Caller must free the return value
 	fn String ListBox.getItemInternal(ListBox* this, int index) @private
@@ -279,9 +277,9 @@ struct ListBox
 		int sLen = (int)this.sendMsg(LB_GETTEXTLEN, index, 0);
 		if (sLen) {
 			@pool() {
-				Char16[] buffer = mem::temp_alloc_array(Char16, sLen);
+				Char16[] buffer = mem::talloc_array(Char16, sLen);
 				Lresult res =this.sendMsg(LB_GETTEXT, index, &buffer[0]);
-				String x = string::new_from_utf16(buffer, &app.tracker)!!;
+				String x = string::from_utf16(&app.tracker, buffer)!!;
 				return x;
 			};
 		}
@@ -293,11 +291,11 @@ struct ListBox
 	{
 		Word ncode = hiWord(wpm);
 		switch (ncode) {
-			case LBN_DBLCLK: if (this.onDoubleClick) this.onDoubleClick(this, &&EventArgs{});
-			case LBN_KILLFOCUS: if (this.onLostFocus) this.onLostFocus(this, &&EventArgs{});
-			case LBN_SELCHANGE: if (this.onSelectionChanged) this.onSelectionChanged(this, &&EventArgs{});
-			case LBN_SETFOCUS: if (this.onGotFocus) this.onGotFocus(this, &&EventArgs{});
-			case LBN_SELCANCEL: if (this.onSelectionCancelled) this.onSelectionCancelled(this, &&EventArgs{});
+			case LBN_DBLCLK: if (this.onDoubleClick) this.onDoubleClick(this, &gea);
+			case LBN_KILLFOCUS: if (this.onLostFocus) this.onLostFocus(this, &gea);
+			case LBN_SELCHANGE: if (this.onSelectionChanged) this.onSelectionChanged(this, &gea);
+			case LBN_SETFOCUS: if (this.onGotFocus) this.onGotFocus(this, &gea);
+			case LBN_SELCANCEL: if (this.onSelectionCancelled) this.onSelectionCancelled(this, &gea);
 		}
 	}
 

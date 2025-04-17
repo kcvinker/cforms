@@ -34,11 +34,11 @@ struct GroupBox
 	{
 		GroupBox* this = allocator::new(&app.tracker, GroupBox);
 		this.kind = ControlType.GROUP_BOX;
-		this.name = dstring::new("GroupBox_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "GroupBox_");
 		this.name.appendf("%d", gbNumber);
 		this._className = &btnClass[0];
 		this.text = text == "" ? this.name.str_view() : text;
-		this._wideText = String.to_new_utf16(this.text)!!.ptr;
+		this._wideText = String.to_utf16(this.text, &app.tracker)!!.ptr;
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_GROUPBOX | BS_NOTIFY | BS_TEXT | BS_TOP;
@@ -107,7 +107,7 @@ struct GroupBox
 	// 	Rect rc;
 	// 	int yp = 9;
 	// 	Hdc hdc = api_GetDC(hw);
-	// 	Char16* gbtext = String.to_new_utf16(this.text).ptr!!;
+	// 	Char16* gbtext = String.to_utf16(this.text).ptr!!;
 	// 	defer free(gbtext);
 
 	// 	Hdc dcMem = api_CreateCompatibleDC(hdc);
@@ -139,8 +139,8 @@ struct GroupBox
 
 	fn void GroupBox.textSetter(GroupBox* this, String value) @private
 	{
-		if (this._wideText) free(this._wideText);
-		this._wideText = String.to_new_utf16(value)!!.ptr;
+		if (this._wideText) allocator::free(&app.tracker, this._wideText);
+		this._wideText = String.to_utf16(value, &app.tracker)!!.ptr;
 		this.getTextBounds();
 		api_SetWindowText(this.handle, this._wideText);
 		api_InvalidateRect(this.handle, null, false);
@@ -154,7 +154,7 @@ struct GroupBox
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._pen) api_DeleteObject((Hgdiobj)this._pen);
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		free(this._wideText);
+		allocator::free(&app.tracker, this._wideText);
 		allocator::free(&app.tracker, this);
 	}
 // End of Private functions

@@ -7,11 +7,11 @@ import libc;
 import std::io;
 import std::collections::map;
 
-def print = io::printn;
-def ptf = io::printfn;
-// def log = io::printn;
-def cptf = libc::printf;
-def FormMap = HashMap(<Hwnd, Form*>);
+alias print = io::printn;
+alias ptf = io::printfn;
+// alias log = io::printn;
+alias cptf = libc::printf;
+alias FormMap = HashMap{Hwnd, Form*};
 
 // Global static data
 struct AppData
@@ -49,7 +49,7 @@ fn void cforms_init() @init
 	icc.dwSize = InitCommonControls.sizeof;
 	icc.dwICC = ICC_STANDARD_CLASSES;
 	api_InitCommonControlsEx(&icc);
-	app.fmap.new_init();
+	app.fmap.init(&app.tracker);
 	
 }
 
@@ -63,12 +63,15 @@ fn void getSystemDPI()
 
 fn void AppData.finalize(&this)
 {
+	print("app is fully freed");
 	if (this.nidUsed) {		
 		if(this.trayHwnd) api_DestroyWindow(this.trayHwnd);
 	}
 	// if (this.cmenuUsed) api_UnregisterClass(&cmenuMsgWinClass[0], this.hins);
 	// api_UnregisterClass(&className[0], this.hins);
+	
 	app.fmap.free();
+	
     this.tracker.print_report();
 	this.tracker.free();
 }

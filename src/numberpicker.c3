@@ -84,7 +84,7 @@ struct NumberPicker
 	{
 		NumberPicker* this = allocator::new(&app.tracker, NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
-		this.name = dstring::new("NumberPicker_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "NumberPicker_");
 		this._className = &npClass[0];
 		this._parent = parent;
 		this.font = parent.font;
@@ -104,8 +104,8 @@ struct NumberPicker
 		this._topEdgeFlag = BF_TOPLEFT;
 		this._botEdgeFlag = BF_BOTTOM;
 		this.textPos = Alignment.LEFT;
-		this.fmtStr = dstring::new("%d");
-		this._valStr = dstring::new("0");
+		this.fmtStr = dstring::new(&app.tracker, "%d");
+		this._valStr = dstring::new(&app.tracker, "0");
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		this._parent.controls.push(this);
@@ -184,7 +184,7 @@ struct NumberPicker
 
 	macro NumberPicker.setValue(&this, nvalue)
 	{
-		$switch ($typeof(nvalue).typeid)
+		$switch $typeof(nvalue).typeid:
 			$case int: this.value = (double)nvalue;
 			$case double: this.value = nvalue;
 			$default: break;
@@ -194,7 +194,7 @@ struct NumberPicker
 
 	macro NumberPicker.setStep(&this, nstep)
 	{
-		$switch ($typeof(nstep).typeid)
+		$switch $typeof(nstep).typeid:
 			$case int: this.step = (double)nstep;
 			$case double: this.step = nstep;
 			$default: break;
@@ -295,8 +295,8 @@ struct NumberPicker
 	{
 		this._valStr.clear();
 		this._valStr.appendf(this.fmtStr.str_view(), this.value);
-		if (this._wideText) free(this._wideText);
-		this._wideText = String.to_new_utf16(this._valStr.str_view())!!.ptr;
+		if (this._wideText) allocator::free(&app.tracker, this._wideText);
+		this._wideText = String.to_utf16(this._valStr.str_view(), &app.tracker)!!.ptr;
 		api_SetWindowText(this._buddyHandle, this._wideText);
 	}
 
@@ -349,7 +349,7 @@ struct NumberPicker
 			defer free(tbstr);
 			this.value = strToDouble(tbstr);
 			this.setValueInternal(nm.iDelta);
-			if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
+			if (this.onValueChanged) this.onValueChanged(this, &gea);
 		}
 	}
 
@@ -379,7 +379,7 @@ struct NumberPicker
 			case "step": this.setStep(value);
 			// case "fmtstr": ;
 			case "deciprec":
-				$switch ($typeof(value).typeid)
+				$switch $typeof(value).typeid:
 					$case int: this.setDeciPrec((uint)value);
 					$case uint: this.setDeciPrec(value);
 				$endswitch
@@ -396,7 +396,7 @@ struct NumberPicker
 		this.name.free();
 		this.fmtStr.free();
 		this._valStr.free();
-		free(this._wideText);
+		allocator::free(&app.tracker, this._wideText);
 		api_DeleteObject((Hgdiobj)(this.font.handle));
 		api_DeleteObject((Hgdiobj)this._borderBrush);
 		api_DeleteObject((Hgdiobj)this._borderPen);

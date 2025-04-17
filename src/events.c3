@@ -1,15 +1,15 @@
 // cforms.events - Created on 27-Jan-2023 01:56
 module cforms;
 
-def EventHandler = fn void(Control* c, EventArgs* e);
-def MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
-def SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
-def KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
-def DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
-def ThreadMsgHandler = fn void(Wparam wpm, Lparam lpm);
-def TrayIconEventHandler = fn void(TrayIcon* c, EventArgs* e);
-def MenuEventHandler = fn void(MenuItem*, EventArgs*);
-def NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, void* data);
+alias EventHandler = fn void(Control* c, EventArgs* e);
+alias MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
+alias SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
+alias KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
+alias DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
+alias ThreadMsgHandler = fn void(Wparam wpm, Lparam lpm);
+alias TrayIconEventHandler = fn void(TrayIcon* c, EventArgs* e);
+alias MenuEventHandler = fn void(MenuItem*, EventArgs*);
+alias NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, void* data);
 
 struct Area
 {

@@ -63,7 +63,7 @@ module cforms;
 // import std::io;
 import std::collections::list;
 
-def TreeNodeList = List(<TreeNode*>);
+alias TreeNodeList = List{TreeNode*};
 
 // def NodeDisposeHandler = fn void(TreeNode* this);
 
@@ -112,7 +112,7 @@ struct TreeNode
 	// NodeDisposeHandler disposeHandler;
 }
 
-fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
+// fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 // Public functions
 	// TreeView constructor - Create and returns a New TreeView struct
@@ -121,7 +121,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	{
 		TreeView* this = allocator::new(&app.tracker, TreeView);
 		this.kind = ControlType.TREE_VIEW;
-		this.name = dstring::new("TreeView_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "TreeView_");
 		this.name.appendf("%d", tvNumber);
 		this._className = &tvClass[0];
 		this._parent = parent;
@@ -136,6 +136,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		this.foreColor = newColor(0x000000);
 		this.lineColor = newColor(0x000000);
 		this._uniqNodeID = 100;
+		this.nodes.init(mem);
 		tvNumber += 1;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -178,7 +179,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	 **/
 	macro TreeNode* TreeView.addNode(TreeView* this, nodeOrText, imgIndex = -1, selImgIndex = -1)
 	{
-		$switch ($typeof(nodeOrText))
+		$switch $typeof(nodeOrText):
 			$case String: return this.addNode1(nodeOrText, imgIndex, selImgIndex);
 			$case TreeNode*:
 				this.addNode2(nodeOrText);
@@ -213,9 +214,10 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 	macro TreeNode* TreeView.addChildNode(TreeView* this, TreeNode* parent, nodeOrText, Allocator using = allocator::heap())
 	{
-		$switch ($typeof(nodeOrText))
+		if (parent.nodes.size == 0) parent.nodes.init(mem);
+		$switch $typeof(nodeOrText):
 			$case String: return this.addChildNode1(nodeOrText, parent, using);
-			$case TreeNode*:
+			$case TreeNode*:				
 				this.addChildNode2(nodeOrText, parent);
 				return null;
 			$default: $error "No overload for type";
@@ -228,6 +230,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	macro void TreeView.addChildNodes(TreeView* this, TreeNode* parent, childs...)
 	{
 		any p1 = chlds[0];
+		if (parent.nodes.size == 0) parent.nodes.init(mem);
 		switch (p1) {
 			case String: this.addChildNodes1(parent, childs);
 			case TreeNode*: this.addChildNodes2(parent, childs);
@@ -237,7 +240,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 	macro TreeNode* TreeView.insertNode(TreeView* this, nodeOrText, indexNum, Allocator using = allocator::heap())
 	{
-		$switch ($typeof(nodeOrText))
+		$switch $typeof(nodeOrText):
 			$case String: return this.insertNode1(nodeOrText, indexNum, using);
 			$case TreeNode*:
 				this.insertNode2(nodeOrText, indexNum);
@@ -249,7 +252,8 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	macro TreeNode* TreeView.insertChildNode(TreeView* this, TreeNode* parent, nodeOrText,
 													indexNum, Allocator using = allocator::heap())
 	{
-		$switch ($typeof(nodeOrText))
+		if (parent.nodes.size == 0) parent.nodes.init(mem);
+		$switch $typeof(nodeOrText):
 			$case String: return this.insertChildNode1(nodeOrText, parent, indexNum, using);
 			$case TreeNode*:
 				this.insertChildNode2(nodeOrText, parent, indexNum);
@@ -262,6 +266,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	{
 		TreeNode* tn = newTreeNode(makeStringFromAny(items[0]));
 		this.addNode2(tn);
+		if (tn.nodes.size == 0) tn.nodes.init(mem);
 		for (int i = 1; i < items.len; i++) {
 			this.addChildNode1(makeStringFromAny(items[i]), tn);
 		}
@@ -289,6 +294,10 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 	fn void TreeView.addNode2(TreeView* this, TreeNode* node) @private
 	{
+		// if (this.nodes.size == 0) {
+		// 	print("child node collection initing");
+		// 	this.nodes.init(&app.tracker);
+		// }
 		this.addNodeInternal(NodeOps.ADDNODE, node);
 	}
 
@@ -354,7 +363,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		// This macro can be used by both TreeView & TreeNode.
 	macro TreeNode* getNodeFromStringOrInt(parent, txtOrIndex) @private
 	{
-		$switch ($typeof(txtOrIndex))
+		$switch $typeof(txtOrIndex):
 			$case String:
 				if (parent.nodes.len() > 0) {
 					foreach (node: parent.nodes) {if (node.text == txtOrIndex) return node;}
@@ -372,7 +381,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	macro void deleteNodeFromStringOrInt(parent, txtOrIndex) @private
 	{
 		TreeNode* theNode;
-		$switch ($typeof(txtOrIndex))
+		$switch $typeof(txtOrIndex):
 			$case String:
 				if (parent.nodes.len() > 0) {
 					foreach (node: parent.nodes) {
@@ -394,7 +403,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 			$default: print("Unknown type");
 		$endswitch
 		if (theNode) {
-			$switch ($typeof(parent))
+			$switch $typeof(parent):
 				$case TreeView*:
 					api_SendMessage(parent.handle, TVM_DELETEITEM, 0, (Lparam) theNode.handle);
 					parent.nodes.remove(theNode);
@@ -436,7 +445,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		// Add child node node. Parameter nodeOrText can be string or node pointer.
 		macro TreeNode* TreeNode.addChildNode(TreeNode* this, nodeOrText, Allocator using = allocator::heap())
 		{
-			$switch ($typeof(nodeOrText))
+			$switch $typeof(nodeOrText):
 				$case String: return this.addChildNode1(nodeOrText, using);
 				$case TreeNode*:
 					this.addChildNode2(nodeOrText);
@@ -450,7 +459,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		{
 			TreeNode* ret;
 			NodePack np;
-			$switch ($typeof(nodeOrText))
+			$switch $typeof(nodeOrText):
 				$case String:
 					np.node = newTreeNode(nodeOrText);
 					ret = np.node;
@@ -495,39 +504,51 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		if (this.noButton && this.noLine) this._style ^= TVS_LINESATROOT;
 	}
 
-	fn TVItemEx newTVItem(TreeNode* node, Char16** newTxtPtr) @private
+	// fn TVItemEx newTVItem(TreeNode* node, Char16** newTxtPtr) @private => @pool()  
+	// {
+	// 	TVItemEx tvi;
+	// 	tvi.mask = TVIF_TEXT | TVIF_PARAM;
+	// 	// print($typeof(node.text).nameof);
+	// 	// Char16* nodtext = node.text.to_temp_utf16()!!.ptr;
+		
+	// 	*newTxtPtr = nodtext;
+	// 	tvi.pszText = nodtext;
+	// 	tvi.cchTextMax = node.text.len;
+	// 	tvi.iImage = node.imageIndex;
+	// 	tvi.iSelectedImage = node.selImageIndex;
+	// 	tvi.stateMask = TVIS_USERMASK;
+	// 	if (node.imageIndex > -1) tvi.mask |= TVIF_IMAGE;
+	// 	if (node.selImageIndex > -1) tvi.mask |= TVIF_SELECTEDIMAGE;
+	// 	// if (node.foreColor.value != 0x000000) self._node_clr_change = True;
+	// 	return tvi;
+	// }
+
+	/**
+	 * required this._isCreated
+	**/
+	fn void TreeView.addNodeInternal(TreeView* this, 
+										NodeOps nop, 
+										TreeNode* node,
+										TreeNode* pnode = null, 
+										int pos = -1) @private => @pool()
 	{
+		node._isCreated = true;
+		node._treeHwnd = this.handle;
+		node.nodeID = this._uniqNodeID; // We can identify any node with this
+		node._treePtr = this;
+		// Char16* nodtext = node.text.to_temp_utf16()!!.ptr;
+
 		TVItemEx tvi;
 		tvi.mask = TVIF_TEXT | TVIF_PARAM;
-		// print($typeof(node.text).nameof);
-		Char16* nodtext = String.to_new_utf16(node.text)!!.ptr;
-		// defer free(nodtext);
-		*newTxtPtr = nodtext;
-		tvi.pszText = nodtext;
+		tvi.pszText = node.text.to_temp_utf16()!!.ptr;
 		tvi.cchTextMax = node.text.len;
 		tvi.iImage = node.imageIndex;
 		tvi.iSelectedImage = node.selImageIndex;
 		tvi.stateMask = TVIS_USERMASK;
 		if (node.imageIndex > -1) tvi.mask |= TVIF_IMAGE;
 		if (node.selImageIndex > -1) tvi.mask |= TVIF_SELECTEDIMAGE;
-		// if (node.foreColor.value != 0x000000) self._node_clr_change = True;
-		return tvi;
-	}
 
-	/**
-	 * required this._isCreated
-	**/
-	fn void TreeView.addNodeInternal(TreeView* this, NodeOps nop, TreeNode* node,
-											TreeNode* pnode = null, int pos = -1) @private
-	{
-		node._isCreated = true;
-		node._treeHwnd = this.handle;
-		node.nodeID = this._uniqNodeID; // We can identify any node with this
-		node._treePtr = this;
-		Char16* newtxtp;
-		defer free(newtxtp);
-		TVItemEx tvi = newTVItem(node, &newtxtp);
-
+		//-------------------------
 		TVInsertStruct tis;
 		tis.itemex = tvi;
 		tis.itemex.lParam = (Lparam)((void*) node);
@@ -564,7 +585,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 		}
 
 		Lresult hItem = this.sendMsg(TVM_INSERTITEMW, 0, &tis);
-
+		// ptf("hitem %s", hItem);
 		if (hItem) {
 			node.handle = (Htreeitem)hItem;
 			this._uniqNodeID += 1;
@@ -572,6 +593,7 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 				this.nodes.push(node);
 				this._nodeCount += 1;
 			} else {
+				if (pnode.nodes.size == 0) pnode.nodes.init(&app.tracker);
 				pnode.nodes.push(node);
 				pnode._nodeCount += 1;
 			}
@@ -587,8 +609,8 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 
 	fn void TreeNode.destroy(TreeNode* this) @private
 	{
-		// ptf("Node is destroying, node text %s, count : %s", this.text, this._nodeCount);
-		if (this.nodes.len()) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
+		// ptf("Node is destroying, node text, node count : %s", this.text);
+		if (this.nodes.size) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
 		this.nodes.free(); // Finally free the container too.
 		allocator::free(&app.tracker, this);
 	}
@@ -598,13 +620,17 @@ fault TreeNodeError {TV_NOT_CREATED, NODE_NOT_CREATED}
 	fn void TreeView.dtor(TreeView* this) @private
 	{
 		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
+		
 		if (this._nodeCount > 0) {
+			print("starting node detsruction");
+			ptf("nc in tv dtor %s", this.nodes[0].text);
 			foreach (node: this.nodes) { node.destroy();} // Recursive destruction
 		}
 		this.nodes.free();
+		this.name.free();
 		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
+		print("treeviuew full free");
 	}
 // End of Private functions
 

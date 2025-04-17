@@ -46,7 +46,7 @@ module cforms;
 // import std::io;
 import std::collections::list;
 
-def TicDataList = List(<TicData>);
+alias TicDataList = List{TicData};
 const U16_MAX = 1 << 16;
 
 int tkbNumber = 1;
@@ -110,7 +110,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	{
 		TrackBar* this = allocator::new(&app.tracker, TrackBar);
 		this.kind = ControlType.TRACK_BAR;
-		this.name = dstring::new("TrackBar_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "TrackBar_");
 		this.name.appendf("%d", tkbNumber);
 		this._className = &trkClass[0];
 		this._parent = parent;
@@ -167,7 +167,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 	macro void TrackBar.setBackColor(TrackBar* this, clr)
 	{
-		$switch ($typeof(clr))
+		$switch $typeof(clr):
 			$case Color:
 				this.backColor = clr;
 			$case uint:
@@ -277,12 +277,12 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		pFactor = channelLen / range;
 
 		tic = this.minRange + this.frequency;
-		this._tdList.push(TicData{stPos, 0}); // Very first tic
+		this._tdList.push({stPos, 0}); // Very first tic
 		for (int i = 0; i < numTics; i++) {
-			this._tdList.push(TicData{(int)(tic * pFactor) + stPos, tic}); // Middle tics
+			this._tdList.push({(int)(tic * pFactor) + stPos, tic}); // Middle tics
 			tic += this.frequency;
 		}
-		this._tdList.push(TicData{enPos, (int)range}); // Last tic
+		this._tdList.push({enPos, (int)range}); // Last tic
 
 		// Now, set up single point (x/y) for tics.
 		if (this.vertical) {
@@ -431,32 +431,32 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 				api_InvalidateRect(hw, &this._chnRc, false);
 
 				this.trackChange = TrackChange.MOUSEDRAG;
-				if (this.onDragged) this.onDragged(this, &&EventArgs{});
-				if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
+				if (this.onDragged) this.onDragged(this, &gea);
+				if (this.onValueChanged) this.onValueChanged(this, &gea);
 
 			case THUMB_LINE_HIGH:
 				this.setupValueInternal((int)this.sendMsg(TBM_GETPOS, 0, 0));
 				this.trackChange = TrackChange.ARROWHIGH;
-				if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
+				if (this.onValueChanged) this.onValueChanged(this, &gea);
 
 			case THUMB_LINE_LOW:
 				this.setupValueInternal((int)this.sendMsg(TBM_GETPOS, 0, 0));
 				this.trackChange = TrackChange.ARROWLOW;
-				if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
+				if (this.onValueChanged) this.onValueChanged(this, &gea);
 
 			case THUMB_PAGE_HIGH:
 				this.setupValueInternal((int)this.sendMsg(TBM_GETPOS, 0, 0));
 				this.trackChange = TrackChange.PAGEHIGH;
-				if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
+				if (this.onValueChanged) this.onValueChanged(this, &gea);
 
 			case THUMB_PAGE_LOW:
 				this.setupValueInternal((int)this.sendMsg(TBM_GETPOS, 0, 0));
 				this.trackChange = TrackChange.PAGELOW;
-				if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
+				if (this.onValueChanged) this.onValueChanged(this, &gea);
 
 			case TB_THUMBTRACK:
 				this.setupValueInternal((int)this.sendMsg(TBM_GETPOS, 0, 0));
-				if (this.onDragging) this.onDragging(this, &&EventArgs{});
+				if (this.onDragging) this.onDragging(this, &gea);
 
 		}
 	}

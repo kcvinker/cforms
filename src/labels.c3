@@ -43,7 +43,7 @@ struct Label
 	{
 		Label* this = allocator::new(&app.tracker, Label);
 		this.kind = ControlType.LABEL;
-		this.name = dstring::new("Label_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "Label_");
 		this.name.appendf("%d", lbNumber);
 		this._className = &lblClass[0];
 		this._parent = parent;
@@ -55,11 +55,12 @@ struct Label
 		this.width = width;
 		this.height = height;
 		this.text = text;
-		this._wideText = String.to_new_utf16(text)!!.ptr;
+		this._wideText = String.to_utf16(text, &app.tracker)!!.ptr;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
 		this._autoSizable = true;
+		this._textable = true;
 		lbNumber += 1;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -119,7 +120,7 @@ struct Label
 	{
 		this.name.free();
 		api_DeleteObject((Hgdiobj)this._bkBrush);
-		free(this._wideText);
+		allocator::free(&app.tracker, this._wideText);
 		if (this._cmenuUsed) this.contextMenu.destroy();
 		allocator::free(&app.tracker, this);
 	}

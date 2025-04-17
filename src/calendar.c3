@@ -4,7 +4,7 @@
 	Constructor	: newCalendar()
 	Properties:
 		All public properties inherited from Control struct. (See controls.c3)
-		value			: DateTime - date time value from Calendar.
+		value			: DateTimeInfo - date time value from Calendar.
 		showWeekNum		: bool 
 		noTodayCircle	: bool
 		noToday			: bool
@@ -36,7 +36,7 @@ Wstring calClass = {'S', 'y', 's', 'M', 'o', 'n', 't', 'h', 'C', 'a', 'l', '3', 
 struct Calendar
 {
 	inline Control control;
-	DateTime value;
+	DateTimeInfo value;
 	bool  showWeekNum;
 	bool  noTodayCircle;
 	bool  noToday;
@@ -59,7 +59,7 @@ struct Calendar
 	{
 		Calendar* this = allocator::new(&app.tracker, Calendar);
 		this.kind = ControlType.CALENDAR;
-		this.name = dstring::new("Calendar_", &app.tracker);
+		this.name = dstring::new( &app.tracker, "Calendar_");
 		this.name.appendf("%d", calNumber);
 		this._className = &calClass[0];
 		this._parent = parent;
@@ -92,7 +92,7 @@ struct Calendar
 	}
 
 	// Set Calendar value
-	fn void Calendar.setValue(Calendar* this, DateTime dt)
+	fn void Calendar.setValue(Calendar* this, DateTimeInfo dt)
 	{
 		this.value = dt;
 		SystemTime st = sysTimeFromDateTime(dt);
@@ -132,7 +132,7 @@ struct Calendar
 
 	fn void Calendar.setValueInternal(Calendar* this, SystemTime st) @private
 	{
-		this.value = DateTime{st.wYear, st.wMonth, st.wDay, st.wHour,
+		this.value = {st.wYear, st.wMonth, st.wDay, st.wHour,
 								st.wMinute, st.wSecond, st.wMilliseconds, WeekDays.from_ordinal(st.wDayOfWeek)};
 	}
 
@@ -144,18 +144,18 @@ struct Calendar
 			case MCN_SELECT:
 				NMSelchange* nms = (NMSelchange*)lpm;
 				this.setValueInternal(nms.stSelStart);
-				if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
+				if (this.onValueChanged) this.onValueChanged(this, &gea);
 
 			case MCN_SELCHANGE:
 				NMSelchange* nms = (NMSelchange*)lpm;
 				this.setValueInternal(nms.stSelStart);
-				if (this.onSelectionCommitted) this.onSelectionCommitted(this, &&EventArgs{});
+				if (this.onSelectionCommitted) this.onSelectionCommitted(this, &gea);
 
 			case MCN_VIEWCHANGE:
 				NMViewChange* nmv = (NMViewChange*)lpm;
 				this.viewMode = ViewMode.from_ordinal(nmv.dwNewView);
 				this.oldViewMode = ViewMode.from_ordinal(nmv.dwOldView);
-				if (this.onViewChanged) this.onViewChanged(this, &&EventArgs{});
+				if (this.onViewChanged) this.onViewChanged(this, &gea);
 		}
 		return 0;
 	}
@@ -241,7 +241,7 @@ fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 
 
 
-fn SystemTime sysTimeFromDateTime(DateTime dt)
+fn SystemTime sysTimeFromDateTime(DateTimeInfo dt)
 {
 	SystemTime this;
 	this.wYear = (Word)dt.year;

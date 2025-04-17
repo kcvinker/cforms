@@ -2,61 +2,61 @@
 // api_types - Created on 24-Jan-2023 22:00
 module cforms;
 
-distinct Pvoid = inline void*;
-distinct Handle = inline void*;
+typedef Pvoid = inline void*;
+typedef Handle = inline void*;
 
-distinct Hbitmap = inline Handle;
-distinct Hbrush = inline Handle;
-distinct Hcursor = inline Handle;
-distinct Hdc = inline Handle;
-distinct Hfont = inline Handle;
-distinct Hgdiobj = inline Handle;
-distinct Hicon = inline Handle;
-distinct Hinstance = inline Handle;
-distinct Hmenu = inline Handle;
-distinct Hmodule = inline Handle;
-distinct Hpen = inline Handle;
-distinct Hwnd = inline Handle;
-distinct Hrgn = inline Handle;
-distinct Htreeitem = inline Handle;
+typedef Hbitmap = inline Handle;
+typedef Hbrush = inline Handle;
+typedef Hcursor = inline Handle;
+typedef Hdc = inline Handle;
+typedef Hfont = inline Handle;
+typedef Hgdiobj = inline Handle;
+typedef Hicon = inline Handle;
+typedef Hinstance = inline Handle;
+typedef Hmenu = inline Handle;
+typedef Hmodule = inline Handle;
+typedef Hpen = inline Handle;
+typedef Hwnd = inline Handle;
+typedef Hrgn = inline Handle;
+typedef Htreeitem = inline Handle;
 
-def Intptr = iptr;
-def Long = int;
-def Longptr = iptr;
-def Lparam = Longptr;
-def Lpcwstr = Char16*;
-def Lpwstr = Char16*;
-def Lresult = Longptr;
-def Puint = uint*;
-def Uintptr = uptr;
-def Ulongptr = uptr;
-def Wparam = Uintptr;
-def Dword = uint;
-def Dwordptr = Ulongptr;
-def Colorref = Dword;
-def Word = ushort;
-def Bool = int;
-def Wstring = Char16[];
+alias Intptr = iptr;
+alias Long = int;
+alias Longptr = iptr;
+alias Lparam = Longptr;
+alias Lpcwstr = Char16*;
+alias Lpwstr = Char16*;
+alias Lresult = Longptr;
+alias Puint = uint*;
+alias Uintptr = uptr;
+alias Ulongptr = uptr;
+alias Wparam = Uintptr;
+alias Dword = uint;
+alias Dwordptr = Ulongptr;
+alias Colorref = Dword;
+alias Word = ushort;
+alias Bool = int;
+alias Wstring = Char16[];
 const Dword UINT_MAX = 1UL << 32 - 1;
 
 // Function pointer types
-def Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
-def Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
-def OfnHookProc = fn Uintptr(Hwnd, uint, Wparam, Lparam);
-def BrowserCbProc = fn int(Hwnd, uint, Lparam, Lparam);
-def TimerProc = fn Uintptr(Hwnd, uint, Uintptr, Dword);
+alias Wndproc = fn Lresult(Hwnd, uint, Wparam, Lparam);
+alias Subclassproc = fn Lresult(Hwnd, uint, Wparam, Lparam, Uintptr, Dwordptr);
+alias OfnHookProc = fn Uintptr(Hwnd, uint, Wparam, Lparam);
+alias BrowserCbProc = fn int(Hwnd, uint, Lparam, Lparam);
+alias TimerProc = fn Uintptr(Hwnd, uint, Uintptr, Dword);
 
 struct Size {
 	Long cx;
 	Long cy;
 }
-def LpSize = Size*;
+alias LpSize = Size*;
 
 struct Point {
 	Long x;
 	Long y;
 }
-def LpPoint = Point*;
+alias LpPoint = Point*;
 
 struct Rect {
 	Long left;
@@ -64,7 +64,7 @@ struct Rect {
 	Long right;
 	Long bottom;
 }
-def LpRect = Rect*;
+alias LpRect = Rect*;
 
 struct WndClassEx {
 	CUInt cbSize;
@@ -90,7 +90,7 @@ struct Msg {
 	Point pt;
 	Dword lPrivate;
 }
-def LpMsg = Msg*;
+alias LpMsg = Msg*;
 
 const int LF_FACESIZE = 32;
 struct LogFont {
@@ -343,10 +343,10 @@ struct ShItemID {
 }
 
 struct ItemIdList { ShItemID mkid; }
-def LpItemIdList = ItemIdList*;
-def ItemIdList_Absolute = ItemIdList;
-def PcIdList_Absolute = ItemIdList_Absolute*;
-def PidList_Absolute = ItemIdList_Absolute*;
+alias LpItemIdList = ItemIdList*;
+alias ItemIdList_Absolute = ItemIdList;
+alias PcIdList_Absolute = ItemIdList_Absolute*;
+alias PidList_Absolute = ItemIdList_Absolute*;
 
 struct BrowseInfoW {
 	Hwnd              hwndOwner;
@@ -361,7 +361,7 @@ struct BrowseInfoW {
 
 enum WeekDays: int {SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY}
 
-struct DateTime
+struct DateTimeInfo
 {
 	int year;
 	int month;

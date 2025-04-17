@@ -71,7 +71,7 @@ struct CmbData
 	{
 		ComboBox* this = allocator::new(&app.tracker, ComboBox);
 		this.kind = ControlType.COMBO_BOX;
-		this.name = dstring::new("ComboBox_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "ComboBox_" );
 		this.name.appendf("%d", cmbNumber);
 		this._className = &cmbClass[0];
 		this._parent = parent;
@@ -87,7 +87,7 @@ struct CmbData
 		this.selectedIndex = -1;
 		cmbNumber += 1;
 		if (noComboUsed) {
-			this._parent._comboMap.new_init();
+			this._parent._comboMap.init(&app.tracker);
 			noComboUsed = false;
 		}
 		this._parent.controls.push(this);
@@ -160,10 +160,10 @@ struct CmbData
 
 // Private functions
 
-	fn void ComboBox.putItemInternal(&this, any item)
+	macro void ComboBox.putItemInternal(&this, any item)
 	{
-		switch (item) {
-			case String:
+		$switch $typeof(item):
+			$case String:
 				@pool() {
 					Char16* witem = String.to_temp_utf16(*item)!!.ptr;
 					// defer free(witem);
@@ -171,7 +171,7 @@ struct CmbData
 					this.items.push(*item);
 				};
 
-			default:
+			$default:
 				@pool() {
 					String sitem = numeralsToString(item);
 					Char16* witem = String.to_temp_utf16(sitem)!!.ptr;
@@ -179,7 +179,8 @@ struct CmbData
 					this.sendMsg(CB_ADDSTRING, 0, witem);
 					this.items.push(sitem);
 				};
-		}
+		$endswitch;
+		
 	}
 
 	// Set pre creation info.
@@ -212,7 +213,7 @@ struct CmbData
 		ComboBoxInfo cmbInfo;
 		cmbInfo.cbSize = ComboBoxInfo.sizeof ;
 		this.sendMsg(CB_GETCOMBOBOXINFO, 0, &cmbInfo);
-		CmbData cd = CmbData{cmbInfo.hwndList, cmbInfo.hwndCombo};
+		CmbData cd = {cmbInfo.hwndList, cmbInfo.hwndCombo};
 		this._parent._comboMap[cmbInfo.hwndList] = cmbInfo.hwndCombo; // Put the handle in parent's dic
 		api_SetWindowSubclass(cmbInfo.hwndItem, &cmbEditWndProc, editSubId, bitcast(this, Dwordptr));
 		editSubId += 1;
@@ -224,7 +225,7 @@ struct CmbData
 		if (this.items.len() > 0 ) {
 			// log("items are ready");
 			foreach (item: this.items) {
-				Char16* cmbtext = String.to_new_utf16(item)!!.ptr;
+				Char16* cmbtext = String.to_utf16(item, &app.tracker)!!.ptr;
 				defer free(cmbtext);
 				this.sendMsg(CB_ADDSTRING, 0, cmbtext);
 			}
@@ -236,7 +237,7 @@ struct CmbData
 		Dword value = api_GetMessagePos();
 		int x = (int)((short)loWord(value));
 		int y = (int)((short)hiWord(value));
-		return Point{x, y};
+		return {x, y};
 	}
 
 	fn Bool isMouseInCombo(Hwnd hwn) @private
@@ -253,10 +254,10 @@ struct CmbData
 			if (isMouseInCombo(this.handle)) {
 				return 1;
 			} else {
-				if (this.onMouseLeave) this.onMouseLeave(this, &&EventArgs{});
+				if (this.onMouseLeave) this.onMouseLeave(this, &gea);
 			}
 		} else {
-			if (this.onMouseLeave) this.onMouseLeave(this, &&EventArgs{});
+			if (this.onMouseLeave) this.onMouseLeave(this, &gea);
 		}
 		return 0;
 	}
@@ -278,19 +279,19 @@ struct CmbData
 		Word ncode = hiWord(wpm);
         switch (ncode) {
 			case CBN_SELCHANGE:
-				if (this.onSelectionChanged) this.onSelectionChanged(this, &&EventArgs{});
+				if (this.onSelectionChanged) this.onSelectionChanged(this, &gea);
 			case CBN_EDITCHANGE:
-				if (this.onTextChanged) this.onTextChanged(this, &&EventArgs{});
+				if (this.onTextChanged) this.onTextChanged(this, &gea);
 			case CBN_EDITUPDATE:
-				if (this.onTextUpdated) this.onTextUpdated(this, &&EventArgs{});
+				if (this.onTextUpdated) this.onTextUpdated(this, &gea);
 			case CBN_DROPDOWN:
-				if (this.onListOpened) this.onListOpened(this, &&EventArgs{});
+				if (this.onListOpened) this.onListOpened(this, &gea);
 			case CBN_CLOSEUP:
-				if (this.onListClosed) this.onListClosed(this, &&EventArgs{});
+				if (this.onListClosed) this.onListClosed(this, &gea);
 			case CBN_SELENDOK:
-				if (this.onSelectionCommitted) this.onSelectionCommitted(this, &&EventArgs{});
+				if (this.onSelectionCommitted) this.onSelectionCommitted(this, &gea);
 			case CBN_SELENDCANCEL:
-				if (this.onSelectionCancelled) this.onSelectionCancelled(this, &&EventArgs{});
+				if (this.onSelectionCancelled) this.onSelectionCancelled(this, &gea);
 			default: break;
 		}
 

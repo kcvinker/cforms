@@ -50,6 +50,7 @@ module cforms;
 
 iptr globalCtlID = 100;
 ulong globalSubClsID = 1000;
+EventArgs gea; // Global instance of EventArgs.
 
 struct Control
 {
@@ -98,12 +99,12 @@ struct Control
 	KeyEventHandler onKeyPress;
 }
 
-fault StringFault
-{
-	NOT_CREATED,
-	NOT_TEXTABLE,
+// fault StringFault
+// {
+// 	NOT_CREATED,
+// 	NOT_TEXTABLE,
 	
-}
+// }
 
 // Public functions 
 
@@ -114,7 +115,7 @@ fault StringFault
 	 * Control.setFont(String fontName, int fontSize, FontWight fweight)*/
 	macro void Control.setFont(Control* c, ...)
 	{
-		$switch ($vacount)
+		$switch $vacount:
 			$case 1: c.setFont1($vaarg[0]);
 			$case 2: c.setFont2($vaarg[0], $vaarg[1]);
 			$case 3: c.setFont3($vaarg[0], $vaarg[1], $vaarg[2]);
@@ -151,8 +152,8 @@ fault StringFault
 			if (this.kind == ControlType.GROUP_BOX) {
 				((GroupBox*)this).textSetter(value);
 			} else {
-				if (this._wideText) free(this._wideText);
-				this._wideText = String.to_new_utf16(value)!!.ptr;
+				if (this._wideText) allocator::free(&app.tracker, this._wideText);
+				this._wideText = String.to_utf16(value, &app.tracker)!!.ptr;
 				api_SetWindowText(this.handle, this._wideText);
 			}
 		}
@@ -187,11 +188,10 @@ fault StringFault
 
 // Private functions
 
-	fn void Control.createInternal(Control* ctl, bool special = false) @private
+	fn void Control.createInternal(Control* ctl, bool special = false) @private => @pool()
 	{
 		if (!special) ctl.setCtlID();
-		Char16* text = String.to_new_utf16(ctl.text)!!.ptr;
-		defer free(text);
+		Char16* text = ctl._textable ? ctl.text.to_temp_utf16()!!.ptr : null;
 		ctl.handle = api_CreateWindowEx(ctl._exStyle, ctl._className,
 										text, ctl._style,
 										ctl.xpos, ctl.ypos,
@@ -291,19 +291,20 @@ fault StringFault
 		int tLen = api_GetWindowTextLength(hwnd);
 		if (tLen) {
 			@pool() {
-				Char16[] buffer = mem::temp_alloc_array(Char16, (usz)(tLen + 1));
+				Char16[] buffer = mem::talloc_array(Char16, (usz)(tLen + 1));
 				int ret = api_GetWindowText(hwnd, buffer.ptr, tLen + 1);
-				return string::new_from_utf16(buffer)!!;
+				return string::from_utf16(&app.tracker, buffer)!!;
 			};
 		}
 		return "";
 	}
 
-	fn void Control.setTextInternal(&this, String txt)
+	fn void Control.setTextInternal(&this, String txt) 
 	{
 		this.text = txt;
 		if (this._isCreated) {
-			this._wideText = String.to_new_utf16(this.text)!!.ptr;
+			allocator::free(&app.tracker, this._wideText);
+			this._wideText = String.to_utf16(this.text, &app.tracker)!!.ptr;
 			api_SetWindowText(this.handle, this._wideText);
 			if (this._autoSizable) this.setIdealSize();
 		}
@@ -338,10 +339,10 @@ fault StringFault
 // End private functions
 
 // Control Event Handlers
-	fn void Control.setFocusHandler(Control* c) {if (c.onGotFocus) c.onGotFocus(c, &&EventArgs{});}
-	fn void Control.killFocusHandler(Control* c) {if (c.onLostFocus) c.onLostFocus(c, &&EventArgs{});}
-	fn void Control.leftClickHandler(Control* c) {if (c.onClick) c.onClick(c, &&EventArgs{});}
-	fn void Control.rightClickHandler(Control* c) {if (c.onRightClick) c.onRightClick(c, &&EventArgs{});}
+	fn void Control.setFocusHandler(Control* c) {if (c.onGotFocus) c.onGotFocus(c, &gea);}
+	fn void Control.killFocusHandler(Control* c) {if (c.onLostFocus) c.onLostFocus(c, &gea);}
+	fn void Control.leftClickHandler(Control* c) {if (c.onClick) c.onClick(c, &gea);}
+	fn void Control.rightClickHandler(Control* c) {if (c.onRightClick) c.onRightClick(c, &gea);}
 
 	fn void Control.leftMouseDownHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
 	{
@@ -357,7 +358,7 @@ fault StringFault
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
 			c.onMouseUp(c, &mea);
 		}
-		if (c.onClick) c.onClick(c, &&EventArgs{});		
+		if (c.onClick) c.onClick(c, &gea);		
 	}
 
 	fn void Control.rightMouseDownHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
@@ -374,7 +375,7 @@ fault StringFault
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
 			c.onRightMouseUp(c, &mea);
 		}
-		if (c.onRightClick) c.onRightClick(c, &&EventArgs{});
+		if (c.onRightClick) c.onRightClick(c, &gea);
 	}
 
 	fn void Control.mouseWheelHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
@@ -394,14 +395,14 @@ fault StringFault
 			}
 		} else {
 			c._isMouseEntered = true;
-			if (c.onMouseEnter) c.onMouseEnter(c, &&EventArgs{});
+			if (c.onMouseEnter) c.onMouseEnter(c, &gea);
 		}
 	}
 
 	fn void Control.mouseLeaveHandler(Control* c)
 	{
 		c._isMouseEntered = false;
-		if (c.onMouseLeave) c.onMouseLeave(c, &&EventArgs{});
+		if (c.onMouseLeave) c.onMouseLeave(c, &gea);
 	}
 
 	fn void Control.keyDownHandler(Control* c, Wparam wp)

@@ -4,7 +4,7 @@
 	Constructor - newDateTimePicker()	: DateTimePicker*
 	Properties:
 		All Control struct properties are inherited
-		value				: DateTime
+		value				: DateTimeInfo
 		format				: DTPFormat (See enums.c3)
 		formatStr			: String
 		rightAlign			: bool
@@ -35,7 +35,7 @@ Wstring dtpClass = {'S', 'y', 's', 'D', 'a', 't', 'e', 'T', 'i', 'm', 'e', 'P', 
 struct DateTimePicker
 {
 	inline Control control;
-	DateTime value;
+	DateTimeInfo value;
 	DTPFormat format;
 	String formatStr;
 	bool rightAlign;
@@ -71,7 +71,7 @@ enum DTPFormat : int(String descrption, int value )
 	{
 		DateTimePicker* this = allocator::new(&app.tracker, DateTimePicker);
 		this.kind = ControlType.DATE_TIME_PICKER;
-		this.name = dstring::new("DateTimePicker_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "DateTimePicker_");
 		this.name.appendf("%d", dtpNumber);
 		this._className = &dtpClass[0];
 		this._parent = parent;
@@ -158,18 +158,18 @@ enum DTPFormat : int(String descrption, int value )
 					this.onTextChanged(this, &dtea);
 					if (dtea.handled) this.sendMsg(DTM_SETSYSTEMTIME, 0, &dtea.dateStruct);
 				}
-			case DTN_DROPDOWN: if (this.onCalendarOpened) this.onCalendarOpened(this, &&EventArgs{});
+			case DTN_DROPDOWN: if (this.onCalendarOpened) this.onCalendarOpened(this, &gea);
 			case DTN_DATETIMECHANGE:
 				if (this._ddCount == 0) {
 					this._ddCount = 1;
 					NMDateTimeChange* nmd = (NMDateTimeChange*) lpm;
 					this.value = dateTimeFromSysTime(nmd.st);
-					if (this.onValueChanged) this.onValueChanged(this, &&EventArgs{});
+					if (this.onValueChanged) this.onValueChanged(this, &gea);
 
 				} else if (this._ddCount == 1) {
 					this._ddCount = 0;
 				}
-			case DTN_CLOSEUP: if (this.onCalendarClosed) this.onCalendarClosed(this, &&EventArgs{});
+			case DTN_CLOSEUP: if (this.onCalendarClosed) this.onCalendarClosed(this, &gea);
 		}
 	}
 
@@ -253,8 +253,8 @@ fn Lresult dtpWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 
 
 
-fn DateTime dateTimeFromSysTime(SystemTime st) {
-	DateTime this;
+fn DateTimeInfo dateTimeFromSysTime(SystemTime st) {
+	DateTimeInfo this;
 	this.year = st.wYear ;
 	this.month = st.wMonth ;
 	this.day = st.wDay ;

@@ -42,7 +42,7 @@ struct CheckBox
 	{
 		CheckBox* this = allocator::new(&app.tracker, CheckBox);
 		this.kind = ControlType.CHECK_BOX;
-		this.name = dstring::new("CheckBox_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "CheckBox_");
 		this.name.appendf("%d", cbNumber);
 		this._className = &btnClass[0];
 		this._parent = parent;
@@ -55,11 +55,12 @@ struct CheckBox
 		this.width = width;
 		this.height = height;
 		this.text = text;
-		this._wideText = String.to_new_utf16(text, &app.tracker)!!.ptr;
+		this._wideText = String.to_utf16(text, &app.tracker)!!.ptr;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
 		this._autoSizable = true;
+		this._textable = true;
 		cbNumber += 1;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -204,7 +205,7 @@ fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case MM_CTL_COMMAND :
 			CheckBox* this = bitcast(refData, CheckBox*);
 						this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);
-			if (this.onCheckedChanged) this.onCheckedChanged(this, &&EventArgs{});
+			if (this.onCheckedChanged) this.onCheckedChanged(this, &gea);
 
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);

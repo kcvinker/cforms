@@ -61,7 +61,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	{
 		ProgressBar* this = allocator::new(&app.tracker, ProgressBar);
 		this.kind = ControlType.PROGRESS_BAR;
-		this.name = dstring::new("ProgressBar_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "ProgressBar_");
 		this.name.appendf("%d", pbNumber);
 		this._className = &pgbClass[0];
 		this._parent = parent;
@@ -174,9 +174,9 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 
 // Private functions
 
-	macro String progressStr(value)
+	fn String progressStr(int value)
 	{
-		return string::new_format("%s %%", value);
+		return string::tformat("%s %%", value);
 	}
 
 	// Setting control's style bits.
@@ -191,7 +191,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// {
 	// 	Size ss;
 	// 	String ptext = progressStr(this.value);
-	// 	Char16* wtext = String.to_new_utf16(ptext).ptr!!;
+	// 	Char16* wtext = String.to_utf16(ptext).ptr!!;
 	// 	defer free(ptext);//
 	// 	defer free(wtext);
 
@@ -209,12 +209,11 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// 	return 0;
 	// }
 
-	fn Lresult ProgressBar.paintHandler2(ProgressBar* this) @private
+	fn Lresult ProgressBar.paintHandler2(ProgressBar* this) @private => @pool()
 	{
-		String ptext = progressStr(this.value);
-		Char16* wtext = String.to_new_utf16(ptext)!!.ptr;
-		defer free(ptext);//
-		defer free(wtext);
+		String ptext = string::tformat("%s %%", this.value);
+		Char16* wtext = ptext.to_temp_utf16()!!.ptr;
+		// defer free(ptext);
 		@using(newGraphics(DCMode.GET_DC, this.handle); Graphics gx) {
 			Size ss = gx.getStringSize(wtext, ptext.len, this.font.handle, true);
 			int x = (this.width - ss.cx) / 2;

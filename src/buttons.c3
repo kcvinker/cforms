@@ -117,9 +117,9 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		Button* this = allocator::new(&app.tracker, Button);
 		this.kind = ControlType.BUTTON;
 		this._className = &btnClass[0];
-		this.name = dstring::new("Button_", &app.tracker);
+		this.name = dstring::new(&app.tracker, "Button_");
 		this.name.appendf("%d", btnNumber);
-		this._wideText = String.to_new_utf16(text, &app.tracker)!!.ptr;
+		this._wideText = String.to_utf16(text, &app.tracker)!!.ptr;
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = btnStyle;
@@ -129,8 +129,9 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		this.width = width;
 		this.height = height;
 		this.text = text;
-		this.backColor = Color{};
-		this.foreColor = Color{};
+		this.backColor = {};
+		this.foreColor = {};
+		this._textable = true;
 		btnNumber += 1;
 		if (evtFn) this.onClick = evtFn;
 		this._parent.controls.push(this);
@@ -205,7 +206,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		int ret = api_SetBkMode(ncd.hdc, TRANSPARENT);
 		api_SetTextColor(ncd.hdc, this.foreColor.ref);
 		api_SelectObject(ncd.hdc, (Hgdiobj)(this.font.handle));
-		// Char16* btext =  String.to_new_utf16(b.text).ptr!!;
+		// Char16* btext =  String.to_utf16(b.text).ptr!!;
 		// defer free(btext);
         api_DrawText(ncd.hdc, this._wideText, -1, &ncd.rc, TXTFLAG);
         return CDRF_NOTIFYPOSTPAINT;

@@ -44,8 +44,8 @@ import std::collections::map;
 // import std::sort;
 // import libc;
 Wstring cmenuMsgWinClass = {'c', 'f', 'o', 'r', 'm', 's', '_', 'C', 'm', 'e', 'n', 'u', '_', 'M', 's','g','_','w', 'i','n', 0};
-def MenuItemList = List(<MenuItem*>);
-def MenuMap = HashMap(<String, MenuItem*>);
+alias MenuItemList = List{MenuItem*};
+alias MenuMap = HashMap{String, MenuItem*};
 enum MenuType : char {BASE_MENU, MENU_ITEM, POPUP, SEPRATOR }
 
 uint menuNumber = 101;
@@ -85,7 +85,7 @@ fn MenuItem* MenuBase.getItem2(&this, int index) @private
 // Get menu item from index or menu name.
 macro MenuItem* MenuBase.menus(&this, indexOrName)
 {
-	$switch ($typeof(indexOrName))
+	$switch $typeof(indexOrName):
 		$case String: return this.getItem1(indexOrName);
 		$case int: return this.getItem2(indexOrName);
 		$default: $error "No overload for this type";
@@ -167,7 +167,7 @@ fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint 
     this._index = indexNum;
     this.idNum = menuNumber;
     this.text = menuName;
-    this._wideText = String.to_new_utf16(this.text)!!;
+    this._wideText = String.to_utf16(this.text, &app.tracker)!!;
     this.kind = mtp;
     this.parentHandle = parentHmenu;
     this.bgColor = newColor(0xe9ecef);
@@ -260,7 +260,7 @@ fn MenuItem* MenuItem.addItem(&this, String menuName, uint txtColor = 0x000000)
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
-		this._menuList.new_init();
+		this._menuList.init(&app.tracker);
 	}
     MenuItem* result = newMenuItem(menuName, MenuType.MENU_ITEM, this.handle, this._menuCount);
     result.fgColor = newColor(txtColor);
@@ -280,7 +280,7 @@ fn void MenuItem.addItems(&this, String... menuNames )
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
-		this._menuList.new_init();
+		this._menuList.init(&app.tracker);
 	}
 	if (this.kind != MenuType.BASE_MENU) this.kind = MenuType.POPUP;
 	foreach (name: menuNames) {
@@ -323,7 +323,7 @@ fn void MenuItem.destroy(&this)
 		foreach(menu: this._menuList) {menu.destroy();}
 		this._menuList.free();
 	}
-	free(this._wideText);
+	allocator::free(&app.tracker, this._wideText);
 	allocator::free(&app.tracker, this);
 }
 

@@ -164,7 +164,7 @@ fn void ContextMenu.showMenu(&this, Lparam lpm) @private
 	if (mid > 0) {
 		MenuItem* menu = this.getMenuItem(mid);
 		if (menu && menu._isEnabled) {
-			if (menu.onClick) menu.onClick(menu, &&EventArgs{});
+			if (menu.onClick) menu.onClick(menu, &gea);
 		}
 	}
 		
@@ -260,9 +260,9 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			// ptf("WM_ENTERMENULOOP, cmenu handle %d", this.handle);
 			if (this.onMenuShown) {
 				if (this._trayParent) {
-					this.onTrayMenuShown(this.tray, &&EventArgs{});
+					this.onTrayMenuShown(this.tray, &gea);
 				} else {
-					this.onMenuShown(this.parent, &&EventArgs{});
+					this.onMenuShown(this.parent, &gea);
 				}
 			}				
 
@@ -271,9 +271,9 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
 			if (this.onMenuClose) {
 				if (this._trayParent) {
-					this.onTrayMenuClose(this.tray, &&EventArgs{});
+					this.onTrayMenuClose(this.tray, &gea);
 				} else {			
-					this.onMenuClose(this.parent, &&EventArgs{});
+					this.onMenuClose(this.parent, &gea);
 				}
 			}
 
@@ -285,7 +285,7 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 				MenuItem* menu = this.getMenuItem(idNum);
 				// ptf("menu text %s, onClick %d", menu.text, (int)(uptr)menu.onClick);
 				if (menu && menu._isEnabled) {
-					if (menu.onFocus) menu.onFocus(menu, &&EventArgs{});
+					if (menu.onFocus) menu.onFocus(menu, &gea);
 				}
 			}	
 
