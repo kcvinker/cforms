@@ -114,12 +114,12 @@ fn void GradDraw.dtor(GradDraw* g) @private
 							int width = 120, int height = 35,
 							EventHandler evtFn = null)
 	{
-		Button* this = allocator::new(&app.tracker, Button);
+		Button* this = allocator::new(mem, Button);
 		this.kind = ControlType.BUTTON;
 		this._className = &btnClass[0];
-		this.name = dstring::new(&app.tracker, "Button_");
+		this.name = dstring::new(mem, "Button_");
 		this.name.appendf("%d", btnNumber);
-		this._wideText = String.to_utf16(text, &app.tracker)!!.ptr;
+		this._wideText = String.to_utf16(text, mem)!!.ptr;
 		this._parent = parent;
 		this.font = parent.font;
 		this._style = btnStyle;
@@ -281,8 +281,8 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		}
 		this.name.free();
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this._wideText);
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this._wideText);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 
