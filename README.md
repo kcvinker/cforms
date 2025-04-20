@@ -37,12 +37,13 @@ TrayIcon* ti;
 
 fn void makeWindow()
 {
-	frm = newForm("Cforms gui library", width:800, height:550);
+	// exePath = getExeDir();
+	frm = newForm("Cforms gui library", width:800, height:600);
 	frm.onMouseDown = fn(c, e) => print("left mouse down on frm");	
 	frm.createChilds = true; // Child controls will create their hwnd immediately.
 	frm.createHandle();
 	
-	// Add a tray icon for our program
+	//Add a tray icon for our program
 	ti = newTrayIcon("cforms sample tray icon!", "cforms.ico");
 	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
 	ti.addContextMenu(TrayMenuTrigger.ANY_CLICK, "Button", "|", "CheckBox", "Label");
@@ -73,7 +74,6 @@ fn void makeWindow()
 
 	cmb = newComboBox(frm, b3.right() + 10, 10);
 	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
-	cmb.addItem((any*)&&456.45654);	
 
 	dtp = newDateTimePicker(frm, cmb.right() + 10, 10);
 
@@ -97,11 +97,12 @@ fn void makeWindow()
 	lbx.addItems("Windows", "MacOS", "Linux", "ReactOS");
 
 	lv = newListView(frm, lbx.right() + 10, b3.bottom() + 10, width:330, height:150);
-	lv.addColumns("Windows", "Linux", "MacOS", 100, 120, 100);
+	
+	lv.addColumns("Windows", "Linux", "MacOS");
 	lv.addRow("Win7", "openSUSE", "Mojave");
 	lv.addRow("Win8", "Debian", "Catalina");
 	lv.addRow("Win10", "Fedora", "Big Sur");
-	lv.addRow("Win11", "Ubuntu", "Monterey");
+	lv.addRow("Win11", "Ubuntu", "Monterey");	
 
 	lv.addContextMenu("Windows", "|", "Linux", "MacOS");
 	lv.contextMenu.menus(0).onClick = &onMenuClick;
@@ -115,27 +116,31 @@ fn void makeWindow()
 	tb = newTextBox(frm, "Enter some text", gb2.right() + 10, lbx.bottom() + 10);
 	tk = newTrackBar(frm, gb2.right() + 10, tb.bottom() + 40, evtFn: &onTrackChange );
 	
-	tv = newTreeView(frm, tk.right() + 40, lv.bottom() + 20, height:250);
+	tv = newTreeView(frm, tk.right() + 70, lv.bottom() + 20, height:250);
+	// tv.createHandle();
 	tv.addNodeWithChilds("Windows", "Vista", "Win7", "Win8", "Win10", "Win11");
+	
     tv.addNodeWithChilds("MacOS", "Mountain Lion", "Mavericks", "Catalina", "Big Sur", "Monterey");
     tv.addNodeWithChilds("Linux", "RedHat", "Mint", "Ubuntu", "Debian", "Kali");
 
-	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10);	
-	
-	frm.show();
-	
+	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10); 
+	frm.show(); 
 }
 
 
 fn int main(String[] args) 
-{	
-	makeWindow();
-	return 0;
+{
+	mem::@report_heap_allocs_in_scope () {	
+		makeWindow(); 
+		return 0;
+	};
 }
 
 fn void frmOnMouseDown(Control* f, MouseEventArgs* e) {
 	frm.printPoint(e);
-	ti.showBalloon("My Balloon", "See this balloon message", 3500);
+	ti.showBalloon("My Balloon", "See this balloon message", 
+					3500, noSound: true, icon : BalloonIcon.WARNING);
+	// ti.updateIcon("D:\\Icons\\Dakirby309-Windows-8-Metro-Web-Microsoft-Store-Metro.ico");
 }
 
 fn void frmMouseDown(Control* c, MouseEventArgs* e) {
@@ -144,7 +149,8 @@ fn void frmMouseDown(Control* c, MouseEventArgs* e) {
 
 fn void onB2Click(Control* s, EventArgs* e){
 	print("Button pressed");
-	tm.start();	
+	// tm.start();
+	ti.showBalloon("My Balloon", "this message has sound", 3500);
 }
 
 fn void onTimerTick(Control* f, EventArgs* e) {
@@ -152,9 +158,10 @@ fn void onTimerTick(Control* f, EventArgs* e) {
 }
 
 fn void btnClick(Control* c, EventArgs* e) {	
-	String inf = "Type\\A_Path\\Here";
+	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
 	String tf = "PDF Files\0*.pdf\0";
-	@withFileOpenDialog("Testing fod", inf, tf; FileOpenDialog fod) {
+
+	@newFileOpenDialog("Testing fod", inf, tf; FileOpenDialog fod) {
 		fod.showDialog(frm.handle);
 		ptf("Sel Path : %s", fod.selectedPath);
 	};
@@ -167,7 +174,6 @@ fn void onMenuClick(MenuItem* m, EventArgs* e) {
 fn void onTrackChange(Control* m, EventArgs* e) {
 	pb.setValue(tk.value);
 }
-
 ```
 
 

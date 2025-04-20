@@ -30,7 +30,7 @@ TrayIcon* ti;
 fn void makeWindow()
 {
 	// exePath = getExeDir();
-	frm = newForm("Cforms gui library", width:800, height:550);
+	frm = newForm("Cforms gui library", width:800, height:600);
 	frm.onMouseDown = fn(c, e) => print("left mouse down on frm");	
 	frm.createChilds = true; // Child controls will create their hwnd immediately.
 	frm.createHandle();
@@ -112,32 +112,22 @@ fn void makeWindow()
 	tb = newTextBox(frm, "Enter some text", gb2.right() + 10, lbx.bottom() + 10);
 	tk = newTrackBar(frm, gb2.right() + 10, tb.bottom() + 40, evtFn: &onTrackChange );
 	
-	tv = newTreeView(frm, tk.right() + 40, lv.bottom() + 20, height:250);
+	tv = newTreeView(frm, tk.right() + 70, lv.bottom() + 20, height:250);
 	// tv.createHandle();
 	tv.addNodeWithChilds("Windows", "Vista", "Win7", "Win8", "Win10", "Win11");
-	ptf("child count in main %s", tv.nodes[0]._childCount);
-	// ptf("nodes size %s", tv.nodes.size);
-    // tv.addNodeWithChilds("MacOS", "Mountain Lion", "Mavericks", "Catalina", "Big Sur", "Monterey");
-    // tv.addNodeWithChilds("Linux", "RedHat", "Mint", "Ubuntu", "Debian", "Kali");
-
-	// cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10);
-
-	// @pool() {
-	// 	ptf("temp path %s", getExePathTemp());
-	// };
 	
-	
-	// frm.onClosing = fn (c, e) => exePath.free(mem);
-	frm.show();
-	// exePath.free(mem);
+    tv.addNodeWithChilds("MacOS", "Mountain Lion", "Mavericks", "Catalina", "Big Sur", "Monterey");
+    tv.addNodeWithChilds("Linux", "RedHat", "Mint", "Ubuntu", "Debian", "Kali");
+
+	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10); 
+	frm.show(); 
 }
 
 
 fn int main(String[] args) 
 {
 	mem::@report_heap_allocs_in_scope () {	
-		makeWindow();
-		print("window fin");
+		makeWindow(); 
 		return 0;
 	};
 }
