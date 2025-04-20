@@ -134,7 +134,7 @@ fn void FileOpenDialog.extractFileNames(FileOpenDialog* this, Char16* buffer, in
     // Since the elements are separated with null chars, we can extract them.
     @pool() {
         Char16[] wDir = buffer[:startPos - 1];
-        String dirPath = string::from_utf16(&app.tracker, wDir)!!;
+        String dirPath = string::from_utf16(mem, wDir)!!;
         int offset = startPos;
 
         for (int i = startPos; i <NEW_MAX_PATH; i++) {
@@ -142,8 +142,8 @@ fn void FileOpenDialog.extractFileNames(FileOpenDialog* this, Char16* buffer, in
             if (wchar == '\u0000') {
                 Char16[] slice = buffer[offset..i];
                 offset = i + 1;
-                String fname = string::from_utf16(&app.tracker, slice)!!;
-                String fullPath = string::format(&app.tracker, "%s\\%s", dirPath, fname);
+                String fname = string::from_utf16(mem, slice)!!;
+                String fullPath = string::format(mem, "%s\\%s", dirPath, fname);
                 this.fileNames.push(fullPath);
                 if (buffer[offset] == '\u0000') break;
             }
@@ -167,7 +167,7 @@ fn bool FileSaveDialog.showDialog(FileSaveDialog* this, Hwnd hwnd = null)
 fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = null)
 {
     Char16[MAX_PATH] buffer;
-    Char16* titleBuff = String.to_utf16(this.title, &app.tracker)!!;
+    Char16* titleBuff = String.to_utf16(this.title, mem)!!;
     defer free(titleBuff);
     BrowseInfoW bi;
     bi.hwndOwner = hwnd;
@@ -179,7 +179,7 @@ fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = nu
     if (pidl) {
         if (api_SHGetPathFromIDList(pidl, &buffer[0])) {
             api_CoTaskMemFree(pidl);
-            String selPath = string::from_utf16(&app.tracker, buffer[..])!!;
+            String selPath = string::from_utf16(mem, buffer[..])!!;
             defer free(selPath);
             this.selectedPath = selPath;
             return true;
@@ -191,7 +191,7 @@ fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = nu
 
 fn void FileOpenDialog.setFilters(FileOpenDialog* this, String description, String... extensions)
 {
-    DString newFilter = dstring::new(&app.tracker, string::format(&app.tracker,"%s\0", description));
+    DString newFilter = dstring::new(mem, string::format(mem,"%s\0", description));
     int length = extensions.len;
     foreach(int i, ext : extensions) {
         if (i + 1 == length) {
@@ -211,9 +211,9 @@ macro showDialogMacro(this, Hwnd hwnd = null) @private
     ofn.hwndOwner = hwnd;
     Char16[NEW_MAX_PATH] buffer;
     Char16* initDirBuff = this.initFolder == "" ? 
-        (Char16*)0 : String.to_utf16(this.initFolder, &app.tracker)!!;
-    Char16* titleBuff = String.to_utf16(this.title, &app.tracker)!!;
-    Char16* filBuff = String.to_utf16(this.filter, &app.tracker)!!;
+        (Char16*)0 : String.to_utf16(this.initFolder, mem)!!;
+    Char16* titleBuff = String.to_utf16(this.title, mem)!!;
+    Char16* filBuff = String.to_utf16(this.filter, mem)!!;
     defer {free(initDirBuff); free(titleBuff); free(filBuff);}
     ofn.lStructSize = OpenFileNameW.sizeof;
     ofn.lpstrFile = &buffer[0];
@@ -236,13 +236,13 @@ macro showDialogMacro(this, Hwnd hwnd = null) @private
                     this.extractFileNames(&buffer, (int)ofn.nFileOffset);
                     this.selectedPath = this.fileNames[0];
                 } else {
-                    this.selectedPath = string::from_wstring(&app.tracker, (WString)&buffer)!!;
+                    this.selectedPath = string::from_wstring(mem, (WString)&buffer)!!;
                 }
             }
         $case FileSaveDialog*:
             ofn.flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
             ret = api_GetSaveFileName(&ofn);
-            if (ret) this.selectedPath = string::from_wstring(&app.tracker, (WString)&buffer)!!;
+            if (ret) this.selectedPath = string::from_wstring(mem, (WString)&buffer)!!;
     $endswitch
     if (ret) {
         this.fileNameStart = ofn.nFileOffset;

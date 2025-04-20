@@ -71,9 +71,9 @@ struct ListBox
 	fn ListBox* newListBox(Form* parent, int x = 10, int y = 10,
 							int width = 150, int height = 150)
 	{
-		ListBox* this = allocator::new(&app.tracker, ListBox);
+		ListBox* this = allocator::new(mem, ListBox);
 		this.kind = ControlType.LIST_BOX;
-		this.name = dstring::new(&app.tracker, "ListBox_");
+		this.name = dstring::new(mem, "ListBox_");
 		this.name.appendf("%d", lbxNumber);
 		this._className = &lbxClass[0];
 		this._parent = parent;
@@ -111,7 +111,7 @@ struct ListBox
 	{
 		this.items.push(item);
 		if (this._isCreated) {
-			Char16* lbtext = String.to_utf16(item, &app.tracker)!!.ptr;
+			Char16* lbtext = String.to_utf16(item, mem)!!.ptr;
 			defer free(lbtext);
 			this.sendMsg(LB_ADDSTRING, 0, lbtext);
 		}
@@ -211,7 +211,7 @@ struct ListBox
 	// Returns the index of given item
 	fn int ListBox.indexOf(ListBox* this, String item)
 	{
-		Char16[] witem = String.to_utf16(item, &app.tracker)!!;
+		Char16[] witem = String.to_utf16(item, mem)!!;
 		defer free(witem);
 		return (int) this.sendMsg(LB_FINDSTRINGEXACT, -1, witem.ptr);
 	}
@@ -254,7 +254,7 @@ struct ListBox
 	{
 		if (this.items.len() > 0)  {// We need to add those items to list box
             foreach (item: this.items) {
-				Char16* sitem = String.to_utf16(item, &app.tracker)!!.ptr;
+				Char16* sitem = String.to_utf16(item, mem)!!.ptr;
 				defer free(sitem);
 				this.sendMsg(LB_ADDSTRING, 0, sitem);
 			}
@@ -279,7 +279,7 @@ struct ListBox
 			@pool() {
 				Char16[] buffer = mem::talloc_array(Char16, sLen);
 				Lresult res =this.sendMsg(LB_GETTEXT, index, &buffer[0]);
-				String x = string::from_utf16(&app.tracker, buffer)!!;
+				String x = string::from_utf16(mem, buffer)!!;
 				return x;
 			};
 		}
@@ -320,7 +320,7 @@ struct ListBox
 		this.items.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

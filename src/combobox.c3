@@ -58,20 +58,20 @@ struct ComboBox
 	EventHandler onSelectionCancelled;
 }
 
-struct CmbData
-{
-	Hwnd listHwnd;
-	Hwnd cmbHwnd;
-}
+// struct CmbData
+// {
+// 	Hwnd listHwnd;
+// 	Hwnd cmbHwnd;
+// }
 
 // Public functions
 	// ComboBox constructor
 	fn ComboBox* newComboBox(Form* parent, int x = 10, int y = 10,
 								int width = 140, int height = 27)
 	{
-		ComboBox* this = allocator::new(&app.tracker, ComboBox);
+		ComboBox* this = allocator::new(mem, ComboBox);
 		this.kind = ControlType.COMBO_BOX;
-		this.name = dstring::new(&app.tracker, "ComboBox_" );
+		this.name = dstring::new(mem, "ComboBox_" );
 		this.name.appendf("%d", cmbNumber);
 		this._className = &cmbClass[0];
 		this._parent = parent;
@@ -85,11 +85,8 @@ struct CmbData
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		this.selectedIndex = -1;
+		this.items.init(mem, 10);
 		cmbNumber += 1;
-		if (noComboUsed) {
-			this._parent._comboMap.init(&app.tracker);
-			noComboUsed = false;
-		}
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -160,27 +157,22 @@ struct CmbData
 
 // Private functions
 
-	macro void ComboBox.putItemInternal(&this, any item)
+	macro void ComboBox.putItemInternal(&this, any item) => @pool()
 	{
-		$switch $typeof(item):
-			$case String:
-				@pool() {
-					Char16* witem = String.to_temp_utf16(*item)!!.ptr;
-					// defer free(witem);
-					this.sendMsg(CB_ADDSTRING, 0, witem);
-					this.items.push(*item);
-				};
+		String itemStr;
+		switch (item.type) {
+			case String: itemStr = *(String*)item;
+			case int: itemStr = string::tformat("%s", *(int*)item);	
+			case double:
+			case float:
+				itemStr = string::tformat("%s", *(double*)item);								
+		}		
+		Char16* witem = String.to_temp_utf16(itemStr)!!.ptr;
+		this.sendMsg(CB_ADDSTRING, 0, witem);
 
-			$default:
-				@pool() {
-					String sitem = numeralsToString(item);
-					Char16* witem = String.to_temp_utf16(sitem)!!.ptr;
-					// defer {free(witem); free(sitem);}
-					this.sendMsg(CB_ADDSTRING, 0, witem);
-					this.items.push(sitem);
-				};
-		$endswitch;
-		
+		// Copy method is allocating memory and we need to 
+		// free these strings before freeing the list.
+		this.items.push(itemStr.copy(mem)); 
 	}
 
 	// Set pre creation info.
@@ -213,8 +205,10 @@ struct CmbData
 		ComboBoxInfo cmbInfo;
 		cmbInfo.cbSize = ComboBoxInfo.sizeof ;
 		this.sendMsg(CB_GETCOMBOBOXINFO, 0, &cmbInfo);
-		CmbData cd = {cmbInfo.hwndList, cmbInfo.hwndCombo};
-		this._parent._comboMap[cmbInfo.hwndList] = cmbInfo.hwndCombo; // Put the handle in parent's dic
+		ComboInfo ci = {cmbInfo.hwndList, cmbInfo.hwndCombo};
+
+		// Parent needs to keep track of combo's list handle
+		this._parent._comboList.push(ci); 
 		api_SetWindowSubclass(cmbInfo.hwndItem, &cmbEditWndProc, editSubId, bitcast(this, Dwordptr));
 		editSubId += 1;
 		// ptf("Item hwnd - %s, List Hwnd - %s", cmbInfo.hwndItem, cmbInfo.hwndList );
@@ -225,7 +219,7 @@ struct CmbData
 		if (this.items.len() > 0 ) {
 			// log("items are ready");
 			foreach (item: this.items) {
-				Char16* cmbtext = String.to_utf16(item, &app.tracker)!!.ptr;
+				Char16* cmbtext = String.to_utf16(item, mem)!!.ptr;
 				defer free(cmbtext);
 				this.sendMsg(CB_ADDSTRING, 0, cmbtext);
 			}
@@ -320,10 +314,13 @@ struct CmbData
 	{
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
+		if (this.items.len()) {			
+			foreach (item : this.items) item.free(mem); 
+		}
 		this.items.free();
 		if (this._cmenuUsed) this.contextMenu.destroy();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

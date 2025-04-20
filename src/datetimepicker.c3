@@ -69,9 +69,9 @@ enum DTPFormat : int(String descrption, int value )
 	// DateTimePicker constructor
 	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10)
 	{
-		DateTimePicker* this = allocator::new(&app.tracker, DateTimePicker);
+		DateTimePicker* this = allocator::new(mem, DateTimePicker);
 		this.kind = ControlType.DATE_TIME_PICKER;
-		this.name = dstring::new(&app.tracker, "DateTimePicker_");
+		this.name = dstring::new(mem, "DateTimePicker_");
 		this.name.appendf("%d", dtpNumber);
 		this._className = &dtpClass[0];
 		this._parent = parent;
@@ -180,7 +180,7 @@ enum DTPFormat : int(String descrption, int value )
 		this.name.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

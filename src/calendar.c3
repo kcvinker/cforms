@@ -57,9 +57,9 @@ struct Calendar
 	// Calendar constructor
 	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10)
 	{
-		Calendar* this = allocator::new(&app.tracker, Calendar);
+		Calendar* this = allocator::new(mem, Calendar);
 		this.kind = ControlType.CALENDAR;
-		this.name = dstring::new( &app.tracker, "Calendar_");
+		this.name = dstring::new( mem, "Calendar_");
 		this.name.appendf("%d", calNumber);
 		this._className = &calClass[0];
 		this._parent = parent;
@@ -168,7 +168,7 @@ struct Calendar
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

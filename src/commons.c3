@@ -50,8 +50,10 @@ macro isStrLiteral(x)
 fn String makeStringFromAny( any value)
 {
 	switch (value.type) {
-		case String: return *(String*)value;
-		default: return string::tformat("%s", value);
+		case String: 
+			return *(String*)value;
+		default: 
+			return string::tformat("%s", value);
 	}
 }
 
@@ -198,7 +200,7 @@ fn String getExePathTemp()
 	Char16[260] buffer;
 	Dword res = api_GetModuleFileName(null, &buffer[0], 260);
 	if (res) {
-		return string::from_utf16(&app.tracker, buffer[:res])!!;
+		return string::from_utf16(mem, buffer[:res])!!;
 	} else {
 		return "";
 	}	
@@ -210,7 +212,7 @@ fn String getExePath()
 	Char16[260] buffer;
 	Dword res = api_GetModuleFileName(null, &buffer[0], 260);
 	if (res) {
-		return string::from_utf16( &app.tracker, buffer[:res],)!!;
+		return string::from_utf16( mem, buffer[:res],)!!;
 	} else {
 		return "";
 	}	
@@ -229,7 +231,7 @@ fn String getExeDir()
 			}
     	}
 		ptf("res %d", res);
-		return string::from_utf16(&app.tracker, buffer[:res] )!!;
+		return string::from_utf16(mem, buffer[:res] )!!;
 	} else {
 		return "";
 	}	

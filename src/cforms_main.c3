@@ -11,7 +11,7 @@ alias print = io::printn;
 alias ptf = io::printfn;
 // alias log = io::printn;
 alias cptf = libc::printf;
-alias FormMap = HashMap{Hwnd, Form*};
+// alias FormMap = HashMap{Hwnd, Form*};
 
 // Global static data
 struct AppData
@@ -27,8 +27,7 @@ struct AppData
 	Hinstance hins;
 	Hwnd trayHwnd;
 	Color defWinColor;
-    TrackingAllocator tracker;
-	FormMap fmap;
+	// FormMap fmap;
 }
 
 AppData app;
@@ -37,7 +36,6 @@ Wstring className = {'C', 'f', 'o', 'r', 'm', 's', '_', 'W', 'i', 'n', 'd', 'o',
 
 fn void cforms_init() @init
 {	
-	app.tracker.init(allocator::heap());
 	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
 	app.defWinColor = colorFromUint(0xF0F0F0); //colorFromRgb(0xED, 0xED, 0xED);
 	app.screenWidth = api_GetSystemMetrics(0);
@@ -49,7 +47,7 @@ fn void cforms_init() @init
 	icc.dwSize = InitCommonControls.sizeof;
 	icc.dwICC = ICC_STANDARD_CLASSES;
 	api_InitCommonControlsEx(&icc);
-	app.fmap.init(&app.tracker);
+	// app.fmap.init(mem, 2);
 	
 }
 
@@ -70,8 +68,8 @@ fn void AppData.finalize(&this)
 	// if (this.cmenuUsed) api_UnregisterClass(&cmenuMsgWinClass[0], this.hins);
 	// api_UnregisterClass(&className[0], this.hins);
 	
-	app.fmap.free();
+	// app.fmap.free();
 	
-    this.tracker.print_report();
-	this.tracker.free();
+    // this.tracker.print_report();
+	// this.tracker.free();
 }

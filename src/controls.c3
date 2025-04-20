@@ -152,8 +152,8 @@ struct Control
 			if (this.kind == ControlType.GROUP_BOX) {
 				((GroupBox*)this).textSetter(value);
 			} else {
-				if (this._wideText) allocator::free(&app.tracker, this._wideText);
-				this._wideText = String.to_utf16(value, &app.tracker)!!.ptr;
+				if (this._wideText) allocator::free(mem, this._wideText);
+				this._wideText = String.to_utf16(value, mem)!!.ptr;
 				api_SetWindowText(this.handle, this._wideText);
 			}
 		}
@@ -293,7 +293,7 @@ struct Control
 			@pool() {
 				Char16[] buffer = mem::talloc_array(Char16, (usz)(tLen + 1));
 				int ret = api_GetWindowText(hwnd, buffer.ptr, tLen + 1);
-				return string::from_utf16(&app.tracker, buffer)!!;
+				return string::from_utf16(mem, buffer)!!;
 			};
 		}
 		return "";
@@ -303,8 +303,8 @@ struct Control
 	{
 		this.text = txt;
 		if (this._isCreated) {
-			allocator::free(&app.tracker, this._wideText);
-			this._wideText = String.to_utf16(this.text, &app.tracker)!!.ptr;
+			allocator::free(mem, this._wideText);
+			this._wideText = String.to_utf16(this.text, mem)!!.ptr;
 			api_SetWindowText(this.handle, this._wideText);
 			if (this._autoSizable) this.setIdealSize();
 		}

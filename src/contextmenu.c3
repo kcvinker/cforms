@@ -40,7 +40,7 @@ struct ContextMenu
 
 fn ContextMenu* newContextMenu()
 {
-	ContextMenu* this = allocator::new(&app.tracker, ContextMenu);
+	ContextMenu* this = allocator::new(mem, ContextMenu);
 	this.handle = api_CreatePopupMenu();	
 	this.width = 120;
 	this.height = 25;
@@ -116,9 +116,9 @@ fn MenuItem* ContextMenu.getMenuItem(&this, uint id) @private
 	return null;
 }
 
-/**
- * @require this.parent || this._trayParent && this._menuList.len() "Either parent is null or no menu items added"
-**/
+<*
+ @require this.parent || this._trayParent && this._menuList.len() "Either parent is null or no menu items added"
+*>
 fn void ContextMenu.showMenu(&this, Lparam lpm) @private
 {	
 	/*===================================================================================
@@ -210,7 +210,7 @@ fn void ContextMenu.destroy(&this) @private
 	api_DeleteObject((Hgdiobj)this._borderBrush);
 	api_DeleteObject((Hgdiobj)this._grayBrush);
 	api_DestroyMenu(this.handle);
-	allocator::free(&app.tracker, this);
+	allocator::free(mem, this);
 	// print("Context menu struct destroyed");
 }
 

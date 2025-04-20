@@ -108,9 +108,9 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 								int width = 200, int height = 35,
 								EventHandler evtFn = null)
 	{
-		TrackBar* this = allocator::new(&app.tracker, TrackBar);
+		TrackBar* this = allocator::new(mem, TrackBar);
 		this.kind = ControlType.TRACK_BAR;
-		this.name = dstring::new(&app.tracker, "TrackBar_");
+		this.name = dstring::new(mem, "TrackBar_");
 		this.name.appendf("%d", tkbNumber);
 		this._className = &trkClass[0];
 		this._parent = parent;
@@ -521,7 +521,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this._tdList.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

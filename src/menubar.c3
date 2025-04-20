@@ -143,7 +143,7 @@ struct MenuItem
 // Menubar Constructor
 fn MenuBar* newMenuBar(Form* frm)
 {
-	MenuBar* this = allocator::new(&app.tracker, MenuBar);
+	MenuBar* this = allocator::new(mem, MenuBar);
 	this.handle = api_CreateMenu();
 	this._pForm = frm;
 	this.font = newFont("Tahoma", 11);
@@ -151,6 +151,7 @@ fn MenuBar* newMenuBar(Form* frm)
     this._menuGrayCref = getClrRef(0x979dac);
 	this._pForm.menubar = this;
 	this._pForm._menuMapInited = true;
+	this._menuList.init(mem, initial_capacity: 0);
 	return this;
 }
 
@@ -161,13 +162,13 @@ fn bool isPopup(MenuType mtp)
 
 fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint indexNum, ) 
 {
-	MenuItem* this = allocator::new(&app.tracker, MenuItem);
+	MenuItem* this = allocator::new(mem, MenuItem);
 	this._popup = isPopup(mtp);
     this.handle = this._popup ? api_CreatePopupMenu() : api_CreateMenu();
     this._index = indexNum;
     this.idNum = menuNumber;
     this.text = menuName;
-    this._wideText = String.to_utf16(this.text, &app.tracker)!!;
+    this._wideText = String.to_utf16(this.text, mem)!!;
     this.kind = mtp;
     this.parentHandle = parentHmenu;
     this.bgColor = newColor(0xe9ecef);
@@ -187,7 +188,7 @@ fn MenuItem* MenuBar.addItem(&this, String menuName, uint txtColor = 0x000000)
 	mi._mbar = this;
     this._menuCount += 1;
 	this._menuList.push(mi);
-    this._pForm._menuItemMap[mi.idNum] = mi;
+    this._pForm._menuItemList.push({mi.idNum, mi});
 	return mi;
 }
 
@@ -201,7 +202,7 @@ fn void MenuBar.addItems(&this, String... menuNames)
 		mi._mbar = this;
 		this._menuCount += 1;		
 		this._menuList.push(mi);
-		this._pForm._menuItemMap[mi.idNum] = mi;
+		this._pForm._menuItemList.push({mi.idNum, mi});
 	}
 }
 
@@ -260,7 +261,7 @@ fn MenuItem* MenuItem.addItem(&this, String menuName, uint txtColor = 0x000000)
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
-		this._menuList.init(&app.tracker);
+		this._menuList.init(mem, 8);
 	}
     MenuItem* result = newMenuItem(menuName, MenuType.MENU_ITEM, this.handle, this._menuCount);
     result.fgColor = newColor(txtColor);
@@ -270,7 +271,8 @@ fn MenuItem* MenuItem.addItem(&this, String menuName, uint txtColor = 0x000000)
     if (this.kind != MenuType.BASE_MENU) this.kind = MenuType.POPUP;
     this._menuCount += 1;
     this._menuList.push(result);
-	this._mbar._pForm._menuItemMap[result.idNum] = result;
+	this._mbar._pForm._menuItemList.push({result.idNum, result});
+	// this._mbar._pForm._menuItemMap[result.idNum] = result;
     return result;
 }
 
@@ -280,7 +282,7 @@ fn void MenuItem.addItems(&this, String... menuNames )
 	if (this.kind == MenuType.MENU_ITEM) {
         this.handle = api_CreatePopupMenu();
         this._popup = true;
-		this._menuList.init(&app.tracker);
+		this._menuList.init(mem, 8);
 	}
 	if (this.kind != MenuType.BASE_MENU) this.kind = MenuType.POPUP;
 	foreach (name: menuNames) {
@@ -291,7 +293,8 @@ fn void MenuItem.addItems(&this, String... menuNames )
 		menu._mbar = this._mbar;
 		this._menuCount += 1;
 		this._menuList.push(menu);
-		this._mbar._pForm._menuItemMap[menu.idNum] = menu;
+		this._mbar._pForm._menuItemList.push({menu.idNum, menu});
+		// this._mbar._pForm._menuItemMap[menu.idNum] = menu;
 	}
 }
 
@@ -323,8 +326,8 @@ fn void MenuItem.destroy(&this)
 		foreach(menu: this._menuList) {menu.destroy();}
 		this._menuList.free();
 	}
-	allocator::free(&app.tracker, this._wideText);
-	allocator::free(&app.tracker, this);
+	allocator::free(mem, this._wideText);
+	allocator::free(mem, this);
 }
 
 // Freeing resources for a menu bar
@@ -334,6 +337,6 @@ fn void MenuBar.destroy(&this)
 			foreach(menu: this._menuList) {menu.destroy();}
 			this._menuList.free();
 	}
-	allocator::free(&app.tracker, this);
+	allocator::free(mem, this);
 }
 

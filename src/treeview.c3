@@ -101,7 +101,7 @@ struct TreeNode
 	int _childCount;
 	int index;
 	int nodeID;
-	int _nodeCount;
+	// int _nodeCount;
 	Color foreColor;
 	Color backColor;
 	String text;
@@ -119,9 +119,9 @@ struct TreeNode
 	fn TreeView* newTreeView(Form* parent, int x = 10, int y = 10,
 								int width = 200, int height = 200)
 	{
-		TreeView* this = allocator::new(&app.tracker, TreeView);
+		TreeView* this = allocator::new(mem, TreeView);
 		this.kind = ControlType.TREE_VIEW;
-		this.name = dstring::new(&app.tracker, "TreeView_");
+		this.name = dstring::new(mem, "TreeView_");
 		this.name.appendf("%d", tvNumber);
 		this._className = &tvClass[0];
 		this._parent = parent;
@@ -136,7 +136,7 @@ struct TreeNode
 		this.foreColor = newColor(0x000000);
 		this.lineColor = newColor(0x000000);
 		this._uniqNodeID = 100;
-		this.nodes.init(mem);
+		this.nodes.init(mem, 8);
 		tvNumber += 1;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -145,15 +145,16 @@ struct TreeNode
 
 	fn TreeNode* newTreeNode(String txt, int image_index = -1, int sel_image_index = -1)
 	{
-		TreeNode* this = allocator::new(&app.tracker, TreeNode);
+		TreeNode* this = allocator::new(mem, TreeNode);
 		this.text = txt;
 		this.selImageIndex = -sel_image_index;
 		this.imageIndex = image_index;
 		this.index = -1;
-		this._nodeCount = 0;
+		this._childCount = 0;
 		this.imageIndex = -1;
 		this.foreColor = newColor(0x000000);
 		this.backColor = newColor(0xFFFFFF);
+		this.nodes.init(mem, initial_capacity: 0);
 		return this;
 	}
 
@@ -171,12 +172,12 @@ struct TreeNode
 		}
 	}
 
-	/**
+	<*
 	 * @require this._isCreated
 	 * Add a node to tree view. There are two overloads for this macro.
 	 * 1. nodeOrText = TreeNode pointer. In this case, imgIndex & selImgIndex are irrelevent.
 	 * 2. nodeOrText = A string. In this case macro returns the newly created node pointer.
-	 **/
+	 *>
 	macro TreeNode* TreeView.addNode(TreeView* this, nodeOrText, imgIndex = -1, selImgIndex = -1)
 	{
 		$switch $typeof(nodeOrText):
@@ -188,12 +189,12 @@ struct TreeNode
 		$endswitch
 	}
 
-	/**
+	<*
 	 * @require this._isCreated
 	 * Add more than one node to tree view. There are two overloads for this macro.
 	 * 1. params = A group of TreeNode pointers
 	 * 2. params = A group of Strings
-	 **/
+	 *>
 	macro void TreeView.addNodes(TreeView* this, params...)
 	{
 		any p1 = params[0]; // This may be a node text or a TreeNode pointer
@@ -214,7 +215,6 @@ struct TreeNode
 
 	macro TreeNode* TreeView.addChildNode(TreeView* this, TreeNode* parent, nodeOrText, Allocator using = allocator::heap())
 	{
-		if (parent.nodes.size == 0) parent.nodes.init(mem);
 		$switch $typeof(nodeOrText):
 			$case String: return this.addChildNode1(nodeOrText, parent, using);
 			$case TreeNode*:				
@@ -224,13 +224,12 @@ struct TreeNode
 		$endswitch
 	}
 
-	/**
+	<*
 	 * @require this._isCreated
-	 **/
+	 *>
 	macro void TreeView.addChildNodes(TreeView* this, TreeNode* parent, childs...)
 	{
 		any p1 = chlds[0];
-		if (parent.nodes.size == 0) parent.nodes.init(mem);
 		switch (p1) {
 			case String: this.addChildNodes1(parent, childs);
 			case TreeNode*: this.addChildNodes2(parent, childs);
@@ -252,7 +251,6 @@ struct TreeNode
 	macro TreeNode* TreeView.insertChildNode(TreeView* this, TreeNode* parent, nodeOrText,
 													indexNum, Allocator using = allocator::heap())
 	{
-		if (parent.nodes.size == 0) parent.nodes.init(mem);
 		$switch $typeof(nodeOrText):
 			$case String: return this.insertChildNode1(nodeOrText, parent, indexNum, using);
 			$case TreeNode*:
@@ -266,7 +264,6 @@ struct TreeNode
 	{
 		TreeNode* tn = newTreeNode(makeStringFromAny(items[0]));
 		this.addNode2(tn);
-		if (tn.nodes.size == 0) tn.nodes.init(mem);
 		for (int i = 1; i < items.len; i++) {
 			this.addChildNode1(makeStringFromAny(items[i]), tn);
 		}
@@ -294,27 +291,23 @@ struct TreeNode
 
 	fn void TreeView.addNode2(TreeView* this, TreeNode* node) @private
 	{
-		// if (this.nodes.size == 0) {
-		// 	print("child node collection initing");
-		// 	this.nodes.init(&app.tracker);
-		// }
 		this.addNodeInternal(NodeOps.ADDNODE, node);
 	}
 
-	/**
+	<*
 	 * @require this._isCreated
-	 **/
+	 *>
 	fn TreeNode* TreeView.addChildNode1(TreeView* this, String nodeTxt, TreeNode* parentNode,
-											Allocator using = allocator::heap()) @private
+											Allocator using = mem) @private
 	{
 			TreeNode* tn = newTreeNode(nodeTxt);
 			this.addNodeInternal(NodeOps.ADDCHILD, tn, parentNode);
 			return tn;
 	}
 
-	/**
+	<*
 	 * @require this._isCreated
-	 **/
+	 *>
 	fn void TreeView.addChildNode2(TreeView* this, TreeNode* node, TreeNode* parent) @private
 	{
 		this.addNodeInternal(NodeOps.ADDCHILD, node, parent);
@@ -504,25 +497,6 @@ struct TreeNode
 		if (this.noButton && this.noLine) this._style ^= TVS_LINESATROOT;
 	}
 
-	// fn TVItemEx newTVItem(TreeNode* node, Char16** newTxtPtr) @private => @pool()  
-	// {
-	// 	TVItemEx tvi;
-	// 	tvi.mask = TVIF_TEXT | TVIF_PARAM;
-	// 	// print($typeof(node.text).nameof);
-	// 	// Char16* nodtext = node.text.to_temp_utf16()!!.ptr;
-		
-	// 	*newTxtPtr = nodtext;
-	// 	tvi.pszText = nodtext;
-	// 	tvi.cchTextMax = node.text.len;
-	// 	tvi.iImage = node.imageIndex;
-	// 	tvi.iSelectedImage = node.selImageIndex;
-	// 	tvi.stateMask = TVIS_USERMASK;
-	// 	if (node.imageIndex > -1) tvi.mask |= TVIF_IMAGE;
-	// 	if (node.selImageIndex > -1) tvi.mask |= TVIF_SELECTEDIMAGE;
-	// 	// if (node.foreColor.value != 0x000000) self._node_clr_change = True;
-	// 	return tvi;
-	// }
-
 	/**
 	 * required this._isCreated
 	**/
@@ -536,11 +510,11 @@ struct TreeNode
 		node._treeHwnd = this.handle;
 		node.nodeID = this._uniqNodeID; // We can identify any node with this
 		node._treePtr = this;
-		// Char16* nodtext = node.text.to_temp_utf16()!!.ptr;
 
 		TVItemEx tvi;
 		tvi.mask = TVIF_TEXT | TVIF_PARAM;
 		tvi.pszText = node.text.to_temp_utf16()!!.ptr;
+
 		tvi.cchTextMax = node.text.len;
 		tvi.iImage = node.imageIndex;
 		tvi.iSelectedImage = node.selImageIndex;
@@ -573,14 +547,14 @@ struct TreeNode
 				tis.hInsertAfter = TVI_LAST;
 				tis.hParent = pnode.handle;
 				node.parentNode = pnode;
-				node.index = pnode._nodeCount;
+				node.index = pnode._childCount;
 				errMsg = "Can't Add Child";
 
 			case NodeOps.INSERTCHILD:
 				tis.hParent = pnode.handle;
 				tis.hInsertAfter = pos == 0 ? TVI_FIRST : pnode.nodes[(usz)pos - 1].handle;
 				node.parentNode = pnode;
-				node.index = pnode._nodeCount;
+				node.index = pnode._childCount;
 				errMsg = "Can't Insert Child";
 		}
 
@@ -593,9 +567,8 @@ struct TreeNode
 				this.nodes.push(node);
 				this._nodeCount += 1;
 			} else {
-				if (pnode.nodes.size == 0) pnode.nodes.init(&app.tracker);
 				pnode.nodes.push(node);
-				pnode._nodeCount += 1;
+				pnode._childCount += 1;
 			}
 		} else {
 			ptf("%s node!, Error - %s", errMsg, api_GetLastError());
@@ -609,10 +582,13 @@ struct TreeNode
 
 	fn void TreeNode.destroy(TreeNode* this) @private
 	{
-		// ptf("Node is destroying, node text, node count : %s", this.text);
-		if (this.nodes.size) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
-		this.nodes.free(); // Finally free the container too.
-		allocator::free(&app.tracker, this);
+		// ptf("Node is destroying, node text %s, node count : %s", this.text, this._childCount);
+		if (this._childCount) {foreach (node: this.nodes) { node.destroy();}} // Recursive destruction
+		if (this.nodes.capacity > 0) {
+			// ptf("nodes list freed %s", this.text);
+			this.nodes.free(); // Finally free the container too.
+		}
+		allocator::free(mem, this);
 	}
 
 
@@ -622,15 +598,14 @@ struct TreeNode
 		// ptf("%s is destroyed", this.name.str());
 		
 		if (this._nodeCount > 0) {
-			print("starting node detsruction");
-			ptf("nc in tv dtor %s", this.nodes[0].text);
+			// print("starting node detsruction");
+			// ptf("nc in tv dtor %s", this.nodes[0].text);
 			foreach (node: this.nodes) { node.destroy();} // Recursive destruction
 		}
-		this.nodes.free();
+		if (this.nodes.capacity > 0) this.nodes.free();
 		this.name.free();
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
-		print("treeviuew full free");
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

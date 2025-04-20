@@ -124,9 +124,9 @@ struct ListViewColumn
 	fn ListView* newListView(Form* parent, int x = 10, int y = 10,
 								int width = 300, int height = 200)
 	{
-		ListView* this = allocator::new(&app.tracker, ListView);
+		ListView* this = allocator::new(mem, ListView);
 		this.kind = ControlType.LIST_VIEW;
-		this.name = dstring::new(&app.tracker, "ListView_");
+		this.name = dstring::new(mem, "ListView_");
 		this.name.appendf("%d", lvNumber);
 		this._className = &lvClass[0];
 		this._parent = parent;
@@ -152,6 +152,7 @@ struct ListViewColumn
 		this.headerBackColor = newColor(0xb3cccc);
 		this.headerForeColor = newColor(0x000000);
 		lvNumber += 1;
+		this.columns.init(mem, 5);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -169,7 +170,7 @@ struct ListViewColumn
 		this.textAlign = Alignment.LEFT;
 		this.index = -1;
 		this.hdrTextAlign = Alignment.CENTER;
-		this._wideText = String.to_utf16(txt, &app.tracker)!!;
+		this._wideText = String.to_utf16(txt, mem)!!;
 		this._hdrTxtFlag = DT_SINGLELINE | DT_VCENTER | DT_CENTER | DT_NOPREFIX;
 		return this;
 	}
@@ -232,37 +233,27 @@ struct ListViewColumn
 	{
 		any p1 = params[0]; // This may be the column count or a ListViewColumn pointer		
 		switch (p1.type) {
-			case String:
-				print("I am at 233");
-				// StrList colnames;
-				// IntList widths;
-				// colnames.tinit($vacount);
-				// widths.tinit($vacount);
-				NameAndWidth[$vacount] naws;
-				// defer {colnames.free(); widths.free();}
-				// foreach(item: params) {
-				// 	switch (item.type) {
-				// 		case String: colnames.push(*(String*)item);
-				// 		case int: widths.push(*(int*)item);
-				// 	}
-				// 	if (colnames.len() == widths.len()) {
-				// 		print(246);
-				// 		foreach (i, name : colnames) {
-				// 			this.addColumnStr(name, widths[i]);
-				// 		}
-				// 	} else {print(250);}
-				// }
+			case String:				
+				foreach ( item : params) {
+					ListViewColumn* lvc = newListViewColumn(*((String*)item), 100, -1);
+					this.addColumnInternal(lvc);
+				}			
+				
 			case ListViewColumn*:
 				foreach(vp: params) {
 					ListViewColumn* col = *(ListViewColumn**) vp.ptr;
 					this.addColumnInternal(col);
 				}
+			
 			default:
 				print("Unknown type");
 		}
 	}
 
-
+	/* Add columns with widths. 
+	 * colnames = An array of column names
+	 * widths = An array of widths.
+	*/
 	fn void ListView.addColumnsEx(ListView* this, String[] colnames, int[] widths) 
 	{
 		if (colnames.len == widths.len) {
@@ -289,9 +280,9 @@ struct ListViewColumn
 	fn void ListView.addRow(&this, String itemtxt, subitems...)
 	{
 		ListViewItem* lvitem = newListViewItem(itemtxt);
-		if (lvitem.subItems.size == 0) {
+		if (lvitem.subItems.capacity == 0) {
 			// print("add row inited");
-			lvitem.subItems.init(mem);
+			lvitem.subItems.init(mem, 8);
 		}
 		foreach (sitem: subitems) {
 			lvitem.subItems.push(makeStringFromAny(sitem));
@@ -518,7 +509,6 @@ struct ListViewColumn
 	fn ListViewColumn* ListView.addColumnStr(ListView* this, String txt,
 											int width = 100, int imgIndx = -1) @private
 	{
-		
 		ListViewColumn* lvc = newListViewColumn(txt, width, imgIndx);
 		this.addColumnInternal(lvc);
 		return lvc;
@@ -558,7 +548,7 @@ struct ListViewColumn
 	// Destructor for ListViewColumn
 	fn void ListViewColumn.destroy(ListViewColumn* this) @private
 	{
-		allocator::free(&app.tracker, this._wideText);
+		allocator::free(mem, this._wideText);
 		mem::free(this);
 	}
 
@@ -584,7 +574,7 @@ struct ListViewColumn
 		this.columns.free();
 		this.items.free();
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

@@ -68,7 +68,7 @@ struct TrayIcon
 **/
 fn TrayIcon* newTrayIcon( String tooltip, String iconpath = "")
 { 
-    TrayIcon* this = allocator::new(&app.tracker, TrayIcon);
+    TrayIcon* this = allocator::new(mem, TrayIcon);
     this.create_message_window();
 
     if (iconpath == "") {
@@ -234,7 +234,7 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
             api_Shell_NotifyIcon(NIM_DELETE, &this._nid);		    
             if (this._hTrayIcon) api_DestroyIcon(this._hTrayIcon);
             if (this._cmenuUsed) this.contextMenu.destroy();
-            allocator::free(&app.tracker, this);            
+            allocator::free(mem, this);            
             
 		case MM_TRAY_MSG:			
             switch(lp) {

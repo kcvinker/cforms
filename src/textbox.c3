@@ -56,9 +56,9 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	fn TextBox* newTextBox(Form* parent, String text, int x = 10, int y = 10,
 							int width = 140, int height = 27)
 	{
-		TextBox* this = allocator::new(&app.tracker, TextBox);
+		TextBox* this = allocator::new(mem, TextBox);
 		this.kind = ControlType.TEXT_BOX;
-		this.name = dstring::new(&app.tracker, "TextBox_");
+		this.name = dstring::new(mem, "TextBox_");
 		this.name.appendf("%d", tbNumber);
 		this._className = &tbClass[0];
 		this._parent = parent;
@@ -91,7 +91,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 			this.setSubClass(&tbWndProc);
 			this.setFontInternal();
 			if (this._cueReady) {
-				Char16* cuetext = String.to_utf16(this.cueStr.str_view(), &app.tracker)!!.ptr;
+				Char16* cuetext = String.to_utf16(this.cueStr.str_view(), mem)!!.ptr;
 				defer free(cuetext);
 				api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 			}
@@ -101,9 +101,9 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	// Set the cue banner text for this textbox
 	fn void TextBox.setCue(TextBox* this, String s)
 	{
-		this.cueStr = dstring::new(&app.tracker, s);
+		this.cueStr = dstring::new(mem, s);
 		if (this._isCreated) {
-			Char16* cuetext = String.to_utf16(this.cueStr.str_view(), &app.tracker)!!.ptr;
+			Char16* cuetext = String.to_utf16(this.cueStr.str_view(), mem)!!.ptr;
 			defer free(cuetext);
 			api_SendMessage(this.handle, EM_SETCUEBANNER, 0x0001, (Lparam)cuetext);
 		} else {
@@ -160,7 +160,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.cueStr.free();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

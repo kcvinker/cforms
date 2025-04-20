@@ -41,9 +41,9 @@ struct Label
 	fn Label* newLabel(Form* parent, String text,
 						int x = 10, int y = 10, int width = 0, int height = 0)
 	{
-		Label* this = allocator::new(&app.tracker, Label);
+		Label* this = allocator::new(mem, Label);
 		this.kind = ControlType.LABEL;
-		this.name = dstring::new(&app.tracker, "Label_");
+		this.name = dstring::new(mem, "Label_");
 		this.name.appendf("%d", lbNumber);
 		this._className = &lblClass[0];
 		this._parent = parent;
@@ -55,7 +55,7 @@ struct Label
 		this.width = width;
 		this.height = height;
 		this.text = text;
-		this._wideText = String.to_utf16(text, &app.tracker)!!.ptr;
+		this._wideText = String.to_utf16(text, mem)!!.ptr;
 		this.backColor = parent.backColor;
 		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
@@ -120,9 +120,9 @@ struct Label
 	{
 		this.name.free();
 		api_DeleteObject((Hgdiobj)this._bkBrush);
-		allocator::free(&app.tracker, this._wideText);
+		allocator::free(mem, this._wideText);
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

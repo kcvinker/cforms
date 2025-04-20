@@ -82,9 +82,9 @@ struct NumberPicker
 										EventHandler evtFn = null,
 										bool btnLeft = false)
 	{
-		NumberPicker* this = allocator::new(&app.tracker, NumberPicker);
+		NumberPicker* this = allocator::new(mem, NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
-		this.name = dstring::new(&app.tracker, "NumberPicker_");
+		this.name = dstring::new(mem, "NumberPicker_");
 		this._className = &npClass[0];
 		this._parent = parent;
 		this.font = parent.font;
@@ -104,8 +104,8 @@ struct NumberPicker
 		this._topEdgeFlag = BF_TOPLEFT;
 		this._botEdgeFlag = BF_BOTTOM;
 		this.textPos = Alignment.LEFT;
-		this.fmtStr = dstring::new(&app.tracker, "%d");
-		this._valStr = dstring::new(&app.tracker, "0");
+		this.fmtStr = dstring::new(mem, "%d");
+		this._valStr = dstring::new(mem, "0");
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		this._parent.controls.push(this);
@@ -295,8 +295,8 @@ struct NumberPicker
 	{
 		this._valStr.clear();
 		this._valStr.appendf(this.fmtStr.str_view(), this.value);
-		if (this._wideText) allocator::free(&app.tracker, this._wideText);
-		this._wideText = String.to_utf16(this._valStr.str_view(), &app.tracker)!!.ptr;
+		if (this._wideText) allocator::free(mem, this._wideText);
+		this._wideText = String.to_utf16(this._valStr.str_view(), mem)!!.ptr;
 		api_SetWindowText(this._buddyHandle, this._wideText);
 	}
 
@@ -396,13 +396,13 @@ struct NumberPicker
 		this.name.free();
 		this.fmtStr.free();
 		this._valStr.free();
-		allocator::free(&app.tracker, this._wideText);
+		allocator::free(mem, this._wideText);
 		api_DeleteObject((Hgdiobj)(this.font.handle));
 		api_DeleteObject((Hgdiobj)this._borderBrush);
 		api_DeleteObject((Hgdiobj)this._borderPen);
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

@@ -65,9 +65,9 @@ macro void @using(#ctor; @body(x))
     @body(gx);
 }
 
-/**
-* @require this.hdc != null
-**/
+<*
+    @require this.hdc != null
+*>
 fn void Graphics.finalize(this)
 {
     switch (this._dcMode) {
@@ -82,9 +82,9 @@ fn void Graphics.finalize(this)
     }   
 }
 
-/**
+<*
 * @require this.hdc != null
-**/
+*>
 fn Size Graphics.getStringSize(this, Char16* wtext, int tCount, Hfont hfont, bool retainFont = false)
 {
     Size ss;

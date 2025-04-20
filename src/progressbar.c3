@@ -59,9 +59,9 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	fn ProgressBar* newProgressBar(Form* parent, int x = 10, int y = 10,
 									int width = 200, int height = 25, bool perc = false)
 	{
-		ProgressBar* this = allocator::new(&app.tracker, ProgressBar);
+		ProgressBar* this = allocator::new(mem, ProgressBar);
 		this.kind = ControlType.PROGRESS_BAR;
-		this.name = dstring::new(&app.tracker, "ProgressBar_");
+		this.name = dstring::new(mem, "ProgressBar_");
 		this.name.appendf("%d", pbNumber);
 		this._className = &pgbClass[0];
 		this._parent = parent;
@@ -229,7 +229,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		// ptf("%s is destroyed", this.name.str());
 		this.name.free();
 		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 	}
 // End of Private functions
 

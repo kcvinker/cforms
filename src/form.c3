@@ -54,10 +54,16 @@ import std::io;
 macro makeIntResource($i) { return (Lpcwstr)(Ulongptr)(Word)$i; }
 
 alias ControlList = List{Control*};
-alias CmbMap = HashMap{Hwnd, Hwnd}; //To hold the handle of combobox's listbox
-alias MenuItemMap = HashMap{uint, MenuItem*};
-alias TimerMap = HashMap{Uintptr, Timer*};
 
+// alias MenuItemMap = HashMap{uint, MenuItem*};
+
+struct TimerInfo {Uintptr timerID; Timer* pTimer;}
+struct ComboInfo {Hwnd listHwnd; Hwnd cmbHwnd;}
+struct MenuInfo {uint menuID; MenuItem* pMenuItem;}
+
+alias TimerList = List{TimerInfo};
+alias CmbList = List{ComboInfo}; //To hold the handle of combobox's listbox
+alias MenuItems = List{MenuInfo}; //To hold the handle of combobox's listbox
 int frmNumber = 1;
 
 struct Form
@@ -77,8 +83,8 @@ struct Form
 	bool _isSizing;
 	bool _menuMapInited;
 	bool _menubarCreated;
-	CmbMap _comboMap;
-	MenuItemMap _menuItemMap;	
+	CmbList _comboList;
+	MenuItems _menuItemList;	
 	int _formID;
 	Hinstance hinst;
 	ControlList controls;
@@ -89,7 +95,7 @@ struct Form
 	Hbrush _menuHotBgBrush;
 	Hbrush _menuFrameBrush;
 	Colorref _menuGrayCref;
-	TimerMap _timerMap;
+	TimerList _timerList;
 	
 
 	// Common events
@@ -111,13 +117,15 @@ struct Form
 }
 
 
+
+
 // Public Functions
 	fn Form* newForm(String title, int width = 500, int height = 400)
 	{
 		
-		Form* this = allocator::new(&app.tracker, Form);
+		Form* this = allocator::new(mem, Form);
 		this.kind = ControlType.NONE;
-		this.name = dstring::new(&app.tracker, "Form_");
+		this.name = dstring::new(mem, "Form_");
 		this.name.appendf("%d", frmNumber);
 		this._formID = frmNumber;
 		this.text = title;
@@ -134,6 +142,7 @@ struct Form
 		this.font = newFont("Tahoma", 11);
 		this.hinst = app.hins;
 		this.backColor = app.defWinColor;
+		this._timerList.init(mem, 0);		
 		frmNumber += 1;
 		// $echo("newForm is okay");
 		return this;
@@ -156,8 +165,8 @@ struct Form
 		if (this.handle) {
 			
 			this._isCreated = true;
-			app.fmap[this.handle] = this;
-			this.controls.init(&app.tracker);
+			// app.fmap[this.handle] = this;
+			this.controls.init(mem); // Init to hold 16 controls.
 			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
 			this.setFontInternal();
 			// $echo("163");
@@ -195,6 +204,7 @@ struct Form
 	fn MenuBar* Form.addMenubar(&this, String... items)
 	{
 		newMenuBar(this);
+		this._menuItemList.init(mem, items.len);
 		this.menubar.addItems(...items);
 		return this.menubar;
 	}
@@ -202,12 +212,12 @@ struct Form
 	// Adds a timer to this window.
 	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null)
 	{
-		Timer* tm = allocator::new(&app.tracker, Timer);
+		Timer* tm = allocator::new(mem, Timer);
 		tm.interval = interval;
 		tm.onTick = tickHandler;
 		tm._idNum = (Uintptr)tm;
 		tm._parentHwnd = this.handle;
-		this._timerMap[tm._idNum] = tm;
+		this._timerList.push({tm._idNum, tm});
 		return tm;
 	}
 
@@ -437,9 +447,15 @@ struct Form
 
 	fn void Form.timerHandler(&this, Wparam wpm)
 	{
-		Uintptr key = (Uintptr)wpm;
-		Timer*? tm = this._timerMap.get(key);
-		if (try tm && tm.onTick) tm.onTick(this, &gea);
+		Uintptr tid = (Uintptr)wpm;
+		Timer* tm; //= this._timerList.get(key);
+		foreach (ti: this._timerList) {
+			if (ti.timerID == tid) {
+				tm = ti.pTimer;
+				break;
+			}
+		}
+		if (tm && tm.onTick) tm.onTick(this, &gea);
 	}
 
 	fn void Form.formDestroyHandler(&this) @private
@@ -448,15 +464,11 @@ struct Form
 		this.dtor();
 	}
 
-	fn MenuItem* Form.getMenuFromHmenu(&this, Hmenu hmenu) @private
+	fn MenuItem* Form.getMenuFromHmenu(&this, uint hmenu) @private
 	{
-		@pool()
-		{
-			foreach (menu: this._menuItemMap.tvalues())
-			{
-				if (menu.handle == hmenu) return menu;
-			}
-		};
+		foreach (mi: this._menuItemList) {
+			if (mi.menuID == hmenu) return mi.pMenuItem;
+		}
 		return null;
 	}
 
@@ -465,10 +477,18 @@ struct Form
 		switch (hiWord(wp)) {
 			case 0:  // menu click commands
 				uint menuID = (uint) loWord(wp);
-				if (try menu = this._menuItemMap[menuID]) {
-					if (menu.onClick) menu.onClick(menu, &gea);
+				MenuItem* pMenu;
+				if (this._menuItemList.size) {
+					foreach (mi: this._menuItemList) {
+						if (mi.menuID == menuID) {
+							pMenu = mi.pMenuItem;
+							break;
+						}
+					}
 				}
+				if (pMenu && pMenu.onClick) pMenu.onClick(pMenu, &gea);
 				return 0;
+
 			case 1: return 0; // # accelerator key commands
 			default:
 				Hwnd ctlHwnd = (Hwnd)lp;
@@ -523,7 +543,7 @@ struct Form
 
 	fn Lresult Form.menuSelectHandler(&this, Wparam wp, Lparam lp)
 	{
-		MenuItem* pmenu = this.getMenuFromHmenu((Hmenu) lp);
+		MenuItem* pmenu = this.getMenuFromHmenu((uint)lp);
 
 		// Could be an id of a child menu or an index of a child menu
 		uint mid = (uint)(loWord(wp)); 
@@ -532,7 +552,7 @@ struct Form
 			MenuItem* menu;
 			switch (hwwpm) {
 				case 33152: // A normal child menu. We can use mid ad menu id.
-					menu = this._menuItemMap[mid]!!;
+					menu = this.getMenuFromHmenu(mid);
 				case 33168: // A popup child menu. We can use mid as index.
 					menu = pmenu.getChildFromIndex(mid);
 			}
@@ -557,16 +577,14 @@ struct Form
 		if (this.menubar) {
 			this.menubar.destroy();			
 		}
-		if (this._timerMap.len()) {
-			@pool() {
-				foreach (tmr: this._timerMap.tvalues()) tmr.dtor();
-			};
-			this._timerMap.free();
+		if (this._timerList.len()) {
+			foreach (ti: this._timerList) ti.pTimer.dtor();
+			this._timerList.free();
 		}
 		
-		if (this._menuMapInited) this._menuItemMap.free();
+		if (this._menuItemList.size) this._menuItemList.free();
 		
-		if (!noComboUsed) this._comboMap.free();
+		if (this._comboList.capacity) this._comboList.free();
 		
 		if (this._cmenuUsed) this.contextMenu.destroy();
 		
@@ -574,7 +592,7 @@ struct Form
 			print("posinting quit msg");
 			api_PostQuitMessage(0);
 		}
-		allocator::free(&app.tracker, this);
+		allocator::free(mem, this);
 		
 		// $echo("Compile check");
 	}
@@ -692,11 +710,15 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_CTLCOLORLISTBOX:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			Hwnd hc = (Hwnd)lp;
-			if (try cmbHwn = this._comboMap[hc]) {
-				return api_SendMessage(cmbHwn, MM_COLOR_LBOX, wp, lp);
-			} else {
-				return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);
+			if (this._comboList.size) {
+				foreach (ci: this._comboList) {
+					if (ci.listHwnd == hc) {
+						hc = ci.cmbHwnd;
+						break;
+					}
+				}
 			}
+			return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);			
 
 		case WM_MEASUREITEM:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
@@ -716,12 +738,12 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 
 		case WM_INITMENUPOPUP:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-			MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
+			MenuItem* menu = this.getMenuFromHmenu((uint) wp);
 			if (menu && menu.onPopup) menu.onPopup(menu, &gea);
 
 		case WM_UNINITMENUPOPUP:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-        	MenuItem* menu = this.getMenuFromHmenu((Hmenu) wp);
+        	MenuItem* menu = this.getMenuFromHmenu((uint) wp);
         	if (menu && menu.onCloseup) menu.onCloseup(menu, &gea);
 
 		case WM_CONTEXTMENU: 
