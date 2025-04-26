@@ -87,7 +87,7 @@ struct NumberPicker
 		this.name = dstring::new(mem, "NumberPicker_");
 		this._className = &npClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = NPSTYLE;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -108,6 +108,7 @@ struct NumberPicker
 		this._valStr = dstring::new(mem, "0");
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (evtFn) this.onValueChanged = evtFn;
 		npNumber += 1;
@@ -392,16 +393,11 @@ struct NumberPicker
 	// Freeing resources used for this NumberPicker.
 	fn void NumberPicker.dtor(NumberPicker* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
 		this.fmtStr.free();
 		this._valStr.free();
-		allocator::free(mem, this._wideText);
-		api_DeleteObject((Hgdiobj)(this.font.handle));
 		api_DeleteObject((Hgdiobj)this._borderBrush);
 		api_DeleteObject((Hgdiobj)this._borderPen);
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

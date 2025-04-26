@@ -63,7 +63,7 @@ struct Calendar
 		this.name.appendf("%d", calNumber);
 		this._className = &calClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -74,6 +74,7 @@ struct Calendar
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		calNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -165,9 +166,7 @@ struct Calendar
 	// Freeing resources used for this Calendar.
 	fn void Calendar.dtor(Calendar* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

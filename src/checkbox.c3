@@ -46,7 +46,7 @@ struct CheckBox
 		this.name.appendf("%d", cbNumber);
 		this._className = &btnClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX;
 		this._exStyle = WS_EX_LTRREADING | WS_EX_LEFT;
 		this._textStyle = DT_SINGLELINE | DT_VCENTER;
@@ -62,6 +62,7 @@ struct CheckBox
 		this._autoSizable = true;
 		this._textable = true;
 		cbNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		
@@ -133,11 +134,7 @@ struct CheckBox
 	// Freeing resources used for this CheckBox.
 	fn void CheckBox.dtor(CheckBox* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(mem, this._wideText);
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

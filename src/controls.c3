@@ -336,6 +336,19 @@ struct Control
 		}
 	}
 
+	// Base destructor for all control class.
+	// This will destroy/free common control resources.
+	fn void Control.baseDestroy(&this) 
+	{
+		// ptf("%s is going to destroy", this.name);
+		this.name.free();
+		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
+		if (this._wideText) allocator::free(mem, this._wideText);
+		if (this._cmenuUsed) this.contextMenu.destroy();
+		if (this.font.handle) this.font.destroy();
+
+	}
+
 // End private functions
 
 // Control Event Handlers

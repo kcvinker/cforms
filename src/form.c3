@@ -83,20 +83,19 @@ struct Form
 	bool _isSizing;
 	bool _menuMapInited;
 	bool _menubarCreated;
-	CmbList _comboList;
-	MenuItems _menuItemList;	
 	int _formID;
-	Hinstance hinst;
-	ControlList controls;
+	CmbList _comboList;
+	MenuItems _menuItemList;
+	ControlList controls;	
+	TimerList _timerList;
+	Hinstance hinst;	
 	MenuBar* menubar;
 	Font _menuFont;
 	Hbrush _menuGrayBrush;
 	Hbrush _menuDefBgBrush;
 	Hbrush _menuHotBgBrush;
 	Hbrush _menuFrameBrush;
-	Colorref _menuGrayCref;
-	TimerList _timerList;
-	
+	Colorref _menuGrayCref;	
 
 	// Common events
 	EventHandler onLoad;
@@ -182,14 +181,12 @@ struct Form
 		if (!app.mainLoopOn) {
 			app.mainLoopOn = true;
 			this._isMainWindow = true;
-			Msg pMsg;
-			// $echo("177");
+			Msg pMsg; 
 			while (api_GetMessage(&pMsg, null, 0, 0) > 0) {
 				api_TranslateMessage(&pMsg);
 				api_DispatchMessage(&pMsg);
 			}
 		}
-		print("app is fully freed 183");
 		app.finalize(); 
 	}
 
@@ -588,8 +585,7 @@ struct Form
 		
 		if (this._cmenuUsed) this.contextMenu.destroy();
 		
-		if (this._isMainWindow) {
-			print("posinting quit msg");
+		if (this._isMainWindow) { 
 			api_PostQuitMessage(0);
 		}
 		allocator::free(mem, this);

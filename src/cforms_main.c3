@@ -61,7 +61,7 @@ fn void getSystemDPI()
 
 fn void AppData.finalize(&this)
 {
-	print("app is fully freed");
+	 
 	if (this.nidUsed) {		
 		if(this.trayHwnd) api_DestroyWindow(this.trayHwnd);
 	}

@@ -38,7 +38,7 @@ macro void @withGraphics(hdc, pen; @body(x))
     api_SelectObject(hdc, (Hgdiobj)pen);
     defer {
         Bool p = api_RestoreDC(hdc, this._iDC);
-        ptf("Restored dc %d", p);
+        //ptf("Restored dc %d", p);
     }
     @body(this);    
 }

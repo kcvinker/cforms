@@ -47,7 +47,7 @@ struct Label
 		this.name.appendf("%d", lbNumber);
 		this._className = &lblClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = LBSTYLE;
 		this._exStyle = 0;// 0x00000004;
 		this.xpos = x;
@@ -62,6 +62,7 @@ struct Label
 		this._autoSizable = true;
 		this._textable = true;
 		lbNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -118,10 +119,7 @@ struct Label
 	// Freeing resources used for this Label.
 	fn void Label.dtor(Label* this) @private
 	{
-		this.name.free();
-		api_DeleteObject((Hgdiobj)this._bkBrush);
-		allocator::free(mem, this._wideText);
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

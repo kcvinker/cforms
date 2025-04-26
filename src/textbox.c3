@@ -62,7 +62,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.name.appendf("%d", tbNumber);
 		this._className = &tbClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = 0x50010080;
 		this._exStyle = 0x00000204;
 		this.xpos = x;
@@ -77,6 +77,7 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 		this.textAlign = Alignment.CENTER;
 		this._textable = true;
 		tbNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -155,11 +156,8 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 	// Freeing resources used for this TextBox.
 	fn void TextBox.dtor(TextBox* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
 		this.cueStr.free();
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

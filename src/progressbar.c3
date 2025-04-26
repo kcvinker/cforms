@@ -65,7 +65,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		this.name.appendf("%d", pbNumber);
 		this._className = &pgbClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -81,6 +81,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 		this.marqueeSpeed = 30; // Animation updated in each 30 milliseconds.
 		this.showPercentage = perc;
 		pbNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -226,9 +227,7 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 	// Freeing resources used for this ProgressBar.
 	fn void ProgressBar.dtor(ProgressBar* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

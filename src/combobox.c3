@@ -43,10 +43,10 @@ struct ComboBox
 {
 	inline Control control;
 	int selectedIndex;
-	bool hasInput;
-	StrList items;
-	bool _reEnabled;
 	int _ctID;
+	bool hasInput;
+	bool _reEnabled;
+	StrList items; 	
 	Hwnd _oldHwnd;
 
 	EventHandler onSelectionChanged;
@@ -75,7 +75,7 @@ struct ComboBox
 		this.name.appendf("%d", cmbNumber);
 		this._className = &cmbClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE;
 		this._exStyle = WS_EX_CLIENTEDGE;
 		this.xpos = x;
@@ -87,6 +87,7 @@ struct ComboBox
 		this.selectedIndex = -1;
 		this.items.init(mem, 10);
 		cmbNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -312,14 +313,11 @@ struct ComboBox
 	// Freeing resources used for this ComboBox.
 	fn void ComboBox.dtor(ComboBox* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
 		if (this.items.len()) {			
 			foreach (item : this.items) item.free(mem); 
 		}
-		this.items.free();
-		if (this._cmenuUsed) this.contextMenu.destroy();
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
+		this.items.free();		
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

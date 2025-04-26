@@ -75,7 +75,7 @@ enum DTPFormat : int(String descrption, int value )
 		this.name.appendf("%d", dtpNumber);
 		this._className = &dtpClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -87,6 +87,7 @@ enum DTPFormat : int(String descrption, int value )
 		this.backColor = newColor(0xffffff);
 		this.foreColor = newColor(0x000000);
 		dtpNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -176,10 +177,7 @@ enum DTPFormat : int(String descrption, int value )
 	// Freeing resources used for this DateTimePicker.
 	fn void DateTimePicker.dtor(DateTimePicker* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

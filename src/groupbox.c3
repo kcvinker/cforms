@@ -40,7 +40,7 @@ struct GroupBox
 		this.text = text == "" ? this.name.str_view() : text;
 		this._wideText = String.to_utf16(this.text, mem)!!.ptr;
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_GROUPBOX | BS_NOTIFY | BS_TEXT | BS_TOP;
 		this._exStyle = WS_EX_TRANSPARENT | WS_EX_CONTROLPARENT;
 		this.xpos = x;
@@ -52,6 +52,7 @@ struct GroupBox
 		this._textable = true;
 		this._normalText = true;
 		gbNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -149,12 +150,8 @@ struct GroupBox
 	// Freeing resources used for this GroupBox.
 	fn void GroupBox.dtor(GroupBox* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		if (this._pen) api_DeleteObject((Hgdiobj)this._pen);
-		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(mem, this._wideText);
+		if (this._pen) api_DeleteObject((Hgdiobj)this._pen); 
+		this.baseDestroy(); 
 		allocator::free(mem, this);
 	}
 // End of Private functions

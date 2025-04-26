@@ -29,9 +29,22 @@ fn Font newFont(String fontName, int fontSize,
 	return f;
 }
 
-// fn void Font.destroy(Font* this) {
+fn void Font.destroy(Font* this) {
+	if (this.handle) {
+		api_DeleteObject((Hgdiobj)this.handle);
+		// ptf("Font deletion result %s", x);
+	}
+}
 
-// }
+fn void Font.cloneFrom(&this, Font aFont) {
+	this.name = aFont.name;
+	this.size = aFont.size;
+	this.weight = aFont.weight;
+	this.italics = aFont.italics;
+	this.underline = aFont.underline;
+	this.strikeout = aFont.strikeout;
+	if (aFont.handle) this.createHandle();
+}
 
 fn void Font.createHandle(&this) => @pool()
 {

@@ -130,7 +130,7 @@ struct ListViewColumn
 		this.name.appendf("%d", lvNumber);
 		this._className = &lvClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this.headerFont = this.font;
 		this._style = LVSTYLE;
 		this._exStyle = 0;
@@ -152,6 +152,7 @@ struct ListViewColumn
 		this.headerBackColor = newColor(0xb3cccc);
 		this.headerForeColor = newColor(0x000000);
 		lvNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this.columns.init(mem, 5);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -362,12 +363,10 @@ struct ListViewColumn
             if (lvcol.imgOnRight) lvc.fmt |= LVCFMT_BITMAP_ON_RIGHT;
 		}
 
-        lvcol.lvc = &lvc;
-		ptf("is lv created %s", this._isCreated);
+        lvcol.lvc = &lvc; 
         if (this._isCreated) {
-			Lresult x = this.sendMsg(LVM_INSERTCOLUMNW, lvcol.index, &lvc);
-			ptf("insert col res %s", x);
-		} else {print("lv is not created");}
+			this.sendMsg(LVM_INSERTCOLUMNW, lvcol.index, &lvc); 
+		}  
         this.columns.push(lvcol);
         this._colIndex += 1;
 	}
@@ -563,8 +562,6 @@ struct ListViewColumn
 	// Freeing resources used for this ListView.
 	fn void ListView.dtor(ListView* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
 		if (this._itemIndex > -1) {
 			foreach (item: this.items) {item.destroy();}
 		}
@@ -573,7 +570,7 @@ struct ListViewColumn
 		}
 		this.columns.free();
 		this.items.free();
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

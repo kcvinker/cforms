@@ -47,7 +47,7 @@ struct RadioButton
 		this.name.appendf("%d", rbNumber);
 		this._className = &btnClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON;
 		this._exStyle = WS_EX_LTRREADING | WS_EX_LEFT;
 		this._textStyle = DT_SINGLELINE | DT_VCENTER;
@@ -63,6 +63,7 @@ struct RadioButton
 		this._autoSizable = true;
 		this._textable = true;
 		rbNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this.onCheckedChanged = evtFn;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -139,11 +140,7 @@ struct RadioButton
 	// Freeing resources used for this RadioButton.
 	fn void RadioButton.dtor(RadioButton* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
-		allocator::free(mem, this._wideText);
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

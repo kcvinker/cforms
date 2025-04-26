@@ -125,7 +125,7 @@ struct TreeNode
 		this.name.appendf("%d", tvNumber);
 		this._className = &tvClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = TVSTYLE;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -138,6 +138,7 @@ struct TreeNode
 		this._uniqNodeID = 100;
 		this.nodes.init(mem, 8);
 		tvNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -595,16 +596,11 @@ struct TreeNode
 	// Freeing resources used for this TreeView.
 	fn void TreeView.dtor(TreeView* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		
 		if (this._nodeCount > 0) {
-			// print("starting node detsruction");
-			// ptf("nc in tv dtor %s", this.nodes[0].text);
 			foreach (node: this.nodes) { node.destroy();} // Recursive destruction
 		}
 		if (this.nodes.capacity > 0) this.nodes.free();
-		this.name.free();
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

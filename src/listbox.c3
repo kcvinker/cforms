@@ -77,7 +77,7 @@ struct ListBox
 		this.name.appendf("%d", lbxNumber);
 		this._className = &lbxClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_BORDER  | LBS_NOTIFY | LBS_HASSTRINGS;
 		this._exStyle = 0;
 		this.xpos = x;
@@ -89,6 +89,7 @@ struct ListBox
 		this._dummyIndex = -1;
 		this.selectedIndex = -1;
 		lbxNumber += 1;
+		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -314,12 +315,9 @@ struct ListBox
 	// Freeing resources used for this ListBox.
 	fn void ListBox.dtor(ListBox* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
 		this.selectedIndices.free();
 		this.items.free();
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions

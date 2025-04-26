@@ -121,7 +121,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		this.name.appendf("%d", btnNumber);
 		this._wideText = String.to_utf16(text, mem)!!.ptr;
 		this._parent = parent;
-		this.font = parent.font;
+		// this.font = parent.font;
 		this._style = btnStyle;
 		this._exStyle = 0;// 0x00000004;
 		this.xpos = x;
@@ -133,6 +133,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 		this.foreColor = {};
 		this._textable = true;
 		btnNumber += 1;
+		this.font.cloneFrom(parent.font);
 		if (evtFn) this.onClick = evtFn;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -279,9 +280,7 @@ fn void GradDraw.dtor(GradDraw* g) @private
 			case 2..3: this._fdraw.dtor();
 			case 4..5: this._gdraw.dtor();
 		}
-		this.name.free();
-		if (this._cmenuUsed) this.contextMenu.destroy();
-		allocator::free(mem, this._wideText);
+		this.baseDestroy();		
 		allocator::free(mem, this);
 	}
 // End of Private functions

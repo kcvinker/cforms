@@ -114,7 +114,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 		this.name.appendf("%d", tkbNumber);
 		this._className = &trkClass[0];
 		this._parent = parent;
-		this.font = parent.font;
+		//this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS;
 		this._exStyle = WS_EX_RIGHTSCROLLBAR | WS_EX_LTRREADING |WS_EX_LEFT;;
 		this.xpos = x;
@@ -138,6 +138,7 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
         this.ticColor = newColor(0x3385ff);
 		this.customDraw = true;
 		tkbNumber += 1;
+
 		this.onValueChanged = evtFn;
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
@@ -516,11 +517,8 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 	// Freeing resources used for this TrackBar.
 	fn void TrackBar.dtor(TrackBar* this) @private
 	{
-		// ptf("%s is destroyed", this.name.str());
-		this.name.free();
 		this._tdList.free();
-		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
-		if (this._cmenuUsed) this.contextMenu.destroy();
+		this.baseDestroy();
 		allocator::free(mem, this);
 	}
 // End of Private functions
