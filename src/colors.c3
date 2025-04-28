@@ -206,7 +206,7 @@ fn Colorref clrRefFromRGB(uint red, uint green, uint blue) @inline
 
 fn Hbrush createGradientBrush(Hdc dc, Rect rct, RgbColor c1, RgbColor c2, bool isRtL = false )
 {
-    Hbrush tBrush;
+    
     Hdc memHDC = api_CreateCompatibleDC(dc);
     Hbitmap hBmp = api_CreateCompatibleBitmap(dc, rct.right, rct.bottom);
     int loopEnd = isRtL ? rct.right : rct.bottom;
@@ -226,7 +226,7 @@ fn Hbrush createGradientBrush(Hdc dc, Rect rct, RgbColor c1, RgbColor c2, bool i
         g = c1.green + (i * (uint) (c2.green - c1.green) / loopEnd);
         b = c1.blue + (i * (uint) (c2.blue - c1.blue) / loopEnd);
 
-        tBrush = api_CreateSolidBrush(clrRefFromRGB(r, g, b));
+        Hbrush tBrush = api_CreateSolidBrush(clrRefFromRGB(r, g, b));
         defer api_DeleteObject((Hgdiobj)tBrush);
 
         tRct.left = isRtL ? i : 0;
