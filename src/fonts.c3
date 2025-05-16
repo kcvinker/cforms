@@ -36,14 +36,22 @@ fn void Font.destroy(Font* this) {
 	}
 }
 
-fn void Font.cloneFrom(&this, Font aFont) {
-	this.name = aFont.name;
-	this.size = aFont.size;
-	this.weight = aFont.weight;
-	this.italics = aFont.italics;
-	this.underline = aFont.underline;
-	this.strikeout = aFont.strikeout;
-	if (aFont.handle) this.createHandle();
+fn void Font.cloneFrom(&this, Font src) {
+	this.name = src.name;
+	this.size = src.size;
+	this.weight = src.weight;
+	this.italics = src.italics;
+	this.underline = src.underline;
+	this.strikeout = src.strikeout;
+	if (src.handle) {
+		if (this.handle) api_DeleteObject((Hgdiobj)this.handle);
+		LogFont lf;
+		if (api_GetObject(src.handle, LogFont.sizeof, (Pvoid)&lf)) {
+			this.handle = api_CreateFontIndirect(&lf);
+		} else {
+			ptf("font clone error %d", api_GetLastError());
+		}
+	}
 }
 
 fn void Font.createHandle(&this) => @pool()
@@ -66,6 +74,13 @@ fn void Font.createHandle(&this) => @pool()
 	if (this.handle) this._isCreated = true;
 
 }
+
+// fn void Font.createClonedHandle(&this, Hfont srcHandle) {
+// 	LogFont lf;
+// 	if (api_GetObject(srcHandle, LogFont.sizeof, (Pvoid)&lf)) {
+// 		this.handle = api_CreateFontIndirect(&lf);
+// 	}
+// }
 
 // fn void Font.createFontHandle(Font* f, Hwnd hwnd) {
 // 	Hdc hdc = api_GetDC(hwnd);

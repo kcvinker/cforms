@@ -367,6 +367,7 @@ fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 		case MM_COLOR_LBOX:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			return (Lresult) this.colorMsgHandler(wp);
+			
 		case MM_CTL_COMMAND:
 			ComboBox* this = bitcast(refData, ComboBox*);
 			this.wmCommandHandler(wp);
