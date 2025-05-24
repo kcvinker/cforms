@@ -11,7 +11,16 @@ struct Graphics
     int _iDC;
 }
 
-fn Graphics newGraphics(DCMode dcMode, Hwnd hwnd)
+macro Graphics newGraphics(DCMode dcMode, value) 
+{
+    var $Type = $typeof(value);
+	$switch $Type:
+		$case Hwnd: return newGraphics1(dcMode, value);
+		$case Wparam: return newGraphics2(value);
+	$endswitch
+} 
+
+fn Graphics newGraphics1(DCMode dcMode, Hwnd hwnd)
 {
     Graphics this;
     this._dcMode = dcMode;
@@ -26,6 +35,13 @@ fn Graphics newGraphics(DCMode dcMode, Hwnd hwnd)
         default: 
             break;
     }
+    return this;
+}
+
+fn Graphics newGraphics2(Wparam wp) {
+    Graphics this;
+    this._dcMode = DCMode.NONE;
+    this.hdc = (Hdc)wp;
     return this;
 }
 
@@ -54,7 +70,7 @@ macro Hgdiobj Graphics.selectObject(this, obj, flag = 0)
         return api_SelectObject(this.hdc, (Hgdiobj)obj);
     } else {
         api_SelectObject(this.hdc, (Hgdiobj)obj);
-        return null;
+        return null; 
     }
 }
 
@@ -104,6 +120,13 @@ fn void Graphics.textOut(this, Char16* wtext, int x, int y, int tCount, Color tC
     api_TextOut(this.hdc, x, y,  wtext, tCount);
 }
 
+fn void Graphics.textOut2(this, WideString* wtext, int x, int y, Color tColor)
+{
+    api_SetBkMode(this.hdc, TRANSPARENT);
+    api_SetTextColor(this.hdc, tColor.ref);
+    api_TextOut(this.hdc, x, y,  wtext.ptr(), wtext.wlen());
+}
+
 fn void Graphics.drawLine(this, int x, int y, int p2, Hpen pen)
 {
     Hpen hOldPen = (Hpen)api_SelectObject(this.hdc, (Hgdiobj)pen);
@@ -117,21 +140,5 @@ fn void Graphics.drawFrameRect(this, Rect* prc, Hbrush hbr)
     api_FrameRect(this.hdc, prc, hbr);
 }
 
-// class Graphics {
-//     HDC hdc;
-//     int idc;
 
-//     Graphics(HDC hdc) {
-//         this.hdc = hdc;
-//         this.idc = SaveDC(hdc);
-//     }
-
-//     ~Graphics() {
-//         RestoreDC(this.hdc, this.idc);
-//     }
-
-//     void doSomethingWithHDC() {
-//         // draw something.
-//     }
-// }
 

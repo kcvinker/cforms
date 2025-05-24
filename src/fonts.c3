@@ -32,7 +32,7 @@ fn Font newFont(String fontName, int fontSize,
 fn void Font.destroy(Font* this) {
 	if (this.handle) {
 		api_DeleteObject((Hgdiobj)this.handle);
-		// ptf("Font deletion result %s", x);
+		// ptf("Font deletion result %s", x); 
 	}
 }
 
@@ -51,18 +51,19 @@ fn void Font.cloneFrom(&this, Font src) {
 		} else {
 			ptf("font clone error %d", api_GetLastError());
 		}
+	} else {
+		this.createHandle();
 	}
 }
 
-fn void Font.createHandle(&this) => @pool()
+fn void Font.createHandle(&this)
 {
 	double scale = app.scaleFactor / 100;
     int fsiz = (int)(scale * (double)this.size);  
     int iHeight = -api_MulDiv(fsiz , app.sysDPI, 72);    
 	
 	LogFont lf;
-	Char16[] s = this.name.to_temp_utf16()!!;	 
-	lf.lfFaceName[:s.len] = s[:^0]; // Copying wchar array to lfFaceName
+	fillBuffer(lf.lfFaceName[..], this.name);
 	lf.lfHeight = iHeight;
 	lf.lfWeight =  (long)((int)this.weight.ordinal * 100) + 100;
 	lf.lfCharSet = DEFAULT_CHARSET;
@@ -72,26 +73,5 @@ fn void Font.createHandle(&this) => @pool()
 	lf.lfPitchAndFamily = DEFAULT_PITCH;
 	this.handle = api_CreateFontIndirect(&lf);
 	if (this.handle) this._isCreated = true;
-
 }
 
-// fn void Font.createClonedHandle(&this, Hfont srcHandle) {
-// 	LogFont lf;
-// 	if (api_GetObject(srcHandle, LogFont.sizeof, (Pvoid)&lf)) {
-// 		this.handle = api_CreateFontIndirect(&lf);
-// 	}
-// }
-
-// fn void Font.createFontHandle(Font* f, Hwnd hwnd) {
-// 	Hdc hdc = api_GetDC(hwnd);
-// 	int iHeight = -api_MulDiv(f.size, api_GetDeviceCaps(hdc, LOGPIXELSY), 72);
-// 	api_ReleaseDC(hwnd, hdc);
-// 	int fweight = (f.weight * 100) + 100;
-// 	f.handle = api_CreateFont(iHeight, 0, 0, 0, fweight, (Dword)f.italics,
-// 								(Dword)f.underline, (Dword)false, (Dword)1,
-// 								(Dword)OUT_DEFAULT_PRECIS, (Dword)CLIP_DEFAULT_PRECIS,
-// 								(Dword)DEFAULT_QUALITY, (Dword)DEFAULT_PITCH, String.to_utf16(f.name))!!;
-// 	// io::printfn("font hwnd %d", f.handle);
-// 	if (f.handle) f._isCreated = true;
-
-// }

@@ -14,6 +14,10 @@ module cforms;
 // import std::io;
 
 int gbNumber = 1;
+const Dword PEN_WIDTH = 4;
+Dword gbStyleFlag = WS_CHILD | WS_VISIBLE | BS_GROUPBOX | BS_NOTIFY | BS_TEXT | BS_TOP | WS_OVERLAPPED | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+Char16[1] ewsa = {0};
+const Char16* EMP_WSTR_PTR = &ewsa[0];
 
 // GroupBox control struct
 struct GroupBox
@@ -21,16 +25,25 @@ struct GroupBox
 	inline Control control;
 	Hwnd _lbHwnd;
 	Hpen _pen;
+	Rect _rct;
+	Hdc _hdc;
+	Hbitmap _hbmp;
 	int _txtWidth;
 	bool _drawDisabled;
 	bool _normalText;
+	bool _dbFill;
+	bool _getWidth;
+	bool _themeOff;
 	Size _txtSize;
+	GroupBoxStyle _gbStyle;
+	ControlList _controls;
 }
 
 // Public functions
 	// GroupBox constructor - Create and returns a New GroupBox struct
-	fn GroupBox* newGroupBox(Form* parent, String text = "",
-								int x = 10, int y = 10, int width = 230, int height = 250)
+	fn GroupBox* newGroupBox(Form* parent, String text = "", int x = 10, 
+							int y = 10, int width = 230, int height = 250, 
+							GroupBoxStyle style = GroupBoxStyle.SYSTEM)
 	{
 		GroupBox* this = allocator::new(mem, GroupBox);
 		this.kind = ControlType.GROUP_BOX;
@@ -40,9 +53,8 @@ struct GroupBox
 		this.text = text == "" ? this.name.str_view() : text;
 		this._wideText = String.to_utf16(this.text, mem)!!.ptr;
 		this._parent = parent;
-		//this.font = parent.font;
-		this._style = WS_CHILD | WS_VISIBLE | BS_GROUPBOX | BS_NOTIFY | BS_TEXT | BS_TOP;
-		this._exStyle = WS_EX_TRANSPARENT | WS_EX_CONTROLPARENT;
+		this._style = gbStyleFlag;
+		this._exStyle = WS_EX_CONTROLPARENT;
 		this.xpos = x;
 		this.ypos = y;
 		this.width = width;
@@ -51,10 +63,16 @@ struct GroupBox
 		this.foreColor = newColor(0x000000);
 		this._textable = true;
 		this._normalText = true;
+		this._dbFill = true;
+		this._getWidth = true;
+		this._gbStyle = style;
+		this._controls.init(mem, 8); 
 		gbNumber += 1;
 		this.font.cloneFrom(parent.font);
+		this._wtext = newWideString(this.text);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
+		ptf("gb bkg %d", this.backColor.value);
 		return this;
 	}
 
@@ -62,87 +80,124 @@ struct GroupBox
 	fn void GroupBox.createHandle(GroupBox* this)
 	{
 		this._bkBrush = api_CreateSolidBrush(this.backColor.ref);
-		this._pen = api_CreatePen(PS_SOLID, 1, this.backColor.ref);
+		if (this._gbStyle == GroupBoxStyle.OVERRRIDEN) {
+			this._pen = api_CreatePen(PS_SOLID, PEN_WIDTH, this.backColor.ref);
+		}
+		this._rct = {0, 0, this.width, this.height};
 		this._drawMode = 2;
 		this.createInternal();
 		if (this.handle) {
+			if (this._gbStyle == GroupBoxStyle.CLASSIC) {
+				api_SetWindowTheme(this.handle, EMP_WSTR_PTR, EMP_WSTR_PTR);
+            	this._themeOff = true;
+			}
 			this.setSubClass(&gbWndProc);
 			this.setFontInternal();
-			this.getTextBounds();
+			// this.getTextBounds();
 		}
 	}
+
+	// Set GroupBox's fore color. Fore color changing is tricky.
+	// Either we need to turn off the theme drawing by windows or...
+	// we need to over-write the text. So you can choose one among...
+	// two styles. Classic is default, which turning off theme drawing.
+	// Overriden style tricks winodws by returning 0 in wm_gettextlength...
+	// message so windows won't draw the text. Then we draw our text.
+	fn void GroupBox.setForeColor(&this, uint clr, GroupBoxStyle style = GroupBoxStyle.CLASSIC)
+	{
+		print("1002");
+		this.foreColor.updateColor(clr);
+		this._gbStyle = style;
+		if (this._gbStyle == GroupBoxStyle.CLASSIC) {
+			if (!this._themeOff) {
+				api_SetWindowTheme(this.handle, EMP_WSTR_PTR, EMP_WSTR_PTR);
+            	this._themeOff = true;
+			}			
+		}
+		if (this._gbStyle == GroupBoxStyle.OVERRRIDEN) {
+			this._getWidth = true;
+			if (!this._pen) this._pen = api_CreatePen(PS_SOLID, PEN_WIDTH, this.backColor.ref);
+		}
+		this._checkRedraw();
+	}
+
+	// Set GroupBox's back color.
+	fn void GroupBox.setBackColor(&this, uint clr)
+	{
+		this.backColor.updateColor(clr);
+		this.resetGDIObjects(true);
+		this._checkRedraw();
+	}
+
+	// Set width and/or height of Groupbox.
+	fn void GroupBox.setSize(&this, int w, int h) {
+		this.width = w;
+		this.height = h;
+		this.resetGDIObjects(false);
+		if(this._isCreated) this._setPos(SWP_NOZORDER);
+	}
+
+	fn void GroupBox.setText(&this, String txt) {
+		this.text = txt;
+		if (this._wtext) {
+			this._wtext.updateBuffer(txt);
+		} else {
+			this._wtext = newWideString(txt);
+		}
+	}
+
+	// Either pass a Font object or 3 parameters.
+	// (1) Font name, (2) Font size, (3) Font Weight enum
+	macro void GroupBox.setFont(&this, ... ) {
+		$if $vacount == 1 && @typeis($vaarg[0], Font): 
+			this.font.cloneFrom($vaarg[0]);
+			this.sendMsg(WM_SETFONT, this.font.handle, 1);
+			this._getWidth = true;
+			this._checkRedraw();
+		$else 
+			$if $vacount == 3 && @typeis($vaarg[0], String):
+				this._fontSetter($vasplat);
+			$endif
+		$endif
+	}
+
+
 // End of Public functions
 
 // Private functions
 
-	fn void GroupBox.getTextBounds(GroupBox* this) @private
+	fn void GroupBox.resetGDIObjects(&this, bool brpn) @private
 	{
-		Hdc hdc = api_GetDC(this.handle) ;
-		api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
-		api_GetTextExtentPoint32(hdc, this._wideText, this.text.len, &this._txtSize );
-		api_ReleaseDC(this.handle, hdc) ;
-		this._txtSize.cx += 8;
-		this._txtWidth = this._txtSize.cx;
+		if (brpn) {
+			if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);   
+			this._bkBrush = api_CreateSolidBrush(this.backColor.ref);
+			if (this._gbStyle == GroupBoxStyle.OVERRRIDEN) {
+				if (this._pen) api_DeleteObject((Hgdiobj)this._pen);
+				this._pen = api_CreatePen(PS_SOLID, PEN_WIDTH, this.backColor.ref);
+			}
+		}
+		if (this._hdc) api_DeleteDC(this._hdc);
+		if (this._hbmp) api_DeleteObject((Hgdiobj)this._hbmp);    
+		this._dbFill = true;
 	}
 
-	fn Lresult GroupBox.drawText(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
-	{
-		Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
-		Hdc hdc = api_GetDC(hw);
-		defer api_ReleaseDC(hw, hdc);
-		api_SelectObject(hdc, (Hgdiobj)this._pen);
-		api_MoveToEx(hdc, 10, 9, null);
-		api_LineTo(hdc, this._txtWidth, 9);
-
-		api_SetBkMode(hdc, TRANSPARENT);
-        api_SelectObject(hdc, (Hgdiobj)(this.font.handle));
-        api_SetTextColor(hdc, this.foreColor.ref);
-		api_TextOut(hdc, 10, 0, this._wideText, this.text.len );
-		return ret;
+	fn void GroupBox._fontSetter(&this, String fname, int fsize, FontWeight fweight) @private {
+		this.font.name = fname;
+		this.font.size = fsize;
+		this.font.weight = fweight;
+		this.font.createHandle();
+		this.sendMsg(WM_SETFONT, this.font.handle, 1);
+		this._getWidth = true;
+		this._checkRedraw();
 	}
-
-	// fn Lresult GroupBox.drawTextDB(GroupBox* this, Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
-	// {
-	// 	print("text draw");
-	// 	Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
-	// 	Rect rc;
-	// 	int yp = 9;
-	// 	Hdc hdc = api_GetDC(hw);
-	// 	Char16* gbtext = String.to_utf16(this.text).ptr!!;
-	// 	defer free(gbtext);
-
-	// 	Hdc dcMem = api_CreateCompatibleDC(hdc);
-	// 	int ndcMem = api_SaveDC(dcMem);
-	// 	Hbitmap hbm = api_CreateCompatibleBitmap(hdc, this._txtSize.cx, this._txtSize.cy);
-	// 	defer
-	// 	{
-	// 		api_RestoreDC(dcMem, ndcMem);
-	// 		api_DeleteObject((Hgdiobj)hbm);
-	// 		api_DeleteDC(dcMem);
-	// 		api_ReleaseDC(hw, hdc);
-	// 	}
-	// 	api_SelectObject(dcMem, (Hgdiobj)hbm);
-	// 	api_BitBlt(dcMem, 0, 0, this._txtSize.cx, this._txtSize.cy, hdc, 10, 0, SRCCOPY);
-
-	// 	api_SelectObject(dcMem, (Hgdiobj)this._pen);
-	// 	api_MoveToEx(dcMem, 10, yp, null);
-	// 	api_LineTo(dcMem, this._txtSize.cx, yp);
-	// 	api_SetRect(&rc, 10, 0, this._txtSize.cx, this._txtSize.cy);
-	// 	api_SetBkMode(dcMem, TRANSPARENT);
-	// 	api_SelectObject(dcMem, (Hgdiobj)(this.font.handle));
-	// 	api_SetTextColor(dcMem, this.foreColor.ref);
-	// 	api_DrawText(dcMem, gbtext, -1, &rc, DT_CENTER|DT_SINGLELINE );
-	// 	// TextOutW(dcMem, 10, 0, this.mTmpText.toUTF16z, this.mTmpText.length);
-	// 	api_BitBlt(hdc, 10, 0, this._txtSize.cx, this._txtSize.cy, dcMem, 0, 0, SRCCOPY);
-	// 	return 1;
-	// }
+	
 
 
 	fn void GroupBox.textSetter(GroupBox* this, String value) @private
 	{
 		if (this._wideText) allocator::free(mem, this._wideText);
 		this._wideText = String.to_utf16(value, mem)!!.ptr;
-		this.getTextBounds();
+		// this.getTextBounds();
 		api_SetWindowText(this.handle, this._wideText);
 		api_InvalidateRect(this.handle, null, false);
 	}
@@ -150,7 +205,10 @@ struct GroupBox
 	// Freeing resources used for this GroupBox.
 	fn void GroupBox.dtor(GroupBox* this) @private
 	{
-		if (this._pen) api_DeleteObject((Hgdiobj)this._pen); 
+		if (this._pen) api_DeleteObject((Hgdiobj)this._pen);  
+		if (this._hbmp) api_DeleteObject((Hgdiobj)this._hbmp); 
+		if (this._hdc) api_DeleteDC(this._hdc);
+		this._controls.free();
 		this.baseDestroy(); 
 		allocator::free(mem, this);
 	}
@@ -212,21 +270,58 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 			
 		case WM_PAINT:
 			GroupBox* this = bitcast(refData, GroupBox*);
-			return this.drawText(hw, msg, wp, lp); //this.drawTextDB(hw, msg, wp, lp); //this.drawText(hw, msg, wp, lp);
+			if (this._gbStyle == GroupBoxStyle.OVERRRIDEN) {
+				Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
+				// @using(newGraphics(DCMode.ON_PAINT, hw); Graphics gfx) {
+				// 	gfx.drawLine(10, 10, this._txtWidth, this._pen);
+				// 	gfx.textOut2(this._wtext, 12, 0, this.foreColor);
+				// };
+				
+
+				@using(newGraphics(DCMode.GET_DC, hw); Graphics gfx) {
+					gfx.drawLine(10, 10, this._txtWidth, this._pen);
+					gfx.textOut2(this._wtext, 12, 0, this.foreColor);
+				};
+				return ret;
+			}
+			
 
 
 
 		case WM_GETTEXTLENGTH:
 			GroupBox* this = bitcast(refData, GroupBox*);
-			 return 0;
+			if (this._gbStyle == GroupBoxStyle.OVERRRIDEN) {
+			 	return 0;
+			}
+
+		case MM_COLOR_STATIC:
+			GroupBox* this = bitcast(refData, GroupBox*);
+			if (this._gbStyle == GroupBoxStyle.CLASSIC) {
+				Hdc hdc = (Hdc)wp;
+				api_SetBkMode(hdc, 1);
+				api_SetTextColor(hdc, this.foreColor.ref);    
+			}
+        	return (Lresult)this._bkBrush;
 
 		case WM_ERASEBKGND:
 			GroupBox* this = bitcast(refData, GroupBox*);
-						if (this._parent._isSizing)	return 1;
-			if (this._drawMode & 2) {
-				api_FillRect((Hdc)wp, &&this.clientRect(), this._bkBrush);
-				return 0;
+			Hdc hdc = (Hdc)wp;
+			if (this._getWidth) {
+				Size ss;
+				api_SelectObject(hdc, (Hgdiobj)this.font.handle);
+				api_GetTextExtentPoint32(hdc, this._wtext.ptr(), this._wtext.wlen(), &ss);
+				this._txtWidth = ss.cx + 10;
+				this._getWidth = false;
 			}
+			if (this._dbFill) {
+				this._hdc = api_CreateCompatibleDC(hdc);
+				this._hbmp = api_CreateCompatibleBitmap(hdc, this.width, this.height);
+				api_SelectObject(this._hdc, (Hgdiobj)this._hbmp);
+				api_FillRect(this._hdc, &this._rct, this._bkBrush);
+				this._dbFill = false;
+			}
+			api_BitBlt(hdc, 0, 0, this.width, this.height, this._hdc, 0, 0, SRCCOPY);
+        	return 1;
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
 		// case MM_RUNDTOR: this.dtor(); return 0;

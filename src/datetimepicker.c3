@@ -75,7 +75,6 @@ enum DTPFormat : int(String descrption, int value )
 		this.name.appendf("%d", dtpNumber);
 		this._className = &dtpClass[0];
 		this._parent = parent;
-		//this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;
 		this._exStyle = 0;
 		this.xpos = x;

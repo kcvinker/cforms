@@ -8,7 +8,7 @@
   // libraries to use for all targets
   "dependencies": [ ],
 
-  "linked-libraries": ["user32.lib", "kernel32.lib", "gdi32.lib", "Comctl32.lib", "Comdlg32", "Shell32", "Ole32", "Shcore.lib"],
+  "linked-libraries": ["user32.lib", "kernel32.lib", "gdi32.lib", "Comctl32.lib", "Comdlg32", "Shell32", "Ole32", "Shcore.lib", "UxTheme.lib"],
   // authors, optionally with email
   "authors": [ "Vinod Chandran <kcvinu82@gmail.com>" ],
   // Version using semantic versioning

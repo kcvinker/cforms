@@ -93,6 +93,12 @@ enum FormDrawMode : int {
     GRADIENT
 }
 
+enum GroupBoxStyle : char {
+    SYSTEM,
+    CLASSIC,
+    OVERRRIDEN
+}
+
 enum MenuEvents : char {MENU_CLICK, }
 
 enum ListViewStyle : char

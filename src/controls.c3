@@ -79,6 +79,7 @@ struct Control
 	bool _cmenuUsed;
 	Hbrush _bkBrush;
 	Char16* _wideText;
+	WideString* _wtext;
 	Font font;
 	Form* _parent;
 
@@ -245,7 +246,7 @@ struct Control
 	{
 		// if (!ctl.font._isCreated) ctl.font.createFontHandle(ctl.handle);
 		if (!ctl.font._isCreated) ctl.font.createHandle(); //Not working properly.
-		ctl.sendMsg(WM_SETFONT, (Wparam)ctl.font.handle, (Lparam)true);
+		ctl.sendMsg(WM_SETFONT, ctl.font.handle, true);
 	}
 
 	fn Rect Control.clientRect(Control* c) @private
@@ -336,17 +337,26 @@ struct Control
 		}
 	}
 
+	fn void Control._checkRedraw(&this, bool draw = false) @inline {
+		if (this._isCreated) api_InvalidateRect(this.handle, null, draw);
+	}
+
+	fn void Control._setPos(&this, uint flag) {
+		api_SetWindowPos(this.handle, null, this.xpos, this.ypos, 
+						this.width, this.height, flag);
+	}
+
 	// Base destructor for all control class.
 	// This will destroy/free common control resources.
 	fn void Control.baseDestroy(&this) 
 	{
 		// ptf("%s is going to destroy", this.name);
 		this.name.free();
+		if (this._wtext) this._wtext.finalize();
 		if (this._bkBrush) api_DeleteObject((Hgdiobj)this._bkBrush);
 		if (this._wideText) allocator::free(mem, this._wideText);
 		if (this._cmenuUsed) this.contextMenu.destroy();
 		if (this.font.handle) this.font.destroy();
-
 	}
 
 // End private functions

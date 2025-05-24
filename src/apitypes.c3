@@ -36,6 +36,7 @@ alias Dwordptr = Ulongptr;
 alias Colorref = Dword;
 alias Word = ushort;
 alias Bool = int;
+alias Hresult = Long;
 alias Wstring = Char16[];
 const Dword UINT_MAX = 1UL << 32 - 1;
 

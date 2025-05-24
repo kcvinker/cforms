@@ -65,6 +65,26 @@ fn void WideString.updateBuffer(&this, String txt) {
     }
 }
 
+fn void fillBuffer(Char16[] buff, String txt) {
+    int slen = api_MultiByteToWideChar(CP_UTF8, 0, &txt[0], txt.len, null, 0);
+    if (slen) {
+        slen = api_MultiByteToWideChar(CP_UTF8, 0, &txt[0], txt.len, &buff[0], buff.len);
+        buff[slen] = 0;
+    }
+}
+
+// Some properties to save some keystrokes
+fn WString WideString.ptr(&this) @inline {
+    return this._data;
+}
+
+fn int WideString.wlen(&this) @inline {
+    return this._wcLen;
+}
+
+fn int WideString.slen(&this) @inline {
+    return this._inpLen;
+}
 
 
 fn void WideString.finalize(&this) {

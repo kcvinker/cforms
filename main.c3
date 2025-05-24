@@ -77,7 +77,7 @@ fn void makeWindow()
 	CheckBox* cb2 = newCheckBox(frm, "Hints Off", 20, cb.bottom() + 10);	
 
 	GroupBox* gb2 = newGroupBox(frm,"Project Data", 10, gb.bottom() + 10, height:150);
-	gb2.setForeColor(0xe63946);
+	gb2.setFont("Verdana", 12, FontWeight.BOLD);
 	lb = newLabel(frm, "Line Space", 20, gb2.ypos + 30);
 
 	np1 = newNumberPicker(frm, lb.right() + 30, gb2.ypos + 30);
@@ -120,6 +120,8 @@ fn void makeWindow()
     tv.addNodeWithChilds("Linux", "RedHat", "Mint", "Ubuntu", "Debian", "Kali");
 
 	cal = newCalendar(frm, gb2.right() + 10, tk.bottom() + 10); 
+
+
 	frm.show(); 
 }
 
