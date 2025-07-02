@@ -35,6 +35,18 @@ fn Point getMousePosOnMsg()
 	return p;
 }
 
+macro bool removeItemFrom(aList, anItem) {
+	bool res = false;
+	foreach (index, value: aList) {
+		if (value == anItem) {
+			aList.remove_at(index);
+			res = true;
+			break;
+		}
+	}
+	return res;
+}
+
 macro isStrLiteral(x)
 {
 	var $res = false;

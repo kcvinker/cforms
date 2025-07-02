@@ -106,10 +106,10 @@ fn void ContextMenu.createHandle(&this)
 
 fn MenuItem* ContextMenu.getMenuItem(&this, uint id) @private
 {	
-	ptf("given id: %d", id);
+	// ptf("given id: %d", id);
 	if (this._menuList.len() > 0) {
 		foreach(menu: this._menuList) {
-			ptf("menu name: %s, menu id: %d", menu.text, menu.idNum);
+			// ptf("menu name: %s, menu id: %d", menu.text, menu.idNum);
 			if (menu.idNum == id) return menu;
 		}
 	}
@@ -160,7 +160,7 @@ fn void ContextMenu.showMenu(&this, Lparam lpm) @private
 	We got the result here. So if user has selected any menu item,
 	we need to find the menu item and execute it's onClick handler.
 	---------------------------------------------------------------*/
-	print("======================================");
+	// print("======================================");
 	if (mid > 0) {
 		MenuItem* menu = this.getMenuItem(mid);
 		if (menu && menu._isEnabled) {

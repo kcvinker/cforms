@@ -42,7 +42,6 @@ struct TrayIcon
     bool _resetIcon;
     bool _cmenuUsed;
     bool _retainIcon;
-    usz _myIndex;
     TrayMenuTrigger menuTrigger;
     Hicon _hTrayIcon;
     Hwnd _msgWinHwnd;
@@ -185,7 +184,7 @@ fn void TrayIcon.destroy(&this)
     Usually, tray icon will be destroyed right after the main window destroyed. 
     ----------------------------------------------------------------------------*/
     api_DestroyWindow(this._msgWinHwnd);
-    app.trayHwnds.remove_at(this._myIndex);
+    removeItemFrom(app.trayHwnds, this._msgWinHwnd);
 }
 
 
@@ -216,7 +215,6 @@ fn void TrayIcon.create_message_window(&this) @private
 	this._msgWinHwnd = api_CreateWindowEx(0, &msgWinClass[0], null, 0, 0, 0, 0, 0, HWND_MESSAGE, null, app.hins, null);
     if (this._msgWinHwnd) {
         app.trayHwnds.push(this._msgWinHwnd);  
-        this._myIndex = app.trayHwnds.len() - 1;
         api_SetWindowLongPtr(this._msgWinHwnd, GWLP_USERDATA, bitcast(this, Longptr));
     } else {
         ptf("Can't create message-only-window for tray menu, Error code is %d", api_GetLastError());

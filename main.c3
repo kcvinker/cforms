@@ -102,6 +102,7 @@ fn void makeWindow()
 
 	lv.addContextMenu("Windows", "|", "Linux", "MacOS");
 	lv.contextMenu.menus(0).onClick = &onMenuClick;
+	lv.contextMenu.menus(2).onClick = fn(c,e) => ti.destroy();
 
 	pb = newProgressBar(frm, 15, np2.bottom() + 15);
 	pb.showPercentage = true;

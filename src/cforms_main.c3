@@ -24,7 +24,6 @@ struct AppData
 	double scaleFactor;
 	HwndList trayHwnds;
 	Hinstance hins;
-	Hwnd trayHwnd;
 	Color defWinColor;
 	// FormMap fmap;
 }
@@ -60,8 +59,7 @@ fn void getSystemDPI()
 
 
 fn void AppData.finalize(&this)
-{
-	 
+{	 
 	if (this.trayHwnds.len()) {			
 		foreach (hwnd : this.trayHwnds) {
 			if(api_IsWindow(hwnd)) api_DestroyWindow(hwnd);
