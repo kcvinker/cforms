@@ -112,6 +112,7 @@ fn void makeWindow()
 	tb = newTextBox(frm, "Enter some text", gb2.right() + 10, lbx.bottom() + 10);
 	tk = newTrackBar(frm, gb2.right() + 10, tb.bottom() + 40, evtFn: &onTrackChange );
 	
+	
 	tv = newTreeView(frm, tk.right() + 70, lv.bottom() + 20, height:250);
 	// tv.createHandle();
 	tv.addNodeWithChilds("Windows", "Vista", "Win7", "Win8", "Win10", "Win11");

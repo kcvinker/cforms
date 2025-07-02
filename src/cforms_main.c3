@@ -17,13 +17,12 @@ alias cptf = libc::printf;
 struct AppData
 {
     bool mainLoopOn;
-    bool nidUsed;
 	bool cmenuUsed;
     int screenWidth;
     int screenHeight;	
 	int sysDPI;
 	double scaleFactor;
-	
+	HwndList trayHwnds;
 	Hinstance hins;
 	Hwnd trayHwnd;
 	Color defWinColor;
@@ -47,6 +46,7 @@ fn void cforms_init() @init
 	icc.dwSize = InitCommonControls.sizeof;
 	icc.dwICC = ICC_STANDARD_CLASSES;
 	api_InitCommonControlsEx(&icc);
+	app.trayHwnds.init(mem, 2);
 	// app.fmap.init(mem, 2);
 	
 }
@@ -62,9 +62,13 @@ fn void getSystemDPI()
 fn void AppData.finalize(&this)
 {
 	 
-	if (this.nidUsed) {		
-		if(this.trayHwnd) api_DestroyWindow(this.trayHwnd);
+	if (this.trayHwnds.len()) {			
+		foreach (hwnd : this.trayHwnds) {
+			if(api_IsWindow(hwnd)) api_DestroyWindow(hwnd);
+		}			
 	}
+	this.trayHwnds.free();
+
 	// if (this.cmenuUsed) api_UnregisterClass(&cmenuMsgWinClass[0], this.hins);
 	// api_UnregisterClass(&className[0], this.hins);
 	

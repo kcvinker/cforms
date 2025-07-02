@@ -8,6 +8,7 @@ import std::collections::list;
 
 alias StrList = List{String};
 alias IntList = List{int};
+alias HwndList = List{Hwnd};
 
 const uint WHITE = 0xffffff;
 macro uint Hwnd.hash(Hwnd i) => (uint)(((uptr)i >> 32) ^ (uptr)i);

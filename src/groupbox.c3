@@ -72,7 +72,7 @@ struct GroupBox
 		this._wtext = newWideString(this.text);
 		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
-		ptf("gb bkg %d", this.backColor.value);
+		// ptf("gb bkg %d", this.backColor.value);
 		return this;
 	}
 
@@ -93,7 +93,6 @@ struct GroupBox
 			}
 			this.setSubClass(&gbWndProc);
 			this.setFontInternal();
-			// this.getTextBounds();
 		}
 	}
 
@@ -105,7 +104,6 @@ struct GroupBox
 	// message so windows won't draw the text. Then we draw our text.
 	fn void GroupBox.setForeColor(&this, uint clr, GroupBoxStyle style = GroupBoxStyle.CLASSIC)
 	{
-		print("1002");
 		this.foreColor.updateColor(clr);
 		this._gbStyle = style;
 		if (this._gbStyle == GroupBoxStyle.CLASSIC) {
