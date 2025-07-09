@@ -647,6 +647,7 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_SIZING:
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return this.formSizingHandler(msg, wp, lp);
+			
 		case WM_SIZE :
 			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return this.formSizedHandler(msg, wp, lp);

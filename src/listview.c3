@@ -62,7 +62,7 @@ struct ListView
 	int headerHeight;
 	Dwordptr _hotHdrIndex;
 	Hwnd _hdrHwnd;
-	ListViewItem selectedItem;
+	ListViewItem* selectedItem;
 	bool editLabel;
 	bool hideSelection;
 	bool multiSelection;
@@ -80,8 +80,15 @@ struct ListView
 	Font headerFont;
 	ColumnList columns;
 	ItemList items;
+	ItemList selectedItems;
 	Hbrush _hdrHotBrush;
 	Hbrush _hdrBkBrush;
+
+	LVItemEventHandler onItemClick;
+	LVItemEventHandler onItemDoubleClick;
+	LVSelChangeEventHandler onSelectionChanged;
+	LVItemCheckEventHandler onItemCheckChanged;
+	EventHandler onItemActivate;
 }
 
 struct ColAndIndex {int index; LVColumn lvc;}
@@ -95,6 +102,7 @@ struct ListViewItem
 	int imageIndex;
 	int index;
 	Font font;
+	bool checked;
 	StrList subItems;
 }
 
@@ -544,6 +552,100 @@ struct ListViewColumn
 		this.addColumnInternal(lvc);
 	}
 
+	fn void ListView.removeFromSelItems(&this, ListViewItem* pitem)
+	{
+		foreach (i, item: this.selectedItems) {
+			if (item.index == pitem.index) {
+				this.selectedItems.remove_at(i);
+				break;
+			}
+		}
+	}
+
+	fn Lresult ListView.wmNotifyHandler(&this, Lparam lpm)
+	{
+		NMHdr* nmh = (NMHdr*)lpm;
+		switch (nmh.code) {
+		case NM_CLICK: 
+			nextcase;
+		case NM_DBLCLK: 
+			if ((this.onItemClick || this.onItemDoubleClick) && this.items.len()) {
+				NMItemActivate* nmia = (NMItemActivate*)lpm;
+				ListViewItem* pitem = this.items[nmia.iItem];				
+				LVItemEventArgs lviea = {.item = pitem, .index = nmia.iItem};
+				if (nmh.code == NM_CLICK && this.onItemClick) {
+					this.onItemClick(this, &lviea);	
+				} else if (nmh.code == NM_DBLCLK && this.onItemDoubleClick) {
+					this.onItemDoubleClick(this, &lviea);
+				}		
+			}
+		case LVN_ITEMCHANGED: 
+			LVNMListView* nmlv = (LVNMListView*)lpm;
+			if (nmlv.uChanged & LVIF_STATE) {
+				int nowSelected = (nmlv.uNewState & LVIS_SELECTED);
+				int wasSelected = (nmlv.uOldState & LVIS_SELECTED);
+				if (nowSelected && !wasSelected) {
+					ListViewItem* pitem = this.items[nmlv.iItem];
+					if (this.multiSelection) {
+						this.selectedItems.push(pitem);
+					} else{
+						this.selectedItem = pitem;
+					}
+					if (this.onSelectionChanged) {
+						LVSelChangedEventArgs lsea = {.item = pitem, 
+														.index = nmlv.iItem, 
+														.isSelected = (bool)nowSelected};
+						this.onSelectionChanged(this, &lsea);
+					}
+				} else if (!nowSelected & (wasSelected > 0)) {						
+					ListViewItem* pitem = this.items[nmlv.iItem];
+					if (this.multiSelection) {
+						this.removeFromSelItems(pitem);                              
+						if (this.onSelectionChanged) {
+							LVSelChangedEventArgs lsea = {.item = pitem, 
+															.index = nmlv.iItem, 
+															.isSelected = (bool)nowSelected};
+							lv.onSelectionChanged(this, &lsea);
+						}
+					}
+				}
+			}
+			int state_index = (nmlv.uNewState & LVIS_STATEIMAGEMASK) >> 12;
+			int old_state_index = (nmlv.uOldState & LVIS_STATEIMAGEMASK) >> 12;
+			if (state_index != old_state_index) { // Item checkbox changed 
+				bool is_checked = (state_index == 2); // 2 = checked, 1 = unchecked
+				if (this.items.len()) {                               
+					ListViewItem* pitem = this.items[nmlv.iItem];
+					pitem.checked = is_checked  ;
+					if (this.onItemCheckChanged) {
+						LVItemCheckEventArgs licea = {.item = pitem, 
+														.index = nmlv.iItem, 
+														.isChecked = is_checked};
+						this.onItemCheckChanged(this, &licea);
+					}
+				}
+			}
+
+		case LVN_ITEMACTIVATE:
+			if (this.onItemActivate) {
+				this.onItemActivate(this, &gea);
+			}
+
+		case NM_CUSTOMDRAW:
+			NMLVCustomDraw* lvcd = (NMLVCustomDraw*)lpm;
+			switch (lvcd.nmcd.dwDrawStage) {
+			case CDDS_PREPAINT:
+				return CDRF_NOTIFYITEMDRAW;
+
+			case CDDS_ITEMPREPAINT:
+				lvcd.clrTextBk = this.backColor.ref;
+				lvcd.clrText = this.foreColor.ref;
+				return CDRF_NEWFONT | CDRF_DODEFAULT;
+			}
+		}
+		return CDRF_DODEFAULT;
+	}
+
 	// Destructor for ListViewColumn
 	fn void ListViewColumn.destroy(ListViewColumn* this) @private
 	{
@@ -570,6 +672,7 @@ struct ListViewColumn
 		}
 		this.columns.free();
 		this.items.free();
+		this.selectedItems.free();
 		this.baseDestroy();
 		allocator::free(mem, this);
 	}
@@ -585,12 +688,15 @@ fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 			ListView* this = bitcast(refData, ListView*);
 			api_RemoveWindowSubclass(hw, &lvWndProc, scID);
 			this.dtor();
+
 		case WM_LBUTTONDOWN:
 			ListView* this = bitcast(refData, ListView*);
 			this.leftMouseDownHandler(msg, wp, lp);
+
 		case WM_LBUTTONUP:
 			ListView* this = bitcast(refData, ListView*);
 			this.leftMouseUpHandler(msg, wp, lp);
+
 		case MM_MOUSE_LBCLICK:
 			ListView* this = bitcast(refData, ListView*);
 			this.leftClickHandler();
@@ -598,9 +704,11 @@ fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_RBUTTONDOWN:
 			ListView* this = bitcast(refData, ListView*);
 			this.rightMouseDownHandler(msg, wp, lp);
+
 		case WM_RBUTTONUP:
 			ListView* this = bitcast(refData, ListView*);
 			this.rightMouseUpHandler(msg, wp, lp);
+
 		case MM_MOUSE_RBCLICK:
 			ListView* this = bitcast(refData, ListView*);
 			this.rightClickHandler();
@@ -608,9 +716,11 @@ fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_MOUSEMOVE:
 			ListView* this = bitcast(refData, ListView*);
 			this.mouseMoveHandler(msg, wp, lp);
+
 		case WM_MOUSELEAVE:
 			ListView* this = bitcast(refData, ListView*);
 			this.mouseLeaveHandler();
+
 		case WM_MOUSEWHEEL:
 			ListView* this = bitcast(refData, ListView*);
 			this.mouseWheelHandler(msg, wp, lp);
@@ -618,9 +728,11 @@ fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_KEYDOWN:
 			ListView* this = bitcast(refData, ListView*);
 			this.keyDownHandler(wp);
+
 		case WM_KEYUP:
 			ListView* this = bitcast(refData, ListView*);
 			this.keyUpHandler(wp);
+
 		case WM_CHAR:
 			ListView* this = bitcast(refData, ListView*);
 			this.keyPressHandler(wp);
@@ -632,6 +744,10 @@ fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 		case WM_CONTEXTMENU:
 			ListView* this = bitcast(refData, ListView*);
 			if (this.contextMenu) this.contextMenu.showMenu(lp);
+
+		case MM_NOTIFY_REFLECT:
+			ListView* this = bitcast(refData, ListView*);
+			return this.wmNotifyHandler(lp);
 
 		// case WM_COMMAND:
 		// 	print("list view rcvd command");

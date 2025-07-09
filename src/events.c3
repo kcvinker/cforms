@@ -10,6 +10,9 @@ alias ThreadMsgHandler = fn void(Wparam wpm, Lparam lpm);
 alias TrayIconEventHandler = fn void(TrayIcon* c, EventArgs* e);
 alias MenuEventHandler = fn void(MenuItem*, EventArgs*);
 alias NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, void* data);
+alias LVItemEventHandler = fn void(ListView* this, LVItemEventArgs* e);
+alias LVSelChangeEventHandler = fn void(ListView* this, LVSelChangedEventArgs* e);
+alias LVItemCheckEventHandler = fn void(ListView* this, LVItemCheckEventArgs* e);
 
 struct Area
 {
@@ -58,6 +61,26 @@ struct DateTimeEventArgs
     inline EventArgs eventArgs;
     Lpcwstr dateString;
     SystemTime dateStruct;
+}
+
+struct LVItemEventArgs 
+{
+	inline EventArgs base;
+	ListViewItem* item;
+	int index;
+}
+
+
+struct LVSelChangedEventArgs
+{
+	inline LVItemEventArgs base;
+	bool isSelected;
+}
+
+struct LVItemCheckEventArgs 
+{
+	inline LVItemEventArgs base;
+	bool isChecked;
 }
 
 fn MouseEventArgs newMouseEventArgs(uint msg, Wparam wpm, Lparam lpm)
@@ -134,6 +157,8 @@ fn DateTimeEventArgs newDateTimeEventArgs(Lpcwstr dtpStr)
     return this;
 }
 
+
+
 macro Word loWord(x) {return (ushort)x;}
 macro Word hiWord(x) {return (ushort)(x >> 16);}
 fn Word loWordWparam(Wparam wp) @inline {return (Word)(wp & 0xffff);}
@@ -142,6 +167,7 @@ fn int xFromLparam(Lparam lpm) @inline { return (int)((short)loWord(lpm));}
 fn int yFromLparam(Lparam lpm) @inline { return (int)((short)hiWord(lpm));}
 
 fn Word getKeyStateWparam(Wparam wp) {return (Word)loWordWparam(wp);}
+
 
 
 

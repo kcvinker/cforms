@@ -136,6 +136,8 @@ module cforms;
 // Common Constants
 	const WM_USER = 0x0400;
 	const NM_FIRST = 0u-0u;
+	const NM_CLICK = (NM_FIRST - 2u);
+	const NM_DBLCLK = (NM_FIRST - 3u);
 	const NM_CUSTOMDRAW = (NM_FIRST-12u);
 	const GWL_STYLE = -16;
 	const GWL_EXSTYLE = -20;
@@ -353,6 +355,8 @@ module cforms;
 // ListView Constants
 	const LVM_FIRST = 4096;
 	const LVN_FIRST = -100u;
+	const LVN_ITEMCHANGED = (LVN_FIRST - 1u);
+	const LVN_ITEMACTIVATE = (LVN_FIRST-14u);
 
 	// LV Styles
 		const LVS_ICON = 0;
@@ -407,6 +411,16 @@ module cforms;
 		const LVIF_IMAGE = 2;
 		const LVIF_PARAM = 4;
 		const LVIF_STATE = 8;
+
+		const LVIS_FOCUSED = 1;
+		const LVIS_SELECTED = 2;
+		const LVIS_CUT = 4;
+		const LVIS_DROPHILITED = 8;
+		const LVIS_ACTIVATING = 32;
+		const LVIS_OVERLAYMASK = 3840;
+		const LVIS_STATEIMAGEMASK = 61440;
+
+		
 
 	// Misc constants
 

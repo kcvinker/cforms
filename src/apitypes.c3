@@ -255,6 +255,44 @@ struct LVItem {
 	int    iGroup;
 }
 
+struct NMItemActivate {
+  NMHdr  hdr;
+  int    iItem;
+  int    iSubItem;
+  uint   uNewState;
+  uint   uOldState;
+  uint   uChanged;
+  Point  ptAction;
+  Lparam lParam;
+  uint   uKeyFlags;
+}
+
+struct LVNMListView {
+  NMHdr  hdr;
+  int    iItem;
+  int    iSubItem;
+  uint   uNewState;
+  uint   uOldState;
+  uint   uChanged;
+  Point  ptAction;
+  Lparam lParam;
+}
+
+struct NMLVCustomDraw {
+  NMCustomDraw nmcd;
+  Colorref     clrText;
+  Colorref     clrTextBk;
+  int          iSubItem;
+  Dword        dwItemType;
+  Colorref     clrFace;
+  int          iIconEffect;
+  int          iIconPhase;
+  int          iPartId;
+  int          iStateId;
+  Rect         rcText;
+  uint         uAlign;
+} 
+
 struct HDHitTestInfo {
 	Point pt;
   	uint  flags;
