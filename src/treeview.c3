@@ -214,7 +214,7 @@ struct TreeNode
 	}
 
 
-	macro TreeNode* TreeView.addChildNode(TreeView* this, TreeNode* parent, nodeOrText, Allocator using = allocator::heap())
+	macro TreeNode* TreeView.addChildNode(TreeView* this, TreeNode* parent, nodeOrText, Allocator using = mem)
 	{
 		$switch $typeof(nodeOrText):
 			$case String: return this.addChildNode1(nodeOrText, parent, using);
@@ -238,7 +238,7 @@ struct TreeNode
 		}
 	}
 
-	macro TreeNode* TreeView.insertNode(TreeView* this, nodeOrText, indexNum, Allocator using = allocator::heap())
+	macro TreeNode* TreeView.insertNode(TreeView* this, nodeOrText, indexNum, Allocator using = mem)
 	{
 		$switch $typeof(nodeOrText):
 			$case String: return this.insertNode1(nodeOrText, indexNum, using);
@@ -250,7 +250,7 @@ struct TreeNode
 	}
 
 	macro TreeNode* TreeView.insertChildNode(TreeView* this, TreeNode* parent, nodeOrText,
-													indexNum, Allocator using = allocator::heap())
+													indexNum, Allocator using = mem)
 	{
 		$switch $typeof(nodeOrText):
 			$case String: return this.insertChildNode1(nodeOrText, parent, indexNum, using);
@@ -329,7 +329,7 @@ struct TreeNode
 	}
 
 	fn TreeNode* TreeView.insertNode1(TreeView* this, String nodeTxt, int index, 
-										Allocator using = allocator::heap()) @private
+										Allocator using = mem) @private
 	{
 		TreeNode* node = newTreeNode(nodeTxt);
 		this.addNodeInternal(NodeOps.INSERTNODE, node, pos: index);
@@ -342,7 +342,7 @@ struct TreeNode
 	}
 
 	fn TreeNode* TreeView.insertChildNode1(TreeView* this, String nodeTxt, TreeNode* parent,
-												int index, Allocator using = allocator::heap()) @private
+												int index, Allocator using = mem) @private
 	{
 		TreeNode* tn = newTreeNode(nodeTxt);
 		this.addNodeInternal(NodeOps.INSERTCHILD, tn, parent, index);
@@ -423,7 +423,7 @@ struct TreeNode
 		fn Lparam TreeNode.toLpm(TreeNode* this) @private {return (Lparam)((void*) this);}
 
 		// Helper function for adding a child node
-		fn TreeNode* TreeNode.addChildNode1(TreeNode* this, String nodeTxt, Allocator using = allocator::heap()) @private
+		fn TreeNode* TreeNode.addChildNode1(TreeNode* this, String nodeTxt, Allocator using = mem) @private
 		{
 			TreeNode* node = newTreeNode(nodeTxt);
 			api_SendMessage(this._treeHwnd, MM_NODE_ADDED, node.toWpm(), this.toLpm());
@@ -437,7 +437,7 @@ struct TreeNode
 		}
 
 		// Add child node node. Parameter nodeOrText can be string or node pointer.
-		macro TreeNode* TreeNode.addChildNode(TreeNode* this, nodeOrText, Allocator using = allocator::heap())
+		macro TreeNode* TreeNode.addChildNode(TreeNode* this, nodeOrText, Allocator using = mem)
 		{
 			$switch $typeof(nodeOrText):
 				$case String: return this.addChildNode1(nodeOrText, using);
@@ -449,7 +449,7 @@ struct TreeNode
 		}
 
 		// Insert child node node. Parameter nodeOrText can be string or node pointer.
-		macro TreeNode* TreeNode.insertChildNode(TreeNode* this, nodeOrText, indexNum, Allocator using = allocator::heap())
+		macro TreeNode* TreeNode.insertChildNode(TreeNode* this, nodeOrText, indexNum, Allocator using = mem)
 		{
 			TreeNode* ret;
 			NodePack np;

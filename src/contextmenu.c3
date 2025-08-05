@@ -117,7 +117,7 @@ fn MenuItem* ContextMenu.getMenuItem(&this, uint id) @private
 }
 
 <*
- @require this.parent || this._trayParent && this._menuList.len() "Either parent is null or no menu items added"
+ @require this.parent || this._trayParent && this._menuList.len() :"Either parent is null or no menu items added"
 *>
 fn void ContextMenu.showMenu(&this, Lparam lpm) @private
 {	

@@ -184,14 +184,14 @@ const MB_ERR_INVALID_CHARS = 0x00000008;
 // 	return buffer[:size];
 // }
 
-fn TrackingAllocator startTracking()
-{
-	Allocator alloc = allocator::heap();
-	TrackingAllocator tal;
-	allocator::temp();
-	tal.init(allocator::heap());
-	return tal;
-}
+// fn TrackingAllocator startTracking()
+// {
+// 	Allocator alloc = allocator::heap();
+// 	TrackingAllocator tal;
+// 	allocator::tmem;
+// 	tal.init(allocator::heap());
+// 	return tal;
+// }
 
 fn void printTrackReport(TrackingAllocator tal)
 {

@@ -1,0 +1,957 @@
+; ModuleID = 'std_hash_siphash$uint128$4$8$'
+source_filename = "std_hash_siphash$uint128$4$8$"
+target datalayout = "e-m:w-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-windows-msvc"
+
+%.introspect = type { i8, i64, ptr, i64, i64, i64, [0 x i64] }
+%"char[]" = type { ptr, i64 }
+%any = type { ptr, i64 }
+%"any[]" = type { ptr, i64 }
+%SipHash = type { [4 x i64], i64, i32, i64 }
+
+$"std_hash_siphash$uint128$4$8$.SipHash.init" = comdat any
+
+$"std_hash_siphash$uint128$4$8$.SipHash.update" = comdat any
+
+$"std_hash_siphash$uint128$4$8$.SipHash.final" = comdat any
+
+$"std_hash_siphash$uint128$4$8$.hash" = comdat any
+
+$"$ct.std_hash_siphash$uint128$4$8$.SipHash" = comdat any
+
+$"std_hash_siphash$uint128$4$8$.BLOCK_ROUNDS" = comdat any
+
+$"std_hash_siphash$uint128$4$8$.FINALIZE_ROUNDS" = comdat any
+
+$"$ct.ulong" = comdat any
+
+$"$ct.long" = comdat any
+
+@"$ct.std_hash_siphash$uint128$4$8$.SipHash" = linkonce global %.introspect { i8 10, i64 0, ptr null, i64 56, i64 0, i64 4, [0 x i64] zeroinitializer }, comdat, align 8
+@"std_hash_siphash$uint128$4$8$.BLOCK_ROUNDS" = weak_odr local_unnamed_addr constant i32 4, comdat, align 4, !dbg !0
+@"std_hash_siphash$uint128$4$8$.FINALIZE_ROUNDS" = weak_odr local_unnamed_addr constant i32 8, comdat, align 4, !dbg !4
+@.panic_msg = internal constant [63 x i8] c"Reference parameter 'self' was passed a null pointer argument.\00", align 1
+@.file = internal constant [11 x i8] c"siphash.c3\00", align 1
+@.func = internal constant [5 x i8] c"init\00", align 1
+@std.core.builtin.panic = external global ptr, align 8
+@.panic_msg.2 = internal constant [55 x i8] c"Dereference of null pointer, '($Type*)&expr' was null.\00", align 1
+@.file.3 = internal constant [11 x i8] c"builtin.c3\00", align 1
+@"$ct.ulong" = linkonce global %.introspect { i8 3, i64 0, ptr null, i64 8, i64 0, i64 0, [0 x i64] zeroinitializer }, comdat, align 8
+@.panic_msg.4 = internal constant [95 x i8] c"Unaligned access: ptr %% %s = %s, use @unaligned_load / @unaligned_store for unaligned access.\00", align 1
+@.func.5 = internal constant [7 x i8] c"update\00", align 1
+@.panic_msg.6 = internal constant [60 x i8] c"Array index out of bounds (array had size %d, index was %d)\00", align 1
+@"$ct.long" = linkonce global %.introspect { i8 2, i64 0, ptr null, i64 8, i64 0, i64 0, [0 x i64] zeroinitializer }, comdat, align 8
+@.panic_msg.7 = internal constant [36 x i8] c"Shift amount out of range (was %s).\00", align 1
+@.func.8 = internal constant [6 x i8] c"final\00", align 1
+@.panic_msg.9 = internal constant [62 x i8] c"Index exceeds array length (array had size %d, index was %d).\00", align 1
+@.panic_msg.10 = internal constant [23 x i8] c"Negative indexing (%d)\00", align 1
+@.panic_msg.11 = internal constant [45 x i8] c"Negative size (start %d is less than end %d)\00", align 1
+@.func.12 = internal constant [6 x i8] c"round\00", align 1
+
+; Function Attrs: nounwind ssp uwtable
+define weak_odr void @"std_hash_siphash$uint128$4$8$.SipHash.init"(ptr %0, ptr align 16 %1) #0 comdat !dbg !14 {
+entry:
+  %indirectarg = alloca %"char[]", align 8
+  %indirectarg1 = alloca %"char[]", align 8
+  %indirectarg2 = alloca %"char[]", align 8
+  %self = alloca ptr, align 8
+  %key_64 = alloca [2 x i64], align 16
+  %expr = alloca i128, align 16
+  %indirectarg4 = alloca %"char[]", align 8
+  %indirectarg5 = alloca %"char[]", align 8
+  %indirectarg6 = alloca %"char[]", align 8
+  %taddr = alloca i64, align 8
+  %taddr9 = alloca i64, align 8
+  %indirectarg10 = alloca %"char[]", align 8
+  %indirectarg11 = alloca %"char[]", align 8
+  %indirectarg12 = alloca %"char[]", align 8
+  %varargslots = alloca [2 x %any], align 16
+  %indirectarg13 = alloca %"any[]", align 8
+  %.assign_list = alloca [4 x i64], align 16
+  %2 = icmp eq ptr %0, null, !dbg !32
+  %3 = call i1 @llvm.expect.i1(i1 %2, i1 false), !dbg !32
+  br i1 %3, label %panic, label %checkok, !dbg !32
+
+checkok:                                          ; preds = %entry
+  store ptr %0, ptr %self, align 8
+    #dbg_declare(ptr %self, !33, !DIExpression(), !34)
+    #dbg_declare(ptr %1, !35, !DIExpression(), !34)
+    #dbg_declare(ptr %key_64, !36, !DIExpression(), !40)
+  %4 = load i128, ptr %1, align 16
+  store i128 %4, ptr %expr, align 16
+  %checknull = icmp eq ptr %expr, null, !dbg !41
+  %5 = call i1 @llvm.expect.i1(i1 %checknull, i1 false), !dbg !41
+  br i1 %5, label %panic3, label %checkok7, !dbg !41
+
+checkok7:                                         ; preds = %checkok
+  %6 = ptrtoint ptr %expr to i64, !dbg !41
+  %7 = urem i64 %6, 8, !dbg !41
+  %8 = icmp ne i64 %7, 0, !dbg !41
+  %9 = call i1 @llvm.expect.i1(i1 %8, i1 false), !dbg !41
+  br i1 %9, label %panic8, label %checkok14, !dbg !41
+
+checkok14:                                        ; preds = %checkok7
+  call void @llvm.memcpy.p0.p0.i32(ptr align 16 %key_64, ptr align 8 %expr, i32 16, i1 false), !dbg !41
+  %10 = load i64, ptr %key_64, align 8, !dbg !44
+  %xor = xor i64 8317987319222330741, %10, !dbg !44
+  store i64 %xor, ptr %.assign_list, align 8, !dbg !44
+  %ptradd15 = getelementptr inbounds i8, ptr %.assign_list, i64 8, !dbg !44
+  %ptradd16 = getelementptr inbounds i8, ptr %key_64, i64 8, !dbg !45
+  %11 = load i64, ptr %ptradd16, align 8, !dbg !45
+  %xor17 = xor i64 7237128888997146477, %11, !dbg !45
+  store i64 %xor17, ptr %ptradd15, align 8, !dbg !45
+  %ptradd18 = getelementptr inbounds i8, ptr %.assign_list, i64 16, !dbg !45
+  %12 = load i64, ptr %key_64, align 8, !dbg !46
+  %xor19 = xor i64 7816392313619706465, %12, !dbg !46
+  store i64 %xor19, ptr %ptradd18, align 8, !dbg !46
+  %ptradd20 = getelementptr inbounds i8, ptr %.assign_list, i64 24, !dbg !46
+  %ptradd21 = getelementptr inbounds i8, ptr %key_64, i64 8, !dbg !47
+  %13 = load i64, ptr %ptradd21, align 8, !dbg !47
+  %xor22 = xor i64 8387220255154660723, %13, !dbg !47
+  store i64 %xor22, ptr %ptradd20, align 8, !dbg !47
+  %14 = load ptr, ptr %self, align 8, !dbg !48
+  call void @llvm.memcpy.p0.p0.i32(ptr align 8 %14, ptr align 16 %.assign_list, i32 32, i1 false), !dbg !48
+  %15 = load ptr, ptr %self, align 8, !dbg !49
+  %ptradd23 = getelementptr inbounds i8, ptr %15, i64 8, !dbg !49
+  %16 = load i64, ptr %ptradd23, align 8, !dbg !49
+  %xor24 = xor i64 %16, 238, !dbg !49
+  store i64 %xor24, ptr %ptradd23, align 8, !dbg !49
+  ret void, !dbg !49
+
+panic:                                            ; preds = %entry
+  store %"char[]" { ptr @.panic_msg, i64 62 }, ptr %indirectarg, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg1, align 8
+  store %"char[]" { ptr @.func, i64 4 }, ptr %indirectarg2, align 8
+  %17 = load ptr, ptr @std.core.builtin.panic, align 8
+  call void %17(ptr align 8 %indirectarg, ptr align 8 %indirectarg1, ptr align 8 %indirectarg2, i32 70) #5, !dbg !34
+  unreachable, !dbg !34
+
+panic3:                                           ; preds = %checkok
+  store %"char[]" { ptr @.panic_msg.2, i64 54 }, ptr %indirectarg4, align 8
+  store %"char[]" { ptr @.file.3, i64 10 }, ptr %indirectarg5, align 8
+  store %"char[]" { ptr @.func, i64 4 }, ptr %indirectarg6, align 8
+  %18 = load ptr, ptr @std.core.builtin.panic, align 8
+  call void %18(ptr align 8 %indirectarg4, ptr align 8 %indirectarg5, ptr align 8 %indirectarg6, i32 281) #5, !dbg !41
+  unreachable, !dbg !41
+
+panic8:                                           ; preds = %checkok7
+  store i64 8, ptr %taddr, align 8
+  %19 = insertvalue %any undef, ptr %taddr, 0
+  %20 = insertvalue %any %19, i64 ptrtoint (ptr @"$ct.ulong" to i64), 1
+  store i64 %7, ptr %taddr9, align 8
+  %21 = insertvalue %any undef, ptr %taddr9, 0
+  %22 = insertvalue %any %21, i64 ptrtoint (ptr @"$ct.ulong" to i64), 1
+  store %"char[]" { ptr @.panic_msg.4, i64 94 }, ptr %indirectarg10, align 8
+  store %"char[]" { ptr @.file.3, i64 10 }, ptr %indirectarg11, align 8
+  store %"char[]" { ptr @.func, i64 4 }, ptr %indirectarg12, align 8
+  store %any %20, ptr %varargslots, align 16
+  %ptradd = getelementptr inbounds i8, ptr %varargslots, i64 16
+  store %any %22, ptr %ptradd, align 16
+  %23 = insertvalue %"any[]" undef, ptr %varargslots, 0
+  %"$$temp" = insertvalue %"any[]" %23, i64 2, 1
+  store %"any[]" %"$$temp", ptr %indirectarg13, align 8
+  call void @std.core.builtin.panicf(ptr align 8 %indirectarg10, ptr align 8 %indirectarg11, ptr align 8 %indirectarg12, i32 281, ptr align 8 %indirectarg13) #5, !dbg !41
+  unreachable, !dbg !41
+}
+
+; Function Attrs: nounwind ssp uwtable
+define weak_odr void @"std_hash_siphash$uint128$4$8$.SipHash.update"(ptr %0, ptr align 8 %1) #0 comdat !dbg !50 {
+entry:
+  %indirectarg = alloca %"char[]", align 8
+  %indirectarg1 = alloca %"char[]", align 8
+  %indirectarg2 = alloca %"char[]", align 8
+  %self = alloca ptr, align 8
+  %.anon = alloca i64, align 8
+  %byte = alloca i8, align 1
+  %taddr = alloca i64, align 8
+  %taddr7 = alloca i64, align 8
+  %indirectarg8 = alloca %"char[]", align 8
+  %indirectarg9 = alloca %"char[]", align 8
+  %indirectarg10 = alloca %"char[]", align 8
+  %varargslots = alloca [2 x %any], align 16
+  %indirectarg12 = alloca %"any[]", align 8
+  %taddr20 = alloca i64, align 8
+  %indirectarg21 = alloca %"char[]", align 8
+  %indirectarg22 = alloca %"char[]", align 8
+  %indirectarg23 = alloca %"char[]", align 8
+  %varargslots24 = alloca [1 x %any], align 16
+  %indirectarg26 = alloca %"any[]", align 8
+  %taddr29 = alloca i64, align 8
+  %indirectarg30 = alloca %"char[]", align 8
+  %indirectarg31 = alloca %"char[]", align 8
+  %indirectarg32 = alloca %"char[]", align 8
+  %varargslots33 = alloca [1 x %any], align 16
+  %indirectarg35 = alloca %"any[]", align 8
+  %2 = icmp eq ptr %0, null, !dbg !59
+  %3 = call i1 @llvm.expect.i1(i1 %2, i1 false), !dbg !59
+  br i1 %3, label %panic, label %checkok, !dbg !59
+
+checkok:                                          ; preds = %entry
+  store ptr %0, ptr %self, align 8
+    #dbg_declare(ptr %self, !60, !DIExpression(), !61)
+    #dbg_declare(ptr %1, !62, !DIExpression(), !61)
+  %4 = load ptr, ptr %self, align 8, !dbg !63
+  %ptradd = getelementptr inbounds i8, ptr %4, i64 48, !dbg !63
+  %5 = load i64, ptr %ptradd, align 8, !dbg !63
+  %ptradd3 = getelementptr inbounds i8, ptr %1, i64 8, !dbg !63
+  %6 = load i64, ptr %ptradd3, align 8, !dbg !63
+  %add = add i64 %5, %6, !dbg !63
+  store i64 %add, ptr %ptradd, align 8, !dbg !63
+  %ptradd4 = getelementptr inbounds i8, ptr %1, i64 8, !dbg !64
+  %7 = load i64, ptr %ptradd4, align 8, !dbg !64
+    #dbg_declare(ptr %.anon, !66, !DIExpression(), !64)
+  store i64 0, ptr %.anon, align 8, !dbg !64
+  br label %loop.cond, !dbg !64
+
+loop.cond:                                        ; preds = %loop.inc, %checkok
+  %8 = load i64, ptr %.anon, align 8, !dbg !64
+  %lt = icmp ult i64 %8, %7, !dbg !64
+  br i1 %lt, label %loop.body, label %loop.exit, !dbg !64
+
+loop.body:                                        ; preds = %loop.cond
+    #dbg_declare(ptr %byte, !67, !DIExpression(), !69)
+  %ptradd5 = getelementptr inbounds i8, ptr %1, i64 8, !dbg !69
+  %9 = load i64, ptr %ptradd5, align 8, !dbg !69
+  %10 = load ptr, ptr %1, align 8, !dbg !69
+  %11 = load i64, ptr %.anon, align 8, !dbg !69
+  %ge = icmp uge i64 %11, %9, !dbg !69
+  %12 = call i1 @llvm.expect.i1(i1 %ge, i1 false), !dbg !69
+  br i1 %12, label %panic6, label %checkok13, !dbg !69
+
+checkok13:                                        ; preds = %loop.body
+  %ptradd14 = getelementptr inbounds i8, ptr %10, i64 %11, !dbg !69
+  %13 = load i8, ptr %ptradd14, align 1, !dbg !69
+  store i8 %13, ptr %byte, align 1, !dbg !69
+  %14 = load ptr, ptr %self, align 8, !dbg !70
+  %ptradd15 = getelementptr inbounds i8, ptr %14, i64 32, !dbg !70
+  %15 = load i64, ptr %ptradd15, align 8, !dbg !70
+  %16 = load i8, ptr %byte, align 1, !dbg !70
+  %zext = zext i8 %16 to i64, !dbg !70
+  %17 = load ptr, ptr %self, align 8, !dbg !70
+  %ptradd16 = getelementptr inbounds i8, ptr %17, i64 40, !dbg !70
+  %18 = load i32, ptr %ptradd16, align 8, !dbg !70
+  %add17 = add i32 %18, 1, !dbg !70
+  store i32 %add17, ptr %ptradd16, align 8, !dbg !70
+  %shl = shl i32 %18, 3, !dbg !70
+  %19 = freeze i32 %shl, !dbg !70
+  %zext18 = zext i32 %19 to i64, !dbg !70
+  %shift_underflow = icmp slt i64 %zext18, 0, !dbg !70
+  %20 = call i1 @llvm.expect.i1(i1 %shift_underflow, i1 false), !dbg !70
+  br i1 %20, label %panic19, label %checkok27, !dbg !70
+
+checkok27:                                        ; preds = %checkok13
+  %shift_exceeds = icmp sge i64 %zext18, 64, !dbg !70
+  %21 = call i1 @llvm.expect.i1(i1 %shift_exceeds, i1 false), !dbg !70
+  br i1 %21, label %panic28, label %checkok36, !dbg !70
+
+checkok36:                                        ; preds = %checkok27
+  %shl37 = shl i64 %zext, %zext18, !dbg !70
+  %22 = freeze i64 %shl37, !dbg !70
+  %or = or i64 %15, %22, !dbg !70
+  store i64 %or, ptr %ptradd15, align 8, !dbg !70
+  %23 = load ptr, ptr %self, align 8, !dbg !72
+  %ptradd38 = getelementptr inbounds i8, ptr %23, i64 40, !dbg !72
+  %24 = load i32, ptr %ptradd38, align 8, !dbg !72
+  %lt39 = icmp slt i32 %24, 8, !dbg !72
+  br i1 %lt39, label %if.then, label %if.exit, !dbg !72
+
+if.then:                                          ; preds = %checkok36
+  br label %loop.inc, !dbg !72
+
+if.exit:                                          ; preds = %checkok36
+  %25 = load ptr, ptr %self, align 8, !dbg !73
+  %ptradd40 = getelementptr inbounds i8, ptr %25, i64 24, !dbg !73
+  %26 = load i64, ptr %ptradd40, align 8, !dbg !73
+  %27 = load ptr, ptr %self, align 8, !dbg !73
+  %ptradd41 = getelementptr inbounds i8, ptr %27, i64 32, !dbg !73
+  %28 = load i64, ptr %ptradd41, align 8, !dbg !73
+  %xor = xor i64 %26, %28, !dbg !73
+  store i64 %xor, ptr %ptradd40, align 8, !dbg !73
+  %29 = load ptr, ptr %self, align 8, !dbg !74
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %29), !dbg !74
+  %30 = load ptr, ptr %self, align 8, !dbg !74
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %30), !dbg !74
+  %31 = load ptr, ptr %self, align 8, !dbg !74
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %31), !dbg !74
+  %32 = load ptr, ptr %self, align 8, !dbg !74
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %32), !dbg !74
+  %33 = load ptr, ptr %self, align 8, !dbg !75
+  %34 = load i64, ptr %33, align 8, !dbg !75
+  %35 = load ptr, ptr %self, align 8, !dbg !75
+  %ptradd42 = getelementptr inbounds i8, ptr %35, i64 32, !dbg !75
+  %36 = load i64, ptr %ptradd42, align 8, !dbg !75
+  %xor43 = xor i64 %34, %36, !dbg !75
+  store i64 %xor43, ptr %33, align 8, !dbg !75
+  %37 = load ptr, ptr %self, align 8, !dbg !76
+  %ptradd44 = getelementptr inbounds i8, ptr %37, i64 40, !dbg !76
+  store i32 0, ptr %ptradd44, align 8, !dbg !76
+  %38 = load ptr, ptr %self, align 8, !dbg !77
+  %ptradd45 = getelementptr inbounds i8, ptr %38, i64 32, !dbg !77
+  store i64 0, ptr %ptradd45, align 8, !dbg !77
+  br label %loop.inc, !dbg !77
+
+loop.inc:                                         ; preds = %if.exit, %if.then
+  %39 = load i64, ptr %.anon, align 8, !dbg !64
+  %addnuw = add nuw i64 %39, 1, !dbg !64
+  store i64 %addnuw, ptr %.anon, align 8, !dbg !64
+  br label %loop.cond, !dbg !64
+
+loop.exit:                                        ; preds = %loop.cond
+  ret void, !dbg !64
+
+panic:                                            ; preds = %entry
+  store %"char[]" { ptr @.panic_msg, i64 62 }, ptr %indirectarg, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg1, align 8
+  store %"char[]" { ptr @.func.5, i64 6 }, ptr %indirectarg2, align 8
+  %40 = load ptr, ptr @std.core.builtin.panic, align 8
+  call void %40(ptr align 8 %indirectarg, ptr align 8 %indirectarg1, ptr align 8 %indirectarg2, i32 89) #5, !dbg !61
+  unreachable, !dbg !61
+
+panic6:                                           ; preds = %loop.body
+  store i64 %9, ptr %taddr, align 8
+  %41 = insertvalue %any undef, ptr %taddr, 0
+  %42 = insertvalue %any %41, i64 ptrtoint (ptr @"$ct.ulong" to i64), 1
+  store i64 %11, ptr %taddr7, align 8
+  %43 = insertvalue %any undef, ptr %taddr7, 0
+  %44 = insertvalue %any %43, i64 ptrtoint (ptr @"$ct.ulong" to i64), 1
+  store %"char[]" { ptr @.panic_msg.6, i64 59 }, ptr %indirectarg8, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg9, align 8
+  store %"char[]" { ptr @.func.5, i64 6 }, ptr %indirectarg10, align 8
+  store %any %42, ptr %varargslots, align 16
+  %ptradd11 = getelementptr inbounds i8, ptr %varargslots, i64 16
+  store %any %44, ptr %ptradd11, align 16
+  %45 = insertvalue %"any[]" undef, ptr %varargslots, 0
+  %"$$temp" = insertvalue %"any[]" %45, i64 2, 1
+  store %"any[]" %"$$temp", ptr %indirectarg12, align 8
+  call void @std.core.builtin.panicf(ptr align 8 %indirectarg8, ptr align 8 %indirectarg9, ptr align 8 %indirectarg10, i32 93, ptr align 8 %indirectarg12) #5, !dbg !69
+  unreachable, !dbg !69
+
+panic19:                                          ; preds = %checkok13
+  store i64 %zext18, ptr %taddr20, align 8
+  %46 = insertvalue %any undef, ptr %taddr20, 0
+  %47 = insertvalue %any %46, i64 ptrtoint (ptr @"$ct.long" to i64), 1
+  store %"char[]" { ptr @.panic_msg.7, i64 35 }, ptr %indirectarg21, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg22, align 8
+  store %"char[]" { ptr @.func.5, i64 6 }, ptr %indirectarg23, align 8
+  store %any %47, ptr %varargslots24, align 16
+  %48 = insertvalue %"any[]" undef, ptr %varargslots24, 0
+  %"$$temp25" = insertvalue %"any[]" %48, i64 1, 1
+  store %"any[]" %"$$temp25", ptr %indirectarg26, align 8
+  call void @std.core.builtin.panicf(ptr align 8 %indirectarg21, ptr align 8 %indirectarg22, ptr align 8 %indirectarg23, i32 95, ptr align 8 %indirectarg26) #5, !dbg !70
+  unreachable, !dbg !70
+
+panic28:                                          ; preds = %checkok27
+  store i64 %zext18, ptr %taddr29, align 8
+  %49 = insertvalue %any undef, ptr %taddr29, 0
+  %50 = insertvalue %any %49, i64 ptrtoint (ptr @"$ct.long" to i64), 1
+  store %"char[]" { ptr @.panic_msg.7, i64 35 }, ptr %indirectarg30, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg31, align 8
+  store %"char[]" { ptr @.func.5, i64 6 }, ptr %indirectarg32, align 8
+  store %any %50, ptr %varargslots33, align 16
+  %51 = insertvalue %"any[]" undef, ptr %varargslots33, 0
+  %"$$temp34" = insertvalue %"any[]" %51, i64 1, 1
+  store %"any[]" %"$$temp34", ptr %indirectarg35, align 8
+  call void @std.core.builtin.panicf(ptr align 8 %indirectarg30, ptr align 8 %indirectarg31, ptr align 8 %indirectarg32, i32 95, ptr align 8 %indirectarg35) #5, !dbg !70
+  unreachable, !dbg !70
+}
+
+; Function Attrs: nounwind ssp uwtable
+define weak_odr <2 x i64> @"std_hash_siphash$uint128$4$8$.SipHash.final"(ptr %0) #0 comdat !dbg !78 {
+entry:
+  %indirectarg = alloca %"char[]", align 8
+  %indirectarg1 = alloca %"char[]", align 8
+  %indirectarg2 = alloca %"char[]", align 8
+  %self = alloca ptr, align 8
+  %last = alloca [8 x i8], align 1
+  %taddr = alloca i64, align 8
+  %taddr14 = alloca i64, align 8
+  %indirectarg15 = alloca %"char[]", align 8
+  %indirectarg16 = alloca %"char[]", align 8
+  %indirectarg17 = alloca %"char[]", align 8
+  %varargslots = alloca [2 x %any], align 16
+  %indirectarg19 = alloca %"any[]", align 8
+  %taddr22 = alloca i64, align 8
+  %indirectarg23 = alloca %"char[]", align 8
+  %indirectarg24 = alloca %"char[]", align 8
+  %indirectarg25 = alloca %"char[]", align 8
+  %varargslots26 = alloca [1 x %any], align 16
+  %indirectarg28 = alloca %"any[]", align 8
+  %taddr32 = alloca i64, align 8
+  %taddr33 = alloca i64, align 8
+  %indirectarg34 = alloca %"char[]", align 8
+  %indirectarg35 = alloca %"char[]", align 8
+  %indirectarg36 = alloca %"char[]", align 8
+  %varargslots37 = alloca [2 x %any], align 16
+  %indirectarg40 = alloca %"any[]", align 8
+  %indirectarg43 = alloca %"char[]", align 8
+  %lo = alloca i64, align 8
+  %taddr60 = alloca i128, align 16
+  %1 = icmp eq ptr %0, null, !dbg !82
+  %2 = call i1 @llvm.expect.i1(i1 %1, i1 false), !dbg !82
+  br i1 %2, label %panic, label %checkok, !dbg !82
+
+checkok:                                          ; preds = %entry
+  store ptr %0, ptr %self, align 8
+    #dbg_declare(ptr %self, !83, !DIExpression(), !84)
+    #dbg_declare(ptr %last, !85, !DIExpression(), !89)
+  store i8 0, ptr %last, align 1, !dbg !89
+  %ptradd = getelementptr inbounds i8, ptr %last, i64 1, !dbg !89
+  store i8 0, ptr %ptradd, align 1, !dbg !89
+  %ptradd3 = getelementptr inbounds i8, ptr %last, i64 2, !dbg !89
+  store i8 0, ptr %ptradd3, align 1, !dbg !89
+  %ptradd4 = getelementptr inbounds i8, ptr %last, i64 3, !dbg !89
+  store i8 0, ptr %ptradd4, align 1, !dbg !89
+  %ptradd5 = getelementptr inbounds i8, ptr %last, i64 4, !dbg !89
+  store i8 0, ptr %ptradd5, align 1, !dbg !89
+  %ptradd6 = getelementptr inbounds i8, ptr %last, i64 5, !dbg !89
+  store i8 0, ptr %ptradd6, align 1, !dbg !89
+  %ptradd7 = getelementptr inbounds i8, ptr %last, i64 6, !dbg !89
+  store i8 0, ptr %ptradd7, align 1, !dbg !89
+  %ptradd8 = getelementptr inbounds i8, ptr %last, i64 7, !dbg !89
+  store i8 0, ptr %ptradd8, align 1, !dbg !89
+  %ptradd9 = getelementptr inbounds i8, ptr %last, i64 7, !dbg !89
+  %3 = load ptr, ptr %self, align 8, !dbg !89
+  %ptradd10 = getelementptr inbounds i8, ptr %3, i64 48, !dbg !89
+  %4 = load i64, ptr %ptradd10, align 8, !dbg !89
+  %trunc = trunc i64 %4 to i8, !dbg !89
+  store i8 %trunc, ptr %ptradd9, align 1, !dbg !89
+  %5 = load ptr, ptr %self, align 8, !dbg !90
+  %ptradd11 = getelementptr inbounds i8, ptr %5, i64 40, !dbg !90
+  %6 = load i32, ptr %ptradd11, align 8, !dbg !90
+  %lt = icmp slt i32 %6, 7, !dbg !90
+  br i1 %lt, label %cond.lhs, label %cond.rhs, !dbg !90
+
+cond.lhs:                                         ; preds = %checkok
+  %7 = load ptr, ptr %self, align 8, !dbg !90
+  %ptradd12 = getelementptr inbounds i8, ptr %7, i64 40, !dbg !90
+  %8 = load i32, ptr %ptradd12, align 8, !dbg !90
+  br label %cond.phi, !dbg !90
+
+cond.rhs:                                         ; preds = %checkok
+  br label %cond.phi, !dbg !90
+
+cond.phi:                                         ; preds = %cond.rhs, %cond.lhs
+  %val = phi i32 [ %8, %cond.lhs ], [ 7, %cond.rhs ], !dbg !90
+  %sext = sext i32 %val to i64, !dbg !90
+  %gt = icmp sgt i64 %sext, 8, !dbg !90
+  %9 = call i1 @llvm.expect.i1(i1 %gt, i1 false), !dbg !90
+  br i1 %9, label %panic13, label %checkok20, !dbg !90
+
+checkok20:                                        ; preds = %cond.phi
+  %underflow = icmp slt i64 %sext, 0, !dbg !90
+  %10 = call i1 @llvm.expect.i1(i1 %underflow, i1 false), !dbg !90
+  br i1 %10, label %panic21, label %checkok29, !dbg !90
+
+checkok29:                                        ; preds = %checkok20
+  %gt30 = icmp sgt i64 %sext, 7, !dbg !90
+  %11 = call i1 @llvm.expect.i1(i1 %gt30, i1 false), !dbg !90
+  br i1 %11, label %panic31, label %checkok41, !dbg !90
+
+checkok41:                                        ; preds = %checkok29
+  %size = sub i64 8, %sext, !dbg !90
+  %ptradd42 = getelementptr inbounds i8, ptr %last, i64 %sext, !dbg !90
+  %12 = insertvalue %"char[]" undef, ptr %ptradd42, 0, !dbg !90
+  %13 = insertvalue %"char[]" %12, i64 %size, 1, !dbg !90
+  %14 = load ptr, ptr %self, align 8, !dbg !90
+  store %"char[]" %13, ptr %indirectarg43, align 8
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.update"(ptr %14, ptr align 8 %indirectarg43), !dbg !90
+  %15 = load ptr, ptr %self, align 8, !dbg !91
+  %ptradd44 = getelementptr inbounds i8, ptr %15, i64 16, !dbg !91
+  %16 = load i64, ptr %ptradd44, align 8, !dbg !91
+  %xor = xor i64 %16, 238, !dbg !91
+  store i64 %xor, ptr %ptradd44, align 8, !dbg !91
+  %17 = load ptr, ptr %self, align 8, !dbg !92
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %17), !dbg !92
+  %18 = load ptr, ptr %self, align 8, !dbg !92
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %18), !dbg !92
+  %19 = load ptr, ptr %self, align 8, !dbg !92
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %19), !dbg !92
+  %20 = load ptr, ptr %self, align 8, !dbg !92
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %20), !dbg !92
+  %21 = load ptr, ptr %self, align 8, !dbg !92
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %21), !dbg !92
+  %22 = load ptr, ptr %self, align 8, !dbg !92
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %22), !dbg !92
+  %23 = load ptr, ptr %self, align 8, !dbg !92
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %23), !dbg !92
+  %24 = load ptr, ptr %self, align 8, !dbg !92
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %24), !dbg !92
+    #dbg_declare(ptr %lo, !93, !DIExpression(), !94)
+  %25 = load ptr, ptr %self, align 8, !dbg !94
+  %26 = load i64, ptr %25, align 8, !dbg !94
+  %27 = load ptr, ptr %self, align 8, !dbg !94
+  %ptradd45 = getelementptr inbounds i8, ptr %27, i64 8, !dbg !94
+  %28 = load i64, ptr %ptradd45, align 8, !dbg !94
+  %xor46 = xor i64 %26, %28, !dbg !94
+  %29 = load ptr, ptr %self, align 8, !dbg !94
+  %ptradd47 = getelementptr inbounds i8, ptr %29, i64 16, !dbg !94
+  %30 = load i64, ptr %ptradd47, align 8, !dbg !94
+  %xor48 = xor i64 %xor46, %30, !dbg !94
+  %31 = load ptr, ptr %self, align 8, !dbg !94
+  %ptradd49 = getelementptr inbounds i8, ptr %31, i64 24, !dbg !94
+  %32 = load i64, ptr %ptradd49, align 8, !dbg !94
+  %xor50 = xor i64 %xor48, %32, !dbg !94
+  store i64 %xor50, ptr %lo, align 8, !dbg !94
+  %33 = load ptr, ptr %self, align 8, !dbg !95
+  %ptradd51 = getelementptr inbounds i8, ptr %33, i64 8, !dbg !95
+  %34 = load i64, ptr %ptradd51, align 8, !dbg !95
+  %xor52 = xor i64 %34, 221, !dbg !95
+  store i64 %xor52, ptr %ptradd51, align 8, !dbg !95
+  %35 = load ptr, ptr %self, align 8, !dbg !96
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %35), !dbg !96
+  %36 = load ptr, ptr %self, align 8, !dbg !96
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %36), !dbg !96
+  %37 = load ptr, ptr %self, align 8, !dbg !96
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %37), !dbg !96
+  %38 = load ptr, ptr %self, align 8, !dbg !96
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %38), !dbg !96
+  %39 = load ptr, ptr %self, align 8, !dbg !96
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %39), !dbg !96
+  %40 = load ptr, ptr %self, align 8, !dbg !96
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %40), !dbg !96
+  %41 = load ptr, ptr %self, align 8, !dbg !96
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %41), !dbg !96
+  %42 = load ptr, ptr %self, align 8, !dbg !96
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %42), !dbg !96
+  %43 = load i64, ptr %lo, align 8, !dbg !97
+  %zext = zext i64 %43 to i128, !dbg !97
+  %44 = load ptr, ptr %self, align 8, !dbg !97
+  %45 = load i64, ptr %44, align 8, !dbg !97
+  %46 = load ptr, ptr %self, align 8, !dbg !97
+  %ptradd53 = getelementptr inbounds i8, ptr %46, i64 8, !dbg !97
+  %47 = load i64, ptr %ptradd53, align 8, !dbg !97
+  %xor54 = xor i64 %45, %47, !dbg !97
+  %48 = load ptr, ptr %self, align 8, !dbg !97
+  %ptradd55 = getelementptr inbounds i8, ptr %48, i64 16, !dbg !97
+  %49 = load i64, ptr %ptradd55, align 8, !dbg !97
+  %xor56 = xor i64 %xor54, %49, !dbg !97
+  %50 = load ptr, ptr %self, align 8, !dbg !97
+  %ptradd57 = getelementptr inbounds i8, ptr %50, i64 24, !dbg !97
+  %51 = load i64, ptr %ptradd57, align 8, !dbg !97
+  %xor58 = xor i64 %xor56, %51, !dbg !97
+  %zext59 = zext i64 %xor58 to i128, !dbg !97
+  %shl = shl i128 %zext59, 64, !dbg !97
+  %52 = freeze i128 %shl, !dbg !97
+  %or = or i128 %zext, %52, !dbg !97
+  store i128 %or, ptr %taddr60, align 16
+  %53 = load <2 x i64>, ptr %taddr60, align 16
+  ret <2 x i64> %53
+
+panic:                                            ; preds = %entry
+  store %"char[]" { ptr @.panic_msg, i64 62 }, ptr %indirectarg, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg1, align 8
+  store %"char[]" { ptr @.func.8, i64 5 }, ptr %indirectarg2, align 8
+  %54 = load ptr, ptr @std.core.builtin.panic, align 8
+  call void %54(ptr align 8 %indirectarg, ptr align 8 %indirectarg1, ptr align 8 %indirectarg2, i32 113) #5, !dbg !84
+  unreachable, !dbg !84
+
+panic13:                                          ; preds = %cond.phi
+  store i64 8, ptr %taddr, align 8
+  %55 = insertvalue %any undef, ptr %taddr, 0
+  %56 = insertvalue %any %55, i64 ptrtoint (ptr @"$ct.long" to i64), 1
+  store i64 %sext, ptr %taddr14, align 8
+  %57 = insertvalue %any undef, ptr %taddr14, 0
+  %58 = insertvalue %any %57, i64 ptrtoint (ptr @"$ct.long" to i64), 1
+  store %"char[]" { ptr @.panic_msg.9, i64 61 }, ptr %indirectarg15, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg16, align 8
+  store %"char[]" { ptr @.func.8, i64 5 }, ptr %indirectarg17, align 8
+  store %any %56, ptr %varargslots, align 16
+  %ptradd18 = getelementptr inbounds i8, ptr %varargslots, i64 16
+  store %any %58, ptr %ptradd18, align 16
+  %59 = insertvalue %"any[]" undef, ptr %varargslots, 0
+  %"$$temp" = insertvalue %"any[]" %59, i64 2, 1
+  store %"any[]" %"$$temp", ptr %indirectarg19, align 8
+  call void @std.core.builtin.panicf(ptr align 8 %indirectarg15, ptr align 8 %indirectarg16, ptr align 8 %indirectarg17, i32 117, ptr align 8 %indirectarg19) #5, !dbg !90
+  unreachable, !dbg !90
+
+panic21:                                          ; preds = %checkok20
+  store i64 %sext, ptr %taddr22, align 8
+  %60 = insertvalue %any undef, ptr %taddr22, 0
+  %61 = insertvalue %any %60, i64 ptrtoint (ptr @"$ct.long" to i64), 1
+  store %"char[]" { ptr @.panic_msg.10, i64 22 }, ptr %indirectarg23, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg24, align 8
+  store %"char[]" { ptr @.func.8, i64 5 }, ptr %indirectarg25, align 8
+  store %any %61, ptr %varargslots26, align 16
+  %62 = insertvalue %"any[]" undef, ptr %varargslots26, 0
+  %"$$temp27" = insertvalue %"any[]" %62, i64 1, 1
+  store %"any[]" %"$$temp27", ptr %indirectarg28, align 8
+  call void @std.core.builtin.panicf(ptr align 8 %indirectarg23, ptr align 8 %indirectarg24, ptr align 8 %indirectarg25, i32 117, ptr align 8 %indirectarg28) #5, !dbg !90
+  unreachable, !dbg !90
+
+panic31:                                          ; preds = %checkok29
+  store i64 %sext, ptr %taddr32, align 8
+  %63 = insertvalue %any undef, ptr %taddr32, 0
+  %64 = insertvalue %any %63, i64 ptrtoint (ptr @"$ct.long" to i64), 1
+  store i64 7, ptr %taddr33, align 8
+  %65 = insertvalue %any undef, ptr %taddr33, 0
+  %66 = insertvalue %any %65, i64 ptrtoint (ptr @"$ct.long" to i64), 1
+  store %"char[]" { ptr @.panic_msg.11, i64 44 }, ptr %indirectarg34, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg35, align 8
+  store %"char[]" { ptr @.func.8, i64 5 }, ptr %indirectarg36, align 8
+  store %any %64, ptr %varargslots37, align 16
+  %ptradd38 = getelementptr inbounds i8, ptr %varargslots37, i64 16
+  store %any %66, ptr %ptradd38, align 16
+  %67 = insertvalue %"any[]" undef, ptr %varargslots37, 0
+  %"$$temp39" = insertvalue %"any[]" %67, i64 2, 1
+  store %"any[]" %"$$temp39", ptr %indirectarg40, align 8
+  call void @std.core.builtin.panicf(ptr align 8 %indirectarg34, ptr align 8 %indirectarg35, ptr align 8 %indirectarg36, i32 117, ptr align 8 %indirectarg40) #5, !dbg !90
+  unreachable, !dbg !90
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal void @"std_hash_siphash$uint128$4$8$.SipHash.round"(ptr %0) #0 !dbg !98 {
+entry:
+  %indirectarg = alloca %"char[]", align 8
+  %indirectarg1 = alloca %"char[]", align 8
+  %indirectarg2 = alloca %"char[]", align 8
+  %self = alloca ptr, align 8
+  %self4 = alloca i64, align 8
+  %shift = alloca i64, align 8
+  %self7 = alloca i64, align 8
+  %shift8 = alloca i64, align 8
+  %self13 = alloca i64, align 8
+  %shift14 = alloca i64, align 8
+  %self22 = alloca i64, align 8
+  %shift23 = alloca i64, align 8
+  %self31 = alloca i64, align 8
+  %shift32 = alloca i64, align 8
+  %self38 = alloca i64, align 8
+  %shift39 = alloca i64, align 8
+  %1 = icmp eq ptr %0, null, !dbg !101
+  %2 = call i1 @llvm.expect.i1(i1 %1, i1 false), !dbg !101
+  br i1 %2, label %panic, label %checkok, !dbg !101
+
+checkok:                                          ; preds = %entry
+  store ptr %0, ptr %self, align 8
+    #dbg_declare(ptr %self, !102, !DIExpression(), !103)
+  %3 = load ptr, ptr %self, align 8, !dbg !104
+  %4 = load i64, ptr %3, align 8, !dbg !104
+  %5 = load ptr, ptr %self, align 8, !dbg !104
+  %ptradd = getelementptr inbounds i8, ptr %5, i64 8, !dbg !104
+  %6 = load i64, ptr %ptradd, align 8, !dbg !104
+  %add = add i64 %4, %6, !dbg !104
+  store i64 %add, ptr %3, align 8, !dbg !104
+  %7 = load ptr, ptr %self, align 8, !dbg !105
+  %ptradd3 = getelementptr inbounds i8, ptr %7, i64 8, !dbg !105
+  %8 = load i64, ptr %ptradd3, align 8
+  store i64 %8, ptr %self4, align 8
+  store i64 13, ptr %shift, align 8
+  %9 = load i64, ptr %self4, align 8, !dbg !106
+  %10 = load i64, ptr %self4, align 8, !dbg !106
+  %11 = load i64, ptr %shift, align 8, !dbg !106
+  %12 = call i64 @llvm.fshl.i64(i64 %9, i64 %10, i64 %11), !dbg !106
+  %13 = load ptr, ptr %self, align 8, !dbg !105
+  %ptradd5 = getelementptr inbounds i8, ptr %13, i64 8, !dbg !105
+  store i64 %12, ptr %ptradd5, align 8, !dbg !105
+  %14 = load ptr, ptr %self, align 8, !dbg !109
+  %ptradd6 = getelementptr inbounds i8, ptr %14, i64 8, !dbg !109
+  %15 = load i64, ptr %ptradd6, align 8, !dbg !109
+  %16 = load ptr, ptr %self, align 8, !dbg !109
+  %17 = load i64, ptr %16, align 8, !dbg !109
+  %xor = xor i64 %15, %17, !dbg !109
+  store i64 %xor, ptr %ptradd6, align 8, !dbg !109
+  %18 = load ptr, ptr %self, align 8, !dbg !110
+  %19 = load i64, ptr %18, align 8
+  store i64 %19, ptr %self7, align 8
+  store i64 32, ptr %shift8, align 8
+  %20 = load i64, ptr %self7, align 8, !dbg !111
+  %21 = load i64, ptr %self7, align 8, !dbg !111
+  %22 = load i64, ptr %shift8, align 8, !dbg !111
+  %23 = call i64 @llvm.fshl.i64(i64 %20, i64 %21, i64 %22), !dbg !111
+  %24 = load ptr, ptr %self, align 8, !dbg !110
+  store i64 %23, ptr %24, align 8, !dbg !110
+  %25 = load ptr, ptr %self, align 8, !dbg !113
+  %ptradd9 = getelementptr inbounds i8, ptr %25, i64 16, !dbg !113
+  %26 = load i64, ptr %ptradd9, align 8, !dbg !113
+  %27 = load ptr, ptr %self, align 8, !dbg !113
+  %ptradd10 = getelementptr inbounds i8, ptr %27, i64 24, !dbg !113
+  %28 = load i64, ptr %ptradd10, align 8, !dbg !113
+  %add11 = add i64 %26, %28, !dbg !113
+  store i64 %add11, ptr %ptradd9, align 8, !dbg !113
+  %29 = load ptr, ptr %self, align 8, !dbg !114
+  %ptradd12 = getelementptr inbounds i8, ptr %29, i64 24, !dbg !114
+  %30 = load i64, ptr %ptradd12, align 8
+  store i64 %30, ptr %self13, align 8
+  store i64 16, ptr %shift14, align 8
+  %31 = load i64, ptr %self13, align 8, !dbg !115
+  %32 = load i64, ptr %self13, align 8, !dbg !115
+  %33 = load i64, ptr %shift14, align 8, !dbg !115
+  %34 = call i64 @llvm.fshl.i64(i64 %31, i64 %32, i64 %33), !dbg !115
+  %35 = load ptr, ptr %self, align 8, !dbg !114
+  %ptradd15 = getelementptr inbounds i8, ptr %35, i64 24, !dbg !114
+  store i64 %34, ptr %ptradd15, align 8, !dbg !114
+  %36 = load ptr, ptr %self, align 8, !dbg !117
+  %ptradd16 = getelementptr inbounds i8, ptr %36, i64 24, !dbg !117
+  %37 = load i64, ptr %ptradd16, align 8, !dbg !117
+  %38 = load ptr, ptr %self, align 8, !dbg !117
+  %ptradd17 = getelementptr inbounds i8, ptr %38, i64 16, !dbg !117
+  %39 = load i64, ptr %ptradd17, align 8, !dbg !117
+  %xor18 = xor i64 %37, %39, !dbg !117
+  store i64 %xor18, ptr %ptradd16, align 8, !dbg !117
+  %40 = load ptr, ptr %self, align 8, !dbg !118
+  %41 = load i64, ptr %40, align 8, !dbg !118
+  %42 = load ptr, ptr %self, align 8, !dbg !118
+  %ptradd19 = getelementptr inbounds i8, ptr %42, i64 24, !dbg !118
+  %43 = load i64, ptr %ptradd19, align 8, !dbg !118
+  %add20 = add i64 %41, %43, !dbg !118
+  store i64 %add20, ptr %40, align 8, !dbg !118
+  %44 = load ptr, ptr %self, align 8, !dbg !119
+  %ptradd21 = getelementptr inbounds i8, ptr %44, i64 24, !dbg !119
+  %45 = load i64, ptr %ptradd21, align 8
+  store i64 %45, ptr %self22, align 8
+  store i64 21, ptr %shift23, align 8
+  %46 = load i64, ptr %self22, align 8, !dbg !120
+  %47 = load i64, ptr %self22, align 8, !dbg !120
+  %48 = load i64, ptr %shift23, align 8, !dbg !120
+  %49 = call i64 @llvm.fshl.i64(i64 %46, i64 %47, i64 %48), !dbg !120
+  %50 = load ptr, ptr %self, align 8, !dbg !119
+  %ptradd24 = getelementptr inbounds i8, ptr %50, i64 24, !dbg !119
+  store i64 %49, ptr %ptradd24, align 8, !dbg !119
+  %51 = load ptr, ptr %self, align 8, !dbg !122
+  %ptradd25 = getelementptr inbounds i8, ptr %51, i64 24, !dbg !122
+  %52 = load i64, ptr %ptradd25, align 8, !dbg !122
+  %53 = load ptr, ptr %self, align 8, !dbg !122
+  %54 = load i64, ptr %53, align 8, !dbg !122
+  %xor26 = xor i64 %52, %54, !dbg !122
+  store i64 %xor26, ptr %ptradd25, align 8, !dbg !122
+  %55 = load ptr, ptr %self, align 8, !dbg !123
+  %ptradd27 = getelementptr inbounds i8, ptr %55, i64 16, !dbg !123
+  %56 = load i64, ptr %ptradd27, align 8, !dbg !123
+  %57 = load ptr, ptr %self, align 8, !dbg !123
+  %ptradd28 = getelementptr inbounds i8, ptr %57, i64 8, !dbg !123
+  %58 = load i64, ptr %ptradd28, align 8, !dbg !123
+  %add29 = add i64 %56, %58, !dbg !123
+  store i64 %add29, ptr %ptradd27, align 8, !dbg !123
+  %59 = load ptr, ptr %self, align 8, !dbg !124
+  %ptradd30 = getelementptr inbounds i8, ptr %59, i64 8, !dbg !124
+  %60 = load i64, ptr %ptradd30, align 8
+  store i64 %60, ptr %self31, align 8
+  store i64 17, ptr %shift32, align 8
+  %61 = load i64, ptr %self31, align 8, !dbg !125
+  %62 = load i64, ptr %self31, align 8, !dbg !125
+  %63 = load i64, ptr %shift32, align 8, !dbg !125
+  %64 = call i64 @llvm.fshl.i64(i64 %61, i64 %62, i64 %63), !dbg !125
+  %65 = load ptr, ptr %self, align 8, !dbg !124
+  %ptradd33 = getelementptr inbounds i8, ptr %65, i64 8, !dbg !124
+  store i64 %64, ptr %ptradd33, align 8, !dbg !124
+  %66 = load ptr, ptr %self, align 8, !dbg !127
+  %ptradd34 = getelementptr inbounds i8, ptr %66, i64 8, !dbg !127
+  %67 = load i64, ptr %ptradd34, align 8, !dbg !127
+  %68 = load ptr, ptr %self, align 8, !dbg !127
+  %ptradd35 = getelementptr inbounds i8, ptr %68, i64 16, !dbg !127
+  %69 = load i64, ptr %ptradd35, align 8, !dbg !127
+  %xor36 = xor i64 %67, %69, !dbg !127
+  store i64 %xor36, ptr %ptradd34, align 8, !dbg !127
+  %70 = load ptr, ptr %self, align 8, !dbg !128
+  %ptradd37 = getelementptr inbounds i8, ptr %70, i64 16, !dbg !128
+  %71 = load i64, ptr %ptradd37, align 8
+  store i64 %71, ptr %self38, align 8
+  store i64 32, ptr %shift39, align 8
+  %72 = load i64, ptr %self38, align 8, !dbg !129
+  %73 = load i64, ptr %self38, align 8, !dbg !129
+  %74 = load i64, ptr %shift39, align 8, !dbg !129
+  %75 = call i64 @llvm.fshl.i64(i64 %72, i64 %73, i64 %74), !dbg !129
+  %76 = load ptr, ptr %self, align 8, !dbg !128
+  %ptradd40 = getelementptr inbounds i8, ptr %76, i64 16, !dbg !128
+  store i64 %75, ptr %ptradd40, align 8, !dbg !128
+  ret void, !dbg !128
+
+panic:                                            ; preds = %entry
+  store %"char[]" { ptr @.panic_msg, i64 62 }, ptr %indirectarg, align 8
+  store %"char[]" { ptr @.file, i64 10 }, ptr %indirectarg1, align 8
+  store %"char[]" { ptr @.func.12, i64 5 }, ptr %indirectarg2, align 8
+  %77 = load ptr, ptr @std.core.builtin.panic, align 8
+  call void %77(ptr align 8 %indirectarg, ptr align 8 %indirectarg1, ptr align 8 %indirectarg2, i32 145) #5, !dbg !103
+  unreachable, !dbg !103
+}
+
+; Function Attrs: nounwind ssp uwtable
+define weak_odr <2 x i64> @"std_hash_siphash$uint128$4$8$.hash"(ptr align 8 %0, ptr align 16 %1) #0 comdat !dbg !131 {
+entry:
+  %s = alloca %SipHash, align 8
+  %indirectarg = alloca i128, align 16
+  %indirectarg1 = alloca %"char[]", align 8
+  %result = alloca i128, align 16
+    #dbg_declare(ptr %0, !135, !DIExpression(), !136)
+    #dbg_declare(ptr %1, !137, !DIExpression(), !136)
+    #dbg_declare(ptr %s, !138, !DIExpression(), !139)
+  call void @llvm.memset.p0.i64(ptr align 8 %s, i8 0, i64 56, i1 false), !dbg !139
+  %2 = load i128, ptr %1, align 16
+  store i128 %2, ptr %indirectarg, align 16
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.init"(ptr %s, ptr align 16 %indirectarg), !dbg !140
+  call void @llvm.memcpy.p0.p0.i32(ptr align 8 %indirectarg1, ptr align 8 %0, i32 16, i1 false)
+  call void @"std_hash_siphash$uint128$4$8$.SipHash.update"(ptr %s, ptr align 8 %indirectarg1), !dbg !141
+  %3 = call <2 x i64> @"std_hash_siphash$uint128$4$8$.SipHash.final"(ptr %s), !dbg !142
+  store <2 x i64> %3, ptr %result, align 16
+  %4 = load <2 x i64>, ptr %result, align 16
+  ret <2 x i64> %4
+}
+
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
+
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #2
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(none)
+declare i1 @llvm.expect.i1(i1, i1) #3
+
+; Function Attrs: nounwind ssp uwtable
+declare void @std.core.builtin.panicf(ptr align 8, ptr align 8, ptr align 8, i32, ptr align 8) #0
+
+; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+declare i64 @llvm.fshl.i64(i64, i64, i64) #4
+
+attributes #0 = { nounwind ssp uwtable "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+attributes #3 = { nocallback nofree nosync nounwind willreturn memory(none) }
+attributes #4 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+attributes #5 = { noreturn }
+
+!llvm.module.flags = !{!6, !7, !8, !9, !10, !11}
+!llvm.dbg.cu = !{!12}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "BLOCK_ROUNDS", linkageName: "std_hash_siphash$uint128$4$8$.BLOCK_ROUNDS", scope: !2, file: !2, line: 45, type: !3, isLocal: false, isDefinition: true, align: 4)
+!2 = !DIFile(filename: "siphash.c3", directory: "C:/Compilers/C3/lib/std/hash")
+!3 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
+!4 = !DIGlobalVariableExpression(var: !5, expr: !DIExpression())
+!5 = distinct !DIGlobalVariable(name: "FINALIZE_ROUNDS", linkageName: "std_hash_siphash$uint128$4$8$.FINALIZE_ROUNDS", scope: !2, file: !2, line: 45, type: !3, isLocal: false, isDefinition: true, align: 4)
+!6 = !{i32 1, !"CodeView", i32 1}
+!7 = !{i32 2, !"Debug Info Version", i32 3}
+!8 = !{i32 2, !"wchar_size", i32 2}
+!9 = !{i32 4, !"PIC Level", i32 2}
+!10 = !{i32 1, !"uwtable", i32 2}
+!11 = !{i32 1, !"MaxTLSAlign", i32 65536}
+!12 = distinct !DICompileUnit(language: DW_LANG_C11, file: !2, producer: "c3c", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
+!13 = !{!0, !4}
+!14 = distinct !DISubprogram(name: "init", linkageName: "std_hash_siphash$uint128$4$8$.SipHash.init", scope: !2, file: !2, line: 70, type: !15, scopeLine: 70, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !31)
+!15 = !DISubroutineType(types: !16)
+!16 = !{null, !17, !30}
+!17 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "SipHash*", baseType: !18, size: 64, align: 64, dwarfAddressSpace: 0)
+!18 = !DICompositeType(tag: DW_TAG_structure_type, name: "SipHash", scope: !2, file: !2, line: 54, size: 448, align: 64, elements: !19, identifier: "std_hash_siphash$uint128$4$8$.SipHash")
+!19 = !{!20, !25, !27, !28}
+!20 = !DIDerivedType(tag: DW_TAG_member, name: "v", scope: !18, file: !2, line: 56, baseType: !21, size: 256, align: 64)
+!21 = !DICompositeType(tag: DW_TAG_array_type, baseType: !22, size: 256, align: 64, elements: !23)
+!22 = !DIBasicType(name: "ulong", size: 64, encoding: DW_ATE_unsigned)
+!23 = !{!24}
+!24 = !DISubrange(count: 4, lowerBound: 0)
+!25 = !DIDerivedType(tag: DW_TAG_member, name: "m", scope: !18, file: !2, line: 57, baseType: !26, size: 64, align: 64, offset: 256)
+!26 = !DIBasicType(name: "long", size: 64, encoding: DW_ATE_signed)
+!27 = !DIDerivedType(tag: DW_TAG_member, name: "m_idx", scope: !18, file: !2, line: 58, baseType: !3, size: 32, align: 32, offset: 320)
+!28 = !DIDerivedType(tag: DW_TAG_member, name: "len", scope: !18, file: !2, line: 59, baseType: !29, size: 64, align: 64, offset: 384)
+!29 = !DIDerivedType(tag: DW_TAG_typedef, name: "usz", baseType: !22)
+!30 = !DIBasicType(name: "uint128", size: 128, encoding: DW_ATE_unsigned)
+!31 = !{}
+!32 = !DILocation(line: 71, scope: !14)
+!33 = !DILocalVariable(name: "self", arg: 1, scope: !14, file: !2, line: 70, type: !17)
+!34 = !DILocation(line: 70, scope: !14)
+!35 = !DILocalVariable(name: "key", arg: 2, scope: !14, file: !2, line: 70, type: !30)
+!36 = !DILocalVariable(name: "key_64", scope: !14, file: !2, line: 72, type: !37, align: 16)
+!37 = !DICompositeType(tag: DW_TAG_array_type, baseType: !22, size: 128, align: 64, elements: !38)
+!38 = !{!39}
+!39 = !DISubrange(count: 2, lowerBound: 0)
+!40 = !DILocation(line: 72, scope: !14)
+!41 = !DILocation(line: 281, scope: !42, inlinedAt: !40)
+!42 = distinct !DISubprogram(name: "bitcast", linkageName: "bitcast", scope: !43, file: !43, line: 278, scopeLine: 278, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !12)
+!43 = !DIFile(filename: "builtin.c3", directory: "C:/Compilers/C3/lib/std/core")
+!44 = !DILocation(line: 75, scope: !14)
+!45 = !DILocation(line: 76, scope: !14)
+!46 = !DILocation(line: 77, scope: !14)
+!47 = !DILocation(line: 78, scope: !14)
+!48 = !DILocation(line: 74, scope: !14)
+!49 = !DILocation(line: 82, scope: !14)
+!50 = distinct !DISubprogram(name: "update", linkageName: "std_hash_siphash$uint128$4$8$.SipHash.update", scope: !2, file: !2, line: 89, type: !51, scopeLine: 89, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !31)
+!51 = !DISubroutineType(types: !52)
+!52 = !{null, !17, !53}
+!53 = !DICompositeType(tag: DW_TAG_structure_type, name: "char[]", size: 128, align: 64, elements: !54, identifier: "char[]")
+!54 = !{!55, !58}
+!55 = !DIDerivedType(tag: DW_TAG_member, name: "ptr", scope: !53, baseType: !56, size: 64, align: 64)
+!56 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "char*", baseType: !57, size: 64, align: 64, dwarfAddressSpace: 0)
+!57 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_unsigned_char)
+!58 = !DIDerivedType(tag: DW_TAG_member, name: "len", scope: !53, baseType: !29, size: 64, align: 64, offset: 64)
+!59 = !DILocation(line: 90, scope: !50)
+!60 = !DILocalVariable(name: "self", arg: 1, scope: !50, file: !2, line: 89, type: !17)
+!61 = !DILocation(line: 89, scope: !50)
+!62 = !DILocalVariable(name: "data", arg: 2, scope: !50, file: !2, line: 89, type: !53)
+!63 = !DILocation(line: 91, scope: !50)
+!64 = !DILocation(line: 93, scope: !65)
+!65 = distinct !DILexicalBlock(scope: !50, file: !2, line: 93, column: 2)
+!66 = !DILocalVariable(name: ".temp", scope: !65, file: !2, line: 93, type: !29, align: 8)
+!67 = !DILocalVariable(name: "byte", scope: !68, file: !2, line: 93, type: !57, align: 1)
+!68 = distinct !DILexicalBlock(scope: !65, file: !2, line: 94, column: 2)
+!69 = !DILocation(line: 93, scope: !68)
+!70 = !DILocation(line: 95, scope: !71)
+!71 = distinct !DILexicalBlock(scope: !68, file: !2, line: 94, column: 2)
+!72 = !DILocation(line: 97, scope: !71)
+!73 = !DILocation(line: 100, scope: !71)
+!74 = !DILocation(line: 103, scope: !71)
+!75 = !DILocation(line: 106, scope: !71)
+!76 = !DILocation(line: 108, scope: !71)
+!77 = !DILocation(line: 109, scope: !71)
+!78 = distinct !DISubprogram(name: "final", linkageName: "std_hash_siphash$uint128$4$8$.SipHash.final", scope: !2, file: !2, line: 113, type: !79, scopeLine: 113, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !31)
+!79 = !DISubroutineType(types: !80)
+!80 = !{!81, !17}
+!81 = !DIDerivedType(tag: DW_TAG_typedef, name: "OutType", scope: !2, file: !2, line: 45, baseType: !30, align: 16)
+!82 = !DILocation(line: 114, scope: !78)
+!83 = !DILocalVariable(name: "self", arg: 1, scope: !78, file: !2, line: 113, type: !17)
+!84 = !DILocation(line: 113, scope: !78)
+!85 = !DILocalVariable(name: "last", scope: !78, file: !2, line: 115, type: !86, align: 1)
+!86 = !DICompositeType(tag: DW_TAG_array_type, baseType: !57, size: 64, align: 8, elements: !87)
+!87 = !{!88}
+!88 = !DISubrange(count: 8, lowerBound: 0)
+!89 = !DILocation(line: 115, scope: !78)
+!90 = !DILocation(line: 117, scope: !78)
+!91 = !DILocation(line: 120, scope: !78)
+!92 = !DILocation(line: 126, scope: !78)
+!93 = !DILocalVariable(name: "lo", scope: !78, file: !2, line: 132, type: !22, align: 8)
+!94 = !DILocation(line: 132, scope: !78)
+!95 = !DILocation(line: 134, scope: !78)
+!96 = !DILocation(line: 137, scope: !78)
+!97 = !DILocation(line: 140, scope: !78)
+!98 = distinct !DISubprogram(name: "round", linkageName: "std_hash_siphash$uint128$4$8$.SipHash.round", scope: !2, file: !2, line: 145, type: !99, scopeLine: 145, flags: DIFlagPrototyped, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !12, retainedNodes: !31)
+!99 = !DISubroutineType(types: !100)
+!100 = !{null, !17}
+!101 = !DILocation(line: 146, scope: !98)
+!102 = !DILocalVariable(name: "self", arg: 1, scope: !98, file: !2, line: 145, type: !17)
+!103 = !DILocation(line: 145, scope: !98)
+!104 = !DILocation(line: 147, scope: !98)
+!105 = !DILocation(line: 148, scope: !98)
+!106 = !DILocation(line: 146, scope: !107, inlinedAt: !105)
+!107 = distinct !DISubprogram(name: "rotl", linkageName: "rotl", scope: !108, file: !108, line: 146, scopeLine: 146, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !12)
+!108 = !DIFile(filename: "bits.c3", directory: "C:/Compilers/C3/lib/std")
+!109 = !DILocation(line: 149, scope: !98)
+!110 = !DILocation(line: 150, scope: !98)
+!111 = !DILocation(line: 146, scope: !112, inlinedAt: !110)
+!112 = distinct !DISubprogram(name: "rotl", linkageName: "rotl", scope: !108, file: !108, line: 146, scopeLine: 146, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !12)
+!113 = !DILocation(line: 151, scope: !98)
+!114 = !DILocation(line: 152, scope: !98)
+!115 = !DILocation(line: 146, scope: !116, inlinedAt: !114)
+!116 = distinct !DISubprogram(name: "rotl", linkageName: "rotl", scope: !108, file: !108, line: 146, scopeLine: 146, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !12)
+!117 = !DILocation(line: 153, scope: !98)
+!118 = !DILocation(line: 154, scope: !98)
+!119 = !DILocation(line: 155, scope: !98)
+!120 = !DILocation(line: 146, scope: !121, inlinedAt: !119)
+!121 = distinct !DISubprogram(name: "rotl", linkageName: "rotl", scope: !108, file: !108, line: 146, scopeLine: 146, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !12)
+!122 = !DILocation(line: 156, scope: !98)
+!123 = !DILocation(line: 157, scope: !98)
+!124 = !DILocation(line: 158, scope: !98)
+!125 = !DILocation(line: 146, scope: !126, inlinedAt: !124)
+!126 = distinct !DISubprogram(name: "rotl", linkageName: "rotl", scope: !108, file: !108, line: 146, scopeLine: 146, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !12)
+!127 = !DILocation(line: 159, scope: !98)
+!128 = !DILocation(line: 160, scope: !98)
+!129 = !DILocation(line: 146, scope: !130, inlinedAt: !128)
+!130 = distinct !DISubprogram(name: "rotl", linkageName: "rotl", scope: !108, file: !108, line: 146, scopeLine: 146, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition, unit: !12)
+!131 = distinct !DISubprogram(name: "hash", linkageName: "std_hash_siphash$uint128$4$8$.hash", scope: !2, file: !2, line: 62, type: !132, scopeLine: 62, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !31)
+!132 = !DISubroutineType(types: !133)
+!133 = !{!134, !53, !30}
+!134 = !DIDerivedType(tag: DW_TAG_typedef, name: "OutType", scope: !2, file: !2, line: 40, baseType: !30, align: 16)
+!135 = !DILocalVariable(name: "data", arg: 1, scope: !131, file: !2, line: 62, type: !53)
+!136 = !DILocation(line: 62, scope: !131)
+!137 = !DILocalVariable(name: "key", arg: 2, scope: !131, file: !2, line: 62, type: !30)
+!138 = !DILocalVariable(name: "s", scope: !131, file: !2, line: 64, type: !18, align: 8)
+!139 = !DILocation(line: 64, scope: !131)
+!140 = !DILocation(line: 65, scope: !131)
+!141 = !DILocation(line: 66, scope: !131)
+!142 = !DILocation(line: 67, scope: !131)

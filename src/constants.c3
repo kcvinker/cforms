@@ -92,9 +92,9 @@ module cforms;
 	const MCM_SETCURSEL = MCM_FIRST+2;
 	const MCM_GETMINREQRECT = MCM_FIRST+9;
 	const MCM_SETCURRENTVIEW = MCM_FIRST+32;
-	const MCN_FIRST = -746u;
+	const MCN_FIRST = -(746U);
 	const MCN_SELECT = MCN_FIRST;
-	const MCN_SELCHANGE = (MCN_FIRST - 3u);
+	const MCN_SELCHANGE = (MCN_FIRST - 3U);
 	const MCN_VIEWCHANGE = MCN_FIRST-4u;
 
 // End of Calendar Constants
@@ -136,9 +136,9 @@ module cforms;
 // Common Constants
 	const WM_USER = 0x0400;
 	const NM_FIRST = 0u-0u;
-	const NM_CLICK = (NM_FIRST - 2u);
-	const NM_DBLCLK = (NM_FIRST - 3u);
-	const NM_CUSTOMDRAW = (NM_FIRST-12u);
+	const NM_CLICK = (NM_FIRST - 2U);
+	const NM_DBLCLK = (NM_FIRST - 3U);
+	const NM_CUSTOMDRAW = (NM_FIRST-12U);
 	const GWL_STYLE = -16;
 	const GWL_EXSTYLE = -20;
 	const Dword BCM_FIRST = 0x1600;
@@ -249,7 +249,7 @@ module cforms;
 
 // DTP Constants
 	const Dword DTM_FIRST = 0x1000;
-	const DTN_FIRST = -760u; //4294966536; d 4294966536 p 4294966556
+	const DTN_FIRST = -(760U); //4294966536; d 4294966536 p 4294966556
 
 	const Dword DTS_LONGDATEFORMAT = 0x4;
 	const Dword DTS_APPCANPARSE = 0x10;
@@ -354,9 +354,9 @@ module cforms;
 
 // ListView Constants
 	const LVM_FIRST = 4096;
-	const LVN_FIRST = -100u;
-	const LVN_ITEMCHANGED = (LVN_FIRST - 1u);
-	const LVN_ITEMACTIVATE = (LVN_FIRST-14u);
+	const LVN_FIRST = -(100U);
+	const LVN_ITEMCHANGED = (LVN_FIRST - 1U);
+	const LVN_ITEMACTIVATE = (LVN_FIRST-14U);
 
 	// LV Styles
 		const LVS_ICON = 0;
@@ -503,7 +503,7 @@ module cforms;
 	const UDS_NOTHOUSANDS = 128;
 	const UDS_HOTTRACK = 256;
 
-	const UDN_FIRST = -721u;
+	const UDN_FIRST = -(721U);
 	const UDM_SETRANGE = (WM_USER+101);
 	const UDM_GETRANGE = (WM_USER+102);
 	const UDM_SETPOS = (WM_USER+103);
@@ -516,7 +516,7 @@ module cforms;
 	const UDM_GETBASE = (WM_USER+110);
 	const UDM_SETRANGE32 = (WM_USER+111);
 	const UDM_GETRANGE32 = (WM_USER+112);
-	const UDN_DELTAPOS = (UDN_FIRST - 1u);
+	const UDN_DELTAPOS = (UDN_FIRST - 1U);
 	const EM_SETSEL = 0x00B1;
 // End of NumberPicker Constants
 
@@ -654,10 +654,10 @@ module cforms;
 	// End of TV Messages
 
 	// const ULONG_MAX = 18446744073709551616;
-	const Htreeitem TVI_ROOT = (Htreeitem)(Ulongptr)-0x10000u64;
-	const Htreeitem TVI_FIRST = (Htreeitem)(Ulongptr)-0xffffu64;
-	const Htreeitem TVI_LAST = (Htreeitem)(Ulongptr)-0xfffeu64;
-	const Htreeitem TVI_SORT = (Htreeitem)(Ulongptr)-0xfffdu64;
+	const Htreeitem TVI_ROOT = (Htreeitem)(Ulongptr)-(0x10000ul);
+	const Htreeitem TVI_FIRST = (Htreeitem)(Ulongptr)-(0xfffful);
+	const Htreeitem TVI_LAST = (Htreeitem)(Ulongptr)-(0xfffeul);
+	const Htreeitem TVI_SORT = (Htreeitem)(Ulongptr)-(0xfffdul);
 	const TVIS_USERMASK = 0xF000;
 // End of TreeView Constants
 

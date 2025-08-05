@@ -169,7 +169,7 @@ struct ListViewColumn
 
 	// ListViewCoulmn constructor.
 	fn ListViewColumn* newListViewColumn(String txt, int width = 100,
-										int imageIndex = -1, Allocator using = allocator::heap())
+										int imageIndex = -1, Allocator using = mem)
 	{
 		ListViewColumn* this = mem::new(ListViewColumn);
 		this.text = txt;
@@ -187,7 +187,7 @@ struct ListViewColumn
 	// ListViewItem constructor
 	fn ListViewItem* newListViewItem(String txt, uint bgColor = 0xFFFFFF,
 									uint fgColor = 0x000000, int imgIndex = -1,
-										Allocator using = allocator::heap())
+										Allocator using = mem)
 	{
 		ListViewItem* this = mem::new(ListViewItem);
 		this.text = txt;
