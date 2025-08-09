@@ -103,7 +103,10 @@ struct ListViewItem
 	int index;
 	Font font;
 	bool checked;
+	bool _bgdraw;
+	bool _fgdraw;
 	StrList subItems;
+
 }
 
 struct ListViewColumn
@@ -195,7 +198,31 @@ struct ListViewColumn
 		this.foreColor = newColor(fgColor);
 		this.index = -1;
 		this.imageIndex = imgIndex;
+		if (bgColor != 0xFFFFFF) this._bgdraw = true;
+		if (fgColor != 0x000000) this._fgdraw = true;
 		return this;
+	}
+
+	macro void ListViewItem.setBackColor(&this, any clr) 
+	{
+		switch (clr.type) {
+			case Color: 
+				this.backColor = (Color*)clr;	
+			case int:  
+				this.backColor = newColor(*(int*)clr);
+		}
+		this._bgdraw = true;
+	}
+
+	macro void ListViewItem.setForeColor(&this, any clr) 
+	{
+		switch (clr.type) {
+			case Color: 
+				this.foreColor = (Color*)clr;	
+			case int:  
+				this.foreColor = newColor(*(int*)clr);
+		}
+		this._fgdraw = true;
 	}
 
 	// Another ListViewItem constructor, but appends subitems too. Works for only REPORT_VIEW style.
@@ -633,14 +660,14 @@ struct ListViewColumn
 
 		case NM_CUSTOMDRAW:
 			NMLVCustomDraw* lvcd = (NMLVCustomDraw*)lpm;
-			switch (lvcd.nmcd.dwDrawStage) {
-			case CDDS_PREPAINT:
+			if (lvcd.nmcd.dwDrawStage == CDDS_PREPAINT) {
 				return CDRF_NOTIFYITEMDRAW;
-
-			case CDDS_ITEMPREPAINT:
-				lvcd.clrTextBk = this.backColor.ref;
-				lvcd.clrText = this.foreColor.ref;
-				return CDRF_NEWFONT | CDRF_DODEFAULT;
+			} 
+			if (lvcd.nmcd.dwDrawStage == CDDS_ITEMPREPAINT) {
+				ListViewItem* pitem = this.items[lvcd.nmcd.dwItemSpec];
+				if (pitem._bgdraw) lvcd.clrTextBk = pitem.backColor.ref;
+				if (pitem._fgdraw) lvcd.clrText = pitem.foreColor.ref;
+				return CDRF_NEWFONT; // | CDRF_DODEFAULT;
 			}
 		}
 		return CDRF_DODEFAULT;
