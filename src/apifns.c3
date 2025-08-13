@@ -70,6 +70,8 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn int api_GetCursorPos(Point*) @extern("GetCursorPos");
 	extern fn Bool api_SetForegroundWindow(Hwnd) @extern("SetForegroundWindow");
 	extern fn Bool api_IsWindow(Hwnd) @extern("IsWindow");
+	extern fn Bool api_RegisterHotKey(Hwnd, int, uint, uint) @extern("RegisterHotKey");
+	extern fn Bool api_UnregisterHotKey(Hwnd, int) @extern("UnregisterHotKey");
 
 
 

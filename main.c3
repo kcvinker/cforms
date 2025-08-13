@@ -46,6 +46,7 @@ fn void makeWindow()
 	tm = frm.addTimer(400, &onTimerTick);
 
 	MenuBar* mb = frm.addMenubar("Windows", "Linux", "MacOS", "ReactOS");
+	mb.nativeStyle = false; // Use custom font and color.
 	mb.menus("Windows").addItems("Windows8",  "Windows10", "|", "Windows11" );
 	mb.menus("Linux").addItems("Debian",  "Fedora", "Ubuntu" );
 	mb.menus(0).menus("Windows11").onClick = &onMenuClick;
@@ -101,6 +102,7 @@ fn void makeWindow()
 	
 
 	lv.addContextMenu("Windows", "|", "Linux", "MacOS");
+	lv.contextMenu.nativeStyle = false;
 	lv.contextMenu.menus(0).onClick = &onMenuClick;
 	lv.contextMenu.menus(2).onClick = fn(c,e) => ti.destroy();
 
@@ -153,7 +155,7 @@ fn void onB2Click(Control* s, EventArgs* e){
 	ti.showBalloon("My Balloon", "this message has sound", 3500);
 }
 
-fn void onTimerTick(Control* f, EventArgs* e) {
+fn void onTimerTick(any f, EventArgs* e) {
 	print("Timer ticked...");
 }
 

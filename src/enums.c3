@@ -152,6 +152,17 @@ enum TrayMenuTrigger : int(String desc, char value)
 
 }
 
+enum MenuType : char {BASE_MENU, MENU_ITEM, POPUP, SEPRATOR }
+
+enum MenuState : uint(uint value)
+{
+    ENABLED = 0,
+    DISABLED = 3,
+    CHECKED = 8,
+    HILITE = 128,
+    BOLD = 256
+}
+
 enum DCMode : char 
 {
     NONE,
@@ -236,7 +247,7 @@ enum Keys : int (String description, int value)
     Y = {"Y Key", 89},
     Z = {"Z Key", 90},
     LEFT_WIN = {"Left Windows Key", 91},
-    RIGH_TWIN = {"Right Windows Key", 92},
+    RIGHT_WIN = {"Right Windows Key", 92},
     APPS = {"Apps Key", 93},
     SLEEP = {"Sleep Key", 95},
     NUM_PAD0 = {"Numpad 0 Key", 96},

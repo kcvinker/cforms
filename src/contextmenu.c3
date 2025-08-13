@@ -20,15 +20,18 @@
  
 module cforms;
 
+Wstring cmenuMsgWinClass = {'c', 'f', 'o', 'r', 'm', 's', '_', 'C', 'm', 'e', 'n', 'u', '_', 'M', 's','g','_','w', 'i','n', 0};
+
 struct ContextMenu
 {
 	inline MenuBase _base;
-	Control* parent;
-	TrayIcon* tray;
+	Control* parent; // Set when used by a Control like ListView.
+	TrayIcon* tray; // Set when used by a TrayIcon.
     int width, height;
     bool rightClick;
+	bool nativeStyle;
 	bool _menuInserted;
-	bool _trayParent;
+	bool _trayParent; 
     Colorref _grayCref;
     Hwnd _dummyHwnd;    
     Hbrush _defBgBrush, _hotBgBrush, _borderBrush, _grayBrush;
@@ -46,6 +49,7 @@ fn ContextMenu* newContextMenu()
 	this.height = 25;
 	this.rightClick = true;
 	this.font = newFont("Tahoma", 11);
+	this.nativeStyle = true; // Menus are drawn by Windows. 
 	this._defBgBrush = getHbrush(0xe9ecef);
 	this._hotBgBrush = getHbrush(0x90e0ef);
 	this._borderBrush = getHbrush(0x0077b6);
@@ -82,14 +86,14 @@ fn void ContextMenu.addMenus(&this, String[] menuNames)
 	}	
 }
 
-fn void MenuItem.insertCmenuInternal(&this) @private
+fn void MenuItem.insertCmenuInternal(&this, uint draw_type) @private
 {
 	if (this._menuList.len() > 0) {		
-		foreach(menu: this._menuList) {menu.insertCmenuInternal();}		
+		foreach(menu: this._menuList) {menu.insertCmenuInternal(draw_type);}		
 	}
 	// ptf("menu: %s, type: %s", this.text, this.kind );
 	if (this.kind == MenuType.MENU_ITEM) {
-        this.insertMenuInternal(this.parentHandle);
+        this.insertMenuInternal(this.parentHandle, draw_type);
     } else if (this.kind == MenuType.SEPRATOR) {
         api_AppendMenu(this.parentHandle, MF_SEPARATOR, 0, null);
 	}
@@ -97,8 +101,25 @@ fn void MenuItem.insertCmenuInternal(&this) @private
 
 fn void ContextMenu.createHandle(&this) 
 {
-	if (this._menuList.len() > 0) {		
-		foreach(menu: this._menuList) {menu.insertCmenuInternal();}
+	if (this._menuList.len() > 0) {	
+		uint menu_draw_type = MF_STRING;
+		if (!this.nativeStyle) {
+			menu_draw_type = MF_OWNERDRAW;
+			// Let's setup the width & height for each menu item text.
+			Hdc hdcMem = api_CreateCompatibleDC(null);
+			defer api_DeleteDC(hdcMem);
+			Hgdiobj oldfont = api_SelectObject(hdcMem, (Hgdiobj)this.font.handle);
+			defer api_SelectObject(hdcMem, oldfont);
+			foreach(menu: this._menuList) {
+				api_GetTextExtentPoint32(hdcMem, menu._wideText, menu.text.len, &menu._txtSize);
+				if (menu.kind == MenuType.BASE_MENU) {
+					menu._txtSize.cx = menu._txtSize.cx < 100 ? 100 : menu._txtSize.cx + 20;
+				}
+			}	
+		}
+		foreach(menu: this._menuList) {
+			menu.insertCmenuInternal(menu_draw_type);
+		}
 	}
 	this._menuInserted = true;
 }
@@ -114,6 +135,30 @@ fn MenuItem* ContextMenu.getMenuItem(&this, uint id) @private
 		}
 	}
 	return null;
+}
+
+fn void ContextMenu.addClickHandler(&this, String menuName, MenuEventHandler func)
+{	
+	if (this._menuList.len()) {
+		foreach(menu: this._menuList) {
+			if (menu.text == menuName) {					
+				menu.onClick = func;
+				break;
+			}
+		}
+	}
+}
+
+fn void ContextMenu.setItemTag(&this,  String menuName, any tagItem)
+{
+	if (this._menuList.len()) {
+		foreach(menu: this._menuList) {
+			if (menu.text == menuName) {					
+				menu.tag = tagItem;
+				break;
+			}
+		}
+	}
 }
 
 <*
@@ -224,7 +269,7 @@ fn Lresult cmenuWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		case WM_MEASUREITEM:
 			ContextMenu* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), ContextMenu*);
 			MeasureItemStruct* pmi = (MeasureItemStruct*)lp;
-			pmi.itemWidth = this.width;
+			pmi.itemWidth = this.width + 20;
 			pmi.itemHeight = this.height;
 			return 1;
 

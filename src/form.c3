@@ -57,11 +57,11 @@ alias ControlList = List{Control*};
 
 // alias MenuItemMap = HashMap{uint, MenuItem*};
 
-struct TimerInfo {Uintptr timerID; Timer* pTimer;}
+// struct TimerInfo {Uintptr timerID; Timer* pTimer;}
 struct ComboInfo {Hwnd listHwnd; Hwnd cmbHwnd;}
 struct MenuInfo {uint menuID; MenuItem* pMenuItem;}
 
-alias TimerList = List{TimerInfo};
+alias TimerList = List{Timer*};
 alias CmbList = List{ComboInfo}; //To hold the handle of combobox's listbox
 alias MenuItems = List{MenuInfo}; //To hold the handle of combobox's listbox
 int frmNumber = 1;
@@ -121,7 +121,7 @@ struct Form
 // Public Functions
 	fn Form* newForm(String title, int width = 500, int height = 400)
 	{
-		
+		if (!app.isFormReg) initNormalForm();
 		Form* this = allocator::new(mem, Form);
 		this.kind = ControlType.NONE;
 		this.name = dstring::new(mem, "Form_");
@@ -207,14 +207,10 @@ struct Form
 	}
 
 	// Adds a timer to this window.
-	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null)
+	fn Timer* Form.addTimer(&this, uint interval = 100, AnyHandler tickHandler = null)
 	{
-		Timer* tm = allocator::new(mem, Timer);
-		tm.interval = interval;
-		tm.onTick = tickHandler;
-		tm._idNum = (Uintptr)tm;
-		tm._parentHwnd = this.handle;
-		this._timerList.push({tm._idNum, tm});
+		Timer* tm = newTimer(this.handle, interval, tickHandler);
+		this._timerList.push(tm);
 		return tm;
 	}
 
@@ -244,10 +240,11 @@ struct Form
 		wc.hbrBackground = (Hbrush)api_GetStockObject(5); //api_CreateSolidBrush(app.defWinColor.ref); //cast(Hbrush) (cast(uintptr) Color_Window + 1)
 		wc.lpszMenuName = (Lpcwstr)0;
 		wc.lpszClassName = &className[0];
-		api_RegisterClassEx(&wc);
+		short x = api_RegisterClassEx(&wc);
+		if (x) app.isFormReg = true;
 		
 		
-		// ptf("wm app %d", WM_APP);
+		ptf("wm MM_CLOSE_MSGFORM %d", MM_CLOSE_MSGFORM);
 	}
 
 	fn void Form.setStyle(&this) @private
@@ -446,9 +443,9 @@ struct Form
 	{
 		Uintptr tid = (Uintptr)wpm;
 		Timer* tm; //= this._timerList.get(key);
-		foreach (ti: this._timerList) {
-			if (ti.timerID == tid) {
-				tm = ti.pTimer;
+		foreach (tmr: this._timerList) {
+			if (tmr.idNum == tid) {
+				tm = tmr;
 				break;
 			}
 		}
@@ -575,7 +572,7 @@ struct Form
 			this.menubar.destroy();			
 		}
 		if (this._timerList.len()) {
-			foreach (ti: this._timerList) ti.pTimer.dtor();
+			foreach (tmr: this._timerList) tmr.destroy();
 			this._timerList.free();
 		}
 		

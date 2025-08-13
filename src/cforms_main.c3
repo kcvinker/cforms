@@ -18,6 +18,8 @@ struct AppData
 {
     bool mainLoopOn;
 	bool cmenuUsed;
+	bool isFormReg;
+	bool isMsgFormReg;
     int screenWidth;
     int screenHeight;	
 	int sysDPI;
@@ -30,31 +32,40 @@ struct AppData
 
 AppData app;
 Wstring className = {'C', 'f', 'o', 'r', 'm', 's', '_', 'W', 'i', 'n', 'd', 'o', 'w',  0};
+Wstring mfclass = {'C', 'f', 'o', 'r', 'm', 's', '_', 'M', 's', 'g', 'F', 'o', 'r', 'm',  0};
 
 
 fn void cforms_init() @init
 {	
-	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);
+	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);	
+	app.trayHwnds.init(mem, 2);	
+}
+
+fn void initNormalForm() // Called when first form starting.
+{
 	app.defWinColor = colorFromUint(0xF0F0F0); //colorFromRgb(0xED, 0xED, 0xED);
 	app.screenWidth = api_GetSystemMetrics(0);
 	app.screenHeight = api_GetSystemMetrics(1);
-	app.scaleFactor = (double)api_GetScaleFactorForDevice(0);
+	app.scaleFactor = (double)api_GetScaleFactorForDevice(0);	
 	registerClass();
-	getSystemDPI();
 	InitCommonControls icc;
 	icc.dwSize = InitCommonControls.sizeof;
 	icc.dwICC = ICC_STANDARD_CLASSES;
 	api_InitCommonControlsEx(&icc);
-	app.trayHwnds.init(mem, 2);
-	// app.fmap.init(mem, 2);
-	
-}
-
-fn void getSystemDPI()
-{
 	Hdc hdc = api_GetDC(null);
     defer api_ReleaseDC(null, hdc);
     app.sysDPI = api_GetDeviceCaps(hdc, LOGPIXELSY); 
+}
+
+fn void initMsgForm() // Called when first msg-only window starting
+{
+	WndClassEx wc;
+	wc.cbSize = WndClassEx.sizeof;
+	wc.lpfnWndProc = &msgform_wndproc;	
+	wc.hInstance = app.hins;
+	wc.lpszClassName = &mfclass[0];
+	short x = api_RegisterClassEx(&wc);
+	if (x) app.isMsgFormReg = true;
 }
 
 
@@ -67,11 +78,4 @@ fn void AppData.finalize(&this)
 	}
 	this.trayHwnds.free();
 
-	// if (this.cmenuUsed) api_UnregisterClass(&cmenuMsgWinClass[0], this.hins);
-	// api_UnregisterClass(&className[0], this.hins);
-	
-	// app.fmap.free();
-	
-    // this.tracker.print_report();
-	// this.tracker.free();
 }

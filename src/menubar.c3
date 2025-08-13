@@ -43,14 +43,15 @@ import std::collections::list;
 import std::collections::map;
 // import std::sort;
 // import libc;
-Wstring cmenuMsgWinClass = {'c', 'f', 'o', 'r', 'm', 's', '_', 'C', 'm', 'e', 'n', 'u', '_', 'M', 's','g','_','w', 'i','n', 0};
+
 alias MenuItemList = List{MenuItem*};
 alias MenuMap = HashMap{String, MenuItem*};
-enum MenuType : char {BASE_MENU, MENU_ITEM, POPUP, SEPRATOR }
+
 
 uint menuNumber = 101;
 Hmenu nullMenu = (Hmenu)0;
 const uint TPM_RETURNCMD = 0x100;
+const uint MFT_STRING = 0x00000000;
 bool cmenuMsgWinCreated = false;
 
 struct MenuBase
@@ -58,7 +59,6 @@ struct MenuBase
 	Hmenu handle;
 	Font font;
 	uint _menuCount;
-	// MenuMap menus;
 	MenuItemList _menuList;
 }
 
@@ -98,6 +98,7 @@ macro MenuItem* MenuBase.menus(&this, indexOrName)
 struct MenuBar
 {
 	inline MenuBase _base;
+	bool nativeStyle;
 	Hwnd _formHwnd;
 	Form* _pForm;
 	Colorref _menuGrayCref;
@@ -117,7 +118,6 @@ struct MenuItem
 	Color bgColor;
 	Color fgColor;
 	uint idNum;
-
 	uint _index;
 	uint _evtFlag;
 	int iLevel;
@@ -129,9 +129,12 @@ struct MenuItem
 	String text;
 	Char16* _wideText;
 	MenuType kind;
+	MenuState _mstate;
 	MenuItem* _parent;
+	Size _txtSize;
 	uint uFlag;
 	MenuBar* _mbar;
+	any tag;
 
 	MenuEventHandler onClick;
 	MenuEventHandler onPopup;
@@ -145,6 +148,7 @@ fn MenuBar* newMenuBar(Form* frm)
 {
 	MenuBar* this = allocator::new(mem, MenuBar);
 	this.handle = api_CreateMenu();
+	this.nativeStyle = true;
 	this._pForm = frm;
 	this.font = newFont("Tahoma", 11);
     this._menuGrayBrush = getHbrush(0xced4da);
@@ -174,6 +178,7 @@ fn MenuItem* newMenuItem(String menuName, MenuType mtp, Hmenu parentHmenu, uint 
     this.bgColor = newColor(0xe9ecef);
     this.fgColor = newColor(0x000000);
     this._isEnabled = true;
+	this._mstate = MenuState.ENABLED;
     menuNumber += 1;
 	return this;
 }
@@ -213,25 +218,41 @@ fn void MenuBar.createHandle(&this)
     this._menuHotBgBrush = getHbrush(0x90e0ef);
     this._menuFrameBrush = getHbrush(0x0077b6);
 	if (!this.font.handle) this.font.createHandle();
-
+	uint menu_draw_type = MF_STRING;
 	// If there are menus, we need to create the handles for them too.
-    if (this._menuCount > 0) {		
-			foreach(menu: this._menuList) {menu.create();}		
+    if (this._menuCount > 0) {
+		// First, of all, let's check if menubar's drawing style.
+		if (!this.nativeStyle) {
+			menu_draw_type = MF_OWNERDRAW;
+			// Let's setup the width & height for each menu item text.
+			Hdc hdcMem = api_CreateCompatibleDC(null);
+			defer api_DeleteDC(hdcMem);
+			Hgdiobj oldfont = api_SelectObject(hdcMem, (Hgdiobj)this.font.handle);
+			defer api_SelectObject(hdcMem, oldfont);
+			foreach(menu: this._menuList) {
+				api_GetTextExtentPoint32(hdcMem, menu._wideText, menu.text.len, &menu._txtSize);
+				if (menu.kind == MenuType.BASE_MENU) {
+					menu._txtSize.cx = menu._txtSize.cx < 100 ? 100 : menu._txtSize.cx + 20;
+				}
+			}	
+		}	
+		foreach(menu: this._menuList) {menu.create(menu_draw_type);}		
 	}
     api_SetMenu(this._pForm.handle, this.handle);
 	this._pForm._menubarCreated = true;
 }
 
-fn void MenuItem.insertMenuInternal(&this, Hmenu parentHmenu) @private
+fn void MenuItem.insertMenuInternal(&this, Hmenu parentHmenu, uint drawType) @private
 {
 	MenuItemInfoW mii;
     mii.cbSize = (uint) MenuItemInfoW.sizeof;
     mii.fMask = MIIM_ID | MIIM_TYPE | MIIM_DATA | MIIM_SUBMENU | MIIM_STATE;
-    mii.fType = MF_OWNERDRAW;
+    mii.fType = drawType;
     mii.dwTypeData = this._wideText;
     mii.cch = (uint)this.text.len;
     mii.dwItemData = bitcast(this, Ulongptr);
     mii.wID = this.idNum;
+	mii.fState = this._mstate.ordinal;
     mii.hSubMenu = this._popup ? this.handle : nullMenu;
     api_InsertMenuItemW(parentHmenu, this.idNum, 0, &mii);
     this._isCreated = true;
@@ -239,17 +260,17 @@ fn void MenuItem.insertMenuInternal(&this, Hmenu parentHmenu) @private
 }
 
 // Create menu item and append the handle in parent menu.
-fn void MenuItem.create(&this) @private
+fn void MenuItem.create(&this, uint draw_type) @private
 {
 	switch (this.kind) {
     	case MenuType.BASE_MENU: nextcase;
 		case MenuType.POPUP:
-			this.insertMenuInternal(this.parentHandle);
+			this.insertMenuInternal(this.parentHandle, draw_type);
 			if (this._menuList.len() > 0) {				
-				foreach(menu: this._menuList) {menu.create();}
+				foreach(menu: this._menuList) {menu.create(draw_type);}
 			}
     	case MenuType.MENU_ITEM:
-        	this.insertMenuInternal(this.parentHandle);
+        	this.insertMenuInternal(this.parentHandle, draw_type);
     	case MenuType.SEPRATOR:
         	api_AppendMenu(this.parentHandle, MF_SEPARATOR, 0, null);
 	}

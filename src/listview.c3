@@ -632,7 +632,7 @@ struct ListViewColumn
 							LVSelChangedEventArgs lsea = {.item = pitem, 
 															.index = nmlv.iItem, 
 															.isSelected = (bool)nowSelected};
-							lv.onSelectionChanged(this, &lsea);
+							this.onSelectionChanged(this, &lsea);
 						}
 					}
 				}

@@ -21,6 +21,8 @@ module cforms;
 	const uint MM_NODE_DELETED = BASE_MSG + 14;
 	const uint MM_THREAD_MSG = BASE_MSG + 15;
     const uint MM_TRAY_MSG = BASE_MSG + 16; // 32785
+	const uint MM_TIMER_DESTROY = BASE_MSG + 17;
+	const uint MM_CLOSE_MSGFORM = BASE_MSG + 18; // 32787
 
 	const HDM_FIRST = 4608;
 	const HDM_LAYOUT = (HDM_FIRST + 5);

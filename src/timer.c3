@@ -15,32 +15,33 @@
 ======================================================================================== */
 
 
-module cforms;
+// module cforms;
 
-struct Timer
-{
-    uint interval;
-    EventHandler onTick;
-    Uintptr _idNum;
-    Hwnd _parentHwnd;
-    bool _isEnabled;
-}
+// struct Timer
+// {
+//     uint interval;
+//     EventHandler onTick;
+//     Uintptr _idNum;
+//     Hwnd _parentHwnd;
+//     bool _isEnabled;
+// }
 
-fn void Timer.start(&this)
-{
-    this._isEnabled = true;
-    api_SetTimer(this._parentHwnd, this._idNum, this.interval, null);
-}
+// fn void Timer.start(&this)
+// {
+//     this._isEnabled = true;
+//     api_SetTimer(this._parentHwnd, this._idNum, this.interval, null);
+// }
 
-fn void Timer.stop(&this)
-{
-    api_KillTimer(this._parentHwnd, this._idNum);
-    this._isEnabled = false;
-}
+// fn void Timer.stop(&this)
+// {
+//     api_KillTimer(this._parentHwnd, this._idNum);
+//     this._isEnabled = false;
+// }
 
-fn void Timer.dtor(&this)
-{
-    if (this._isEnabled) api_KillTimer(this._parentHwnd, this._idNum);
-    allocator::free(mem, this);
-    // print("timer freed");
-}
+// fn void Timer.dtor(&this)
+// {
+//     if (this._isEnabled) api_KillTimer(this._parentHwnd, this._idNum);
+//     allocator::free(mem, this);
+//     // print("timer freed");
+// }
+

@@ -29,7 +29,7 @@
 ======================================================================================== */
 
 
-module cforms;
+module cforms; 
 
 Wstring msgWinClass = {'c', 'f', 'o', 'r', 'm', 's', '_', 'm', 's','g','_','w', 'i','n', 0};
 const int X = -3;
@@ -74,7 +74,9 @@ fn TrayIcon* newTrayIcon( String tooltip, String iconpath = "")
         this._hTrayIcon = api_LoadIcon(null, IDI_SHIELD);
     } else {
         @pool() {                        
-            this._hTrayIcon = api_LoadImage(null, String.to_temp_utf16(iconpath)!!, IMAGE_ICON, 0, 0, LIMG_FLAG);
+            this._hTrayIcon = api_LoadImage(null, 
+                                            String.to_temp_utf16(iconpath)!!, 
+                                            IMAGE_ICON, 0, 0, LIMG_FLAG);
             if (!this._hTrayIcon) {
                 this._hTrayIcon = api_LoadIcon(null, IDI_WINLOGO);
                 ptf("Can't create icon with %s", iconpath);            
@@ -163,7 +165,8 @@ fn void TrayIcon.updateIcon(&this, String iconpath)
     };
 }
 
-fn ContextMenu* TrayIcon.addContextMenu(&this, TrayMenuTrigger trigger, String... menuNames)
+fn ContextMenu* TrayIcon.addContextMenu(&this, TrayMenuTrigger trigger, 
+                                        String... menuNames)
 {
     ContextMenu* cmenu = newContextMenu();
     cmenu.addMenus(menuNames);
@@ -176,11 +179,13 @@ fn ContextMenu* TrayIcon.addContextMenu(&this, TrayMenuTrigger trigger, String..
 }
 
 
+
+
 fn void TrayIcon.destroy(&this)
 {
     /*-------------------------------------------------------------------  
     Sometimes, user want to delete the tray icon before the program exits.
-    In such cases, one can call this function and tray icon become destroyed. 
+    In such cases, one can call this function and tray icon will be destroyed. 
     Usually, tray icon will be destroyed right after the main window destroyed. 
     ----------------------------------------------------------------------------*/
     api_DestroyWindow(this._msgWinHwnd);
@@ -231,7 +236,7 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
             TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
             api_Shell_NotifyIcon(NIM_DELETE, &this._nid);		    
             if (this._hTrayIcon) api_DestroyIcon(this._hTrayIcon);
-            if (this._cmenuUsed) this.contextMenu.destroy();
+            if (this._cmenuUsed && this.contextMenu) this.contextMenu.destroy();
             allocator::free(mem, this);    
             print("TrayIcon is destroyed");        
             
