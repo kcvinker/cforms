@@ -321,7 +321,7 @@ struct Control
 	fn void Control.setContextMenu2(Control* this, String... menuNames) @private
 	{
 		ContextMenu* cmenu = newContextMenu();
-		cmenu.addMenus(menuNames);
+		cmenu.addMenus(...menuNames);
 		cmenu.parent = this;
 		this.contextMenu = cmenu;
 		this._cmenuUsed = true;

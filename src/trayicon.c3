@@ -169,7 +169,7 @@ fn ContextMenu* TrayIcon.addContextMenu(&this, TrayMenuTrigger trigger,
                                         String... menuNames)
 {
     ContextMenu* cmenu = newContextMenu();
-    cmenu.addMenus(menuNames);
+    cmenu.addMenus(...menuNames);
     cmenu.tray = this;
     cmenu._trayParent = true;    
     this.contextMenu = cmenu;

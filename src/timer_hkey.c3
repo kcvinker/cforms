@@ -43,6 +43,10 @@ fn void Timer.stop(&this)
 
 fn void Timer.destroy(&this)
 {
+    if (this._isEnabled) {
+        api_KillTimer(this.parentHwnd, this.idNum);
+        this._isEnabled = false;
+    }
     api_SendMessage(this.parentHwnd, MM_TIMER_DESTROY, this.idNum, 0);
     allocator::free(mem, this);
 }
@@ -64,11 +68,12 @@ fn HKResult regNewHotKey(Hwnd hwnd, Keys[] keyList, AnyHandler callback, bool re
         } else if ((k == Keys.LEFT_WIN) | (k == Keys.RIGHT_WIN)) {
             fmod |= 0x0008;
         } else if (k.value < 256) { // assuming key codes are < 256
-            vkey = k.ordinal;
+            vkey = k.value;
         }
     }
     if (!repeat) fmod |= 0x4000;
     Bool fres = api_RegisterHotKey(hwnd, globalHotKeyID, fmod, vkey);
+    ptf("reg hkey %d", fres);
     res.result = (bool)fres;  
     res.hkid = globalHotKeyID;
     globalHotKeyID += 1;

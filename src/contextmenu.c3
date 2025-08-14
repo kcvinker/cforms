@@ -75,7 +75,7 @@ fn MenuItem* ContextMenu.addMenu(&this, String menuText)
 	return mi;
 }
 
-fn void ContextMenu.addMenus(&this, String[] menuNames)
+fn void ContextMenu.addMenus(&this, String... menuNames)
 {
 	foreach (name: menuNames) {
 		MenuType mtyp = name == "|" ? MenuType.SEPRATOR : MenuType.MENU_ITEM;

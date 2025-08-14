@@ -77,5 +77,5 @@ fn void AppData.finalize(&this)
 		}			
 	}
 	this.trayHwnds.free();
-
+	print("Cforms is closing...");
 }

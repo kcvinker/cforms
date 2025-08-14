@@ -72,7 +72,7 @@ fn void MessageForm.startListening(&this)
         api_TranslateMessage(&pMsg);
         api_DispatchMessage(&pMsg);
     }
-    this.destroy();
+    app.finalize();
 }
 
 fn void MessageForm.close(&this)
@@ -85,7 +85,7 @@ fn Lresult MessageForm.sendMsg(&this, Hwnd hw, uint msg, Wparam wp, Lparam lp)
     return api_SendMessage(hw, msg, wp, lp);
 }
 
-fn Timer* MessageForm.addTimer(&this, uint interval_ms = 100, AnyHandler callback)
+fn Timer* MessageForm.addTimer(&this, AnyHandler callback, uint interval_ms = 100)
 {
     Timer* tmr = newTimer(this.handle, interval_ms, callback);
     this._timerList.push(tmr);
@@ -174,14 +174,13 @@ fn void MessageForm.destroy(&this)
         }
         if (this._hkeyList.len()) {
             foreach (hki: this._hkeyList) {
-                api_UnregisterHotKey(this.handle, hki.hkid);
+                Bool x = api_UnregisterHotKey(this.handle, hki.hkid);
             }
         }
         this._timerList.free();
         this._hkeyList.free();
         this._isActive = false;
         allocator::free(mem, this);
-        app.finalize();
         print("Message Form destroyed");
     }
 }
@@ -196,10 +195,13 @@ fn Lresult msgform_wndproc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
         case WM_NCCALCSIZE:
         case WM_CREATE: 
             return api_DefWindowProc(hw, msg, wp, lp);
-        case WM_DESTROY:
-            api_PostQuitMessage(0);
+
+        case WM_NCDESTROY:
+            MessageForm* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), MessageForm*);
+            if (this) this.destroy();
             return 0;
 
+        case WM_DESTROY:
         case MM_CLOSE_MSGFORM:
             api_PostQuitMessage(0);
             return 0;
@@ -232,5 +234,4 @@ fn Lresult msgform_wndproc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
                 return api_DefWindowProc(hw, msg, wp, lp);
             }            
     }
-    // return api_DefWindowProc(hw, msg, wp, lp);
 }
