@@ -43,6 +43,7 @@ fn void cforms_init() @init
 
 fn void initNormalForm() // Called when first form starting.
 {
+	// print("InitNormal Form started");
 	app.defWinColor = colorFromUint(0xF0F0F0); //colorFromRgb(0xED, 0xED, 0xED);
 	app.screenWidth = api_GetSystemMetrics(0);
 	app.screenHeight = api_GetSystemMetrics(1);

@@ -11,11 +11,11 @@ struct Timer
     Uintptr idNum;
     Hwnd parentHwnd;
     bool _isEnabled;
-    AnyHandler onTick;
+    EventHandler onTick;
 }
 
 fn Timer* newTimer(Hwnd pHwnd, uint tickInterval = 100, 
-                        AnyHandler onTickHandler = null)
+                        EventHandler onTickHandler = null)
 {
     Timer* this = allocator::new(mem, Timer);
     this.interval = tickInterval;
@@ -53,7 +53,7 @@ fn void Timer.destroy(&this)
 
 struct HKResult {int hkid; bool result;}
 
-fn HKResult regNewHotKey(Hwnd hwnd, Keys[] keyList, AnyHandler callback, bool repeat = false)
+fn HKResult regNewHotKey(Hwnd hwnd, Keys[] keyList, EventHandler callback, bool repeat = false)
 {
     HKResult res;
     uint fmod = 0;

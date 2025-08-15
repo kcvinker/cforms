@@ -49,17 +49,17 @@ struct TrayIcon
     any* userData;
     NotifyIconData _nid;
 
-    TrayIconEventHandler onBalloonShow;
-    TrayIconEventHandler onBalloonClose;
-    TrayIconEventHandler onBalloonClick;    
-    TrayIconEventHandler onMouseMove;    
-    TrayIconEventHandler onLeftMouseDown;
-    TrayIconEventHandler onLeftMouseUp;    
-    TrayIconEventHandler onRightMouseDown;
-    TrayIconEventHandler onRightMouseUp;
-    TrayIconEventHandler onLeftClick;
-    TrayIconEventHandler onRightClick;
-    TrayIconEventHandler onLeftDoubleClick;
+    EventHandler onBalloonShow;
+    EventHandler onBalloonClose;
+    EventHandler onBalloonClick;    
+    EventHandler onMouseMove;    
+    EventHandler onLeftMouseDown;
+    EventHandler onLeftMouseUp;    
+    EventHandler onRightMouseDown;
+    EventHandler onRightMouseUp;
+    EventHandler onLeftClick;
+    EventHandler onRightClick;
+    EventHandler onLeftDoubleClick;
 }
 
 /**

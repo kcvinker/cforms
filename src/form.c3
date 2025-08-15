@@ -141,7 +141,7 @@ struct Form
 		this.font = newFont("Tahoma", 11);
 		this.hinst = app.hins;
 		this.backColor = app.defWinColor;
-		this._timerList.init(mem, 0);		
+		this._timerList.init(mem, 0);	
 		frmNumber += 1;
 		// $echo("newForm is okay");
 		return this;
@@ -151,7 +151,7 @@ struct Form
 	{
 		this.setStyle();
 		this.setPosition();
-		Char16* title = this.text.to_temp_utf16()!!.ptr;		
+		Char16* title = this.text.to_temp_utf16()!!.ptr;
 		this.handle = api_CreateWindowEx(this._exStyle,
 										&className[0],
 										title,
@@ -207,7 +207,7 @@ struct Form
 	}
 
 	// Adds a timer to this window.
-	fn Timer* Form.addTimer(&this, uint interval = 100, AnyHandler tickHandler = null)
+	fn Timer* Form.addTimer(&this, uint interval = 100, EventHandler tickHandler = null)
 	{
 		Timer* tm = newTimer(this.handle, interval, tickHandler);
 		this._timerList.push(tm);
@@ -241,10 +241,8 @@ struct Form
 		wc.lpszMenuName = (Lpcwstr)0;
 		wc.lpszClassName = &className[0];
 		short x = api_RegisterClassEx(&wc);
-		if (x) app.isFormReg = true;
-		
-		
-		ptf("wm MM_CLOSE_MSGFORM %d", MM_CLOSE_MSGFORM);
+		if (x) app.isFormReg = true;		
+		// ptf("wm MM_CLOSE_MSGFORM %d", MM_CLOSE_MSGFORM);
 	}
 
 	fn void Form.setStyle(&this) @private

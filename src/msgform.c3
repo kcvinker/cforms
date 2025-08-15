@@ -4,12 +4,14 @@
 module cforms;
 
 import std::collections::list;
+import std::thread;
 
 alias MessageHandler = fn bool(MessageForm* this, uint msg, Wparam wpm, Lparam lpm);
 
-struct HKeyInfo {int hkid; AnyHandler pfunc;}
+struct HKeyInfo {int hkid; EventHandler pfunc;}
 alias HkeyList = List{HKeyInfo};
-
+faultdef HKEYID_NOTFOUND;
+faultdef TIMER_INDEX_NOTFOUND;
 
 struct MessageForm
 {
@@ -51,9 +53,9 @@ fn MessageForm* newMessageForm(MessageHandler pFunc, bool autoc = true,
 }
 
 // TrayIcon's default 'Quit' menu's click handler.
-fn void onTrayQuit(MenuItem* mi, EventArgs* ea)
+fn void onTrayQuit(any mi, EventArgs* ea)
 {
-    MessageForm* mf = (MessageForm*)mi.tag;
+    MessageForm* mf = (MessageForm*)((MenuItem*)mi).tag;
     api_DestroyWindow(mf.handle);
 }
 
@@ -80,19 +82,32 @@ fn void MessageForm.close(&this)
     if (this.handle) api_DestroyWindow(this.handle);
 }
 
+faultdef THREAD_NOT_CREATED;
+
+fn Thread? MessageForm.createFormThread(&this, ThreadFn func, void* args)
+{
+    Thread uiThread;
+    if (catch error = uiThread.create(func, args))
+    {
+        ptf("Thread creation error: %s", error);
+        return THREAD_NOT_CREATED?;
+    }
+    return uiThread;
+}
+
 fn Lresult MessageForm.sendMsg(&this, Hwnd hw, uint msg, Wparam wp, Lparam lp)
 {
     return api_SendMessage(hw, msg, wp, lp);
 }
 
-fn Timer* MessageForm.addTimer(&this, AnyHandler callback, uint interval_ms = 100)
+fn Timer* MessageForm.addTimer(&this, EventHandler callback, uint interval_ms = 100)
 {
     Timer* tmr = newTimer(this.handle, interval_ms, callback);
     this._timerList.push(tmr);
     return tmr;
 }
 
-fn int MessageForm.addHotKey(&this, Keys[] keyList, AnyHandler callback, bool norepeat=true) 
+fn int MessageForm.addHotKey(&this, Keys[] keyList, EventHandler callback, bool norepeat=true) 
 {
     HKResult res = regNewHotKey(this.handle, keyList, callback, norepeat);
     if (res.result) {
@@ -103,8 +118,7 @@ fn int MessageForm.addHotKey(&this, Keys[] keyList, AnyHandler callback, bool no
     return -1;
 }
 
-faultdef HKEYID_NOTFOUND;
-faultdef TIMER_INDEX_NOTFOUND;
+
 
 // This function unregister the hot key and return the index. 
 fn ulong? MessageForm.removeHotKey(&this, int hkeyid)
@@ -131,9 +145,9 @@ fn void MessageForm.removeHotKeys(&this, int[] hkids)
     }
 }
 
-fn AnyHandler MessageForm.getHandler(&this, int kid)
+fn EventHandler MessageForm.getHandler(&this, int kid)
 {
-    AnyHandler result = null;
+    EventHandler result = null;
     foreach (hi: this._hkeyList) {
         if (hi.hkid == kid) {
             result = hi.pfunc;
@@ -208,7 +222,7 @@ fn Lresult msgform_wndproc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 
         case WM_HOTKEY:
             MessageForm* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), MessageForm*);
-            AnyHandler pfunc = this.getHandler((int)wp);
+            EventHandler pfunc = this.getHandler((int)wp);
             if (pfunc) pfunc(this, &gea);
             return 0;
 

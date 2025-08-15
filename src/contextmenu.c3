@@ -38,7 +38,7 @@ struct ContextMenu
 
 	// Events
     EventHandler onMenuShown, onMenuClose;
-    TrayIconEventHandler onTrayMenuShown, onTrayMenuClose;
+    EventHandler onTrayMenuShown, onTrayMenuClose;
 }
 
 fn ContextMenu* newContextMenu()
@@ -137,7 +137,7 @@ fn MenuItem* ContextMenu.getMenuItem(&this, uint id) @private
 	return null;
 }
 
-fn void ContextMenu.addClickHandler(&this, String menuName, MenuEventHandler func)
+fn void ContextMenu.addClickHandler(&this, String menuName, EventHandler func)
 {	
 	if (this._menuList.len()) {
 		foreach(menu: this._menuList) {

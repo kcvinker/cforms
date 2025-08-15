@@ -1,19 +1,17 @@
 // cforms.events - Created on 27-Jan-2023 01:56
 module cforms;
 
-alias EventHandler = fn void(Control* c, EventArgs* e);
-alias MouseEventHandler = fn void(Control* c, MouseEventArgs* e);
-alias SizeEventHandler = fn void(Control* c, SizeEventArgs* e);
-alias KeyEventHandler = fn void(Control* c, KeyEventArgs* e);
-alias DateTimeEventHandler = fn void(Control* c, DateTimeEventArgs* e);
+alias EventHandler = fn void(any sender, EventArgs* ea);
+alias MouseEventHandler = fn void(any sender, MouseEventArgs* ea);
+alias SizeEventHandler = fn void(any sender, SizeEventArgs* ea);
+alias KeyEventHandler = fn void(any sender, KeyEventArgs* ea);
+alias DateTimeEventHandler = fn void(any sender, DateTimeEventArgs* e);
 alias ThreadMsgHandler = fn void(Wparam wpm, Lparam lpm);
-alias TrayIconEventHandler = fn void(TrayIcon* c, EventArgs* e);
-alias MenuEventHandler = fn void(MenuItem*, EventArgs*);
 alias NodeNotifyHandler = fn void(TreeView* this, TreeNode* node, String prop, void* data);
 alias LVItemEventHandler = fn void(ListView* this, LVItemEventArgs* e);
 alias LVSelChangeEventHandler = fn void(ListView* this, LVSelChangedEventArgs* e);
 alias LVItemCheckEventHandler = fn void(ListView* this, LVItemCheckEventArgs* e);
-alias AnyHandler = fn void(any obj, EventArgs* e);
+
 
 
 struct Area

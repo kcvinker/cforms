@@ -136,10 +136,10 @@ struct MenuItem
 	MenuBar* _mbar;
 	any tag;
 
-	MenuEventHandler onClick;
-	MenuEventHandler onPopup;
-	MenuEventHandler onCloseup;
-	MenuEventHandler onFocus;
+	EventHandler onClick;
+	EventHandler onPopup;
+	EventHandler onCloseup;
+	EventHandler onFocus;
 
 }
 

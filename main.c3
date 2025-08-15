@@ -138,18 +138,18 @@ fn int main(String[] args)
 	};
 }
 
-fn void frmOnMouseDown(Control* f, MouseEventArgs* e) {
+fn void frmOnMouseDown(any f, MouseEventArgs* e) {
 	frm.printPoint(e);
 	ti.showBalloon("My Balloon", "See this balloon message", 
 					3500, noSound: true, icon : BalloonIcon.WARNING);
 	// ti.updateIcon("D:\\Icons\\Dakirby309-Windows-8-Metro-Web-Microsoft-Store-Metro.ico");
 }
 
-fn void frmMouseDown(Control* c, MouseEventArgs* e) {
+fn void frmMouseDown(any c, MouseEventArgs* e) {
 	cptf("Mouse hovered %d, %d \n", e.x, e.y);
 }
 
-fn void onB2Click(Control* s, EventArgs* e){
+fn void onB2Click(any s, EventArgs* e){
 	print("Button pressed");
 	// tm.start();
 	ti.showBalloon("My Balloon", "this message has sound", 3500);
@@ -159,7 +159,7 @@ fn void onTimerTick(any f, EventArgs* e) {
 	print("Timer ticked...");
 }
 
-fn void btnClick(Control* c, EventArgs* e) {	
+fn void btnClick(any c, EventArgs* e) {	
 	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
 	String tf = "PDF Files\0*.pdf\0";
 
@@ -169,11 +169,12 @@ fn void btnClick(Control* c, EventArgs* e) {
 	};
 }
 
-fn void onMenuClick(MenuItem* m, EventArgs* e) {
-	ptf("menu text (191) %s", m.text);
+fn void onMenuClick(any sender, EventArgs* e) {
+	MenuItem* mi = (MenuItem*)sender;
+	ptf("menu text (191) %s", mi.text);
 }
 
-fn void onTrackChange(Control* m, EventArgs* e) {
+fn void onTrackChange(any m, EventArgs* e) {
 	pb.setValue(tk.value);
 }
 
