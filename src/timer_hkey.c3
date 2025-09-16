@@ -73,7 +73,7 @@ fn HKResult regNewHotKey(Hwnd hwnd, Keys[] keyList, EventHandler callback, bool 
     }
     if (!repeat) fmod |= 0x4000;
     Bool fres = api_RegisterHotKey(hwnd, globalHotKeyID, fmod, vkey);
-    ptf("reg hkey %d", fres);
+    // ptf("reg hkey %d", fres);
     res.result = (bool)fres;  
     res.hkid = globalHotKeyID;
     globalHotKeyID += 1;

@@ -30,10 +30,12 @@ struct ContextMenu
     int width, height;
     bool rightClick;
 	bool nativeStyle;
+	
 	bool _menuInserted;
 	bool _trayParent; 
     Colorref _grayCref;
-    Hwnd _dummyHwnd;    
+    Hwnd _dummyHwnd;  
+	Hwnd _pHandle; // Parent's handle  
     Hbrush _defBgBrush, _hotBgBrush, _borderBrush, _grayBrush;
 
 	// Events
@@ -41,7 +43,8 @@ struct ContextMenu
     EventHandler onTrayMenuShown, onTrayMenuClose;
 }
 
-fn ContextMenu* newContextMenu()
+// Set custDraw to true, if you do not want system style. 
+fn ContextMenu* newContextMenu(bool custDraw = false)
 {
 	ContextMenu* this = allocator::new(mem, ContextMenu);
 	this.handle = api_CreatePopupMenu();	
@@ -49,7 +52,7 @@ fn ContextMenu* newContextMenu()
 	this.height = 25;
 	this.rightClick = true;
 	this.font = newFont("Tahoma", 11);
-	this.nativeStyle = true; // Menus are drawn by Windows. 
+	this.nativeStyle = !custDraw; // If true, menus will be drawn by Windows. 
 	this._defBgBrush = getHbrush(0xe9ecef);
 	this._hotBgBrush = getHbrush(0x90e0ef);
 	this._borderBrush = getHbrush(0x0077b6);
@@ -147,6 +150,31 @@ fn void ContextMenu.addClickHandler(&this, String menuName, EventHandler func)
 			}
 		}
 	}
+} 
+
+
+<*
+	@require this._pHandle != null : "_pHandle is null"
+*>
+fn void ContextMenu.exitOnClick(&this, String menuName)
+{
+	if (this._menuList.len()) {
+		foreach(menu: this._menuList) {
+			if (menu.text == menuName) {					
+				menu.userData = this._pHandle;
+				menu.onClick = &exitFunc;
+				break;
+			}
+		}
+	}
+}
+
+// This function get called when user wants to exit the program on a specific menu item click.
+fn void exitFunc(any sender, EventArgs* e)
+{
+	MenuItem* mi = (MenuItem*)sender;
+	Hwnd hw = (Hwnd)mi.userData;
+	api_DestroyWindow(hw);
 }
 
 fn void ContextMenu.setItemTag(&this,  String menuName, any tagItem)
@@ -160,6 +188,9 @@ fn void ContextMenu.setItemTag(&this,  String menuName, any tagItem)
 		}
 	}
 }
+
+
+
 
 <*
  @require this.parent || this._trayParent && this._menuList.len() :"Either parent is null or no menu items added"
@@ -193,7 +224,7 @@ fn void ContextMenu.showMenu(&this, Lparam lpm) @private
 	select any menu item, we must activate any window. So we are bringing our tray's 
 	message-only window to foreground. 
 	---------------------------------------------------------------------------------------*/
-	if (!lpm) api_SetForegroundWindow(this.tray._msgWinHwnd);
+	if (!lpm) api_SetForegroundWindow(this.tray.handle);
 
 	/*------------------------------------------------------------------------
 	We are using TPM_RETURNCMD, so we don't get the WM_COMMAND in our wndproc, 

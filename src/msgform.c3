@@ -1,5 +1,35 @@
 // Created on 09-Aug-2025 9:55 AM
-// Purpose : 
+
+// MessageForm is a hidden form which process messages like a regular Form.
+
+/*******************************----How to use----***********************************
+    1. Call newMessageForm function to create a MessageForm.
+        Parameters-----------
+        1. pFunc (MessageHandler) = A function pointer which handles the....
+            messages of your interest. 
+            Signature -- fn bool(MessageForm* this, uint msg, Wparam wpm, Lparam lpm);
+
+        2. makeTray (bool) = If it's true, function will create a TrayIcon for you.
+            If you don't want to add a context menu, you can call TrayIcon's exitOnClick
+            function which will set an event handler for tray icon click. So that
+            you can close this message form with tray icon click( Any click, left/right/double).
+
+        2. autoc (bool) = If it's true, this function will create the handle.
+            if it's false, you need to call MessageForm.createHandle function.
+
+    2. Call addTrayIcon function to create a tray icon, you'd want it.
+        Because, otherwise, there is almost no way to close a message form.
+        Parameters----------
+            1. trayTip (String) = A tooltip text when you hover the mouse over tray icon.
+            2. iconpath (String) = An icon to show in tray icon.
+
+    4. Call TrayIcon.addContextMenu function to create context menu items.
+    5. Call ContextMenu.addClickHandler function to set event handlers for menu.
+    6. Call MessageForm.createHandle function, if you didn't create the handle yet. 
+    7. Now, you are ready start the program, just call MessageForm.startListening.
+        NOTE: If you want to run a MessageForm with a normal form, you don't need 
+        to call startListening function. Your form's message loop is enough.
+*************************************************************************************/
 
 module cforms;
 
@@ -22,55 +52,49 @@ struct MessageForm
     TimerList _timerList;
     HkeyList _hkeyList;
     MessageHandler msgHandler;
-
 }
 
-fn MessageForm* newMessageForm(MessageHandler pFunc, bool autoc = true, 
-                                bool noTrayIcon = false, bool noCmenu = false,
-                                String trayTip = "cforms Message-Only Form",
-                                String iconpath = "")
+// Function will create the message form handle, if you pass true for 'autoc'.
+fn MessageForm* newMessageForm(MessageHandler pFunc, bool makeTray = false, bool autoc = true)
 {
     if (!app.isMsgFormReg) initMsgForm();
     MessageForm* this = allocator::new(mem, MessageForm);
     this.msgHandler = pFunc;
-    this._noTray = noTrayIcon;
     this._isActive = true;
-    if (!noTrayIcon) {
-        // A default tray icon will be useful. 
-        this.tray = newTrayIcon(trayTip, iconpath);
-        if (!noCmenu) { 
-            // We are adding a context menu item to quit the program.
-            this.tray.addContextMenu(TrayMenuTrigger.ANY_CLICK, "Quit");
-            this.tray.contextMenu.setItemTag("Quit", this);
-            this.tray.contextMenu.addClickHandler("Quit", &onTrayQuit);
-        }            
-    }
     this._timerList.init(mem, 0);
     this._hkeyList.init(mem, 0);
     if (autoc) this.createHandle();
-    ptf("mow handle %d", this.handle);
+    if (makeTray) this.addTrayIcon();
     return this;
 }
 
-// TrayIcon's default 'Quit' menu's click handler.
-fn void onTrayQuit(any mi, EventArgs* ea)
+
+/* Add a tray icon to message form. If 'closeOnClick' is true, the program...
+ * will close when user clicks the tray icon.
+ ***************************************************************************/
+fn void MessageForm.addTrayIcon(&this, String trayTip = "cforms Message-Only Form",
+                                String iconpath = "")
 {
-    MessageForm* mf = (MessageForm*)((MenuItem*)mi).tag;
-    api_DestroyWindow(mf.handle);
+    if (this.handle) {
+        // If tray is already allocated, we need to free it.
+        if (this.tray) this.tray.destroy(); 
+        this.tray = newTrayIcon(trayTip, iconpath);
+        this.tray._pHandle = this.handle; 
+    }
 }
+
 
 fn void MessageForm.createHandle(&this)
 {
     this.handle = api_CreateWindowEx(0, &mfclass[0], null, 0, 0, 0, 0, 0, 
                                         HWND_MESSAGE, null, app.hins, null);    
     api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
-
 }
 
 fn void MessageForm.startListening(&this)
 {
     Msg pMsg; 
-    while (api_GetMessage(&pMsg, null, 0, 0) > 0) {
+    while (api_GetMessage(&pMsg, null, 0, 0)) {
         api_TranslateMessage(&pMsg);
         api_DispatchMessage(&pMsg);
     }
@@ -188,21 +212,21 @@ fn void MessageForm.destroy(&this)
         }
         if (this._hkeyList.len()) {
             foreach (hki: this._hkeyList) {
-                Bool x = api_UnregisterHotKey(this.handle, hki.hkid);
+                api_UnregisterHotKey(this.handle, hki.hkid);
             }
         }
         this._timerList.free();
         this._hkeyList.free();
         this._isActive = false;
         allocator::free(mem, this);
-        print("Message Form destroyed");
+        print("MessageForm destroyed...");
     }
 }
 
 
 fn Lresult msgform_wndproc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {
-    ptf("MsgForm messages %d", msg);
+    // ptf("MsgForm messages %d", msg);
     switch (msg) {
         case WM_GETMINMAXINFO:
         case WM_NCCREATE:
@@ -212,7 +236,7 @@ fn Lresult msgform_wndproc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 
         case WM_NCDESTROY:
             MessageForm* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), MessageForm*);
-            if (this) this.destroy();
+            if (this) this.destroy();            
             return 0;
 
         case WM_DESTROY:

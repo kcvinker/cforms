@@ -135,6 +135,7 @@ struct MenuItem
 	uint uFlag;
 	MenuBar* _mbar;
 	any tag;
+	void* userData;
 
 	EventHandler onClick;
 	EventHandler onPopup;

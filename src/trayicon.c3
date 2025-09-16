@@ -4,16 +4,17 @@
 	Properties:
 		menuTrigger     : TrayMenuTrigger enum
         contextMenu     : ContextMenu*
-        userData        : any*
+        userData        : any
 		
 	Methods:
 		showBalloon
         updateTooltip
         updateIcon
         addContextMenu
-		
+		exitOnClick
+
 	Events:
-		TrayIconEventHandler type - fn void(TryIcon*, EventArgs*)
+		EventHandler type - fn void(any, EventArgs*)
 			onBalloonShow
             onBalloonClose
             onBalloonClick    
@@ -39,14 +40,17 @@ const uint LIMG_FLAG = LR_DEFAULTCOLOR | LR_LOADFROMFILE;
 
 struct TrayIcon 
 {
+    Hwnd handle;
+    any userData;
+    ContextMenu* contextMenu;
+    TrayMenuTrigger menuTrigger;
+
     bool _resetIcon;
     bool _cmenuUsed;
-    bool _retainIcon;
-    TrayMenuTrigger menuTrigger;
-    Hicon _hTrayIcon;
-    Hwnd _msgWinHwnd;
-    ContextMenu* contextMenu;
-    any* userData;
+    bool _retainIcon; 
+    bool _isEOCenabled; // Exit on click enabled or not.   
+    Hicon _hTrayIcon;    
+    Hwnd _pHandle; // Parent's handle
     NotifyIconData _nid;
 
     EventHandler onBalloonShow;
@@ -86,7 +90,7 @@ fn TrayIcon* newTrayIcon( String tooltip, String iconpath = "")
     @pool() {
         Char16[] tipTxt = String.to_temp_utf16(tooltip)!!;
         this._nid.cbSize = NotifyIconData.sizeof;
-        this._nid.hWnd = this._msgWinHwnd;
+        this._nid.hWnd = this.handle;
         this._nid.uID = 1;
         this._nid.uVersionOrTimeout = 4;
         this._nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
@@ -165,19 +169,63 @@ fn void TrayIcon.updateIcon(&this, String iconpath)
     };
 }
 
-fn ContextMenu* TrayIcon.addContextMenu(&this, TrayMenuTrigger trigger, 
+fn ContextMenu* TrayIcon.addContextMenu(&this, bool custDraw, TrayMenuTrigger trigger, 
                                         String... menuNames)
 {
-    ContextMenu* cmenu = newContextMenu();
+    ContextMenu* cmenu = newContextMenu(custDraw);
     cmenu.addMenus(...menuNames);
     cmenu.tray = this;
+    cmenu._pHandle = this._pHandle;
     cmenu._trayParent = true;    
     this.contextMenu = cmenu;
     this._cmenuUsed = true;
     this.menuTrigger = trigger;
+    if (this._isEOCenabled) this.removeExitHandler();
     return cmenu;
 }
 
+// Use it if you want tray icon would respond to these three clicks.
+fn void TrayIcon.addCommonClickHandler(&this, EventHandler pFunc)
+{
+    this.onLeftClick = pFunc;
+    this.onRightClick = pFunc;
+    this.onLeftDoubleClick = pFunc;
+    this._isEOCenabled = true;
+}
+
+/* Sometimes you would want to close the MessageForm when you click
+ * on the tray icon. If the tray icon didn't have a context menu, you can
+ * use this function to close MessageForm. These handlers will automatically
+ * removed if you add context menu later.  
+ *******************************************************************************/
+fn void TrayIcon.exitOnClick(&this)
+{
+    if (!this.contextMenu) {
+        this.onLeftClick = &onExitFunc;
+        this.onRightClick = &onExitFunc;
+        this.onLeftDoubleClick = &onExitFunc;
+        this._isEOCenabled = true;
+    }
+}
+
+
+/* This function does the opposite of what exitOnClick does.
+ * Call it, when you need to remove the exit hanlders from tray click.
+ * If you add a context menu to the tray, this fn will called automatically.
+ *---------------------------------------------------------------------*/
+fn void TrayIcon.removeExitHandler(&this)
+{
+    this.onLeftClick = null;
+    this.onRightClick = null;
+    this.onLeftDoubleClick = null;
+}
+    
+
+fn void onExitFunc(any sender, EventArgs* e)
+{
+    TrayIcon* ti = (TrayIcon*)sender;
+    api_PostMessage(ti._pHandle, WM_CLOSE, 0, 0);
+}
 
 
 
@@ -188,12 +236,9 @@ fn void TrayIcon.destroy(&this)
     In such cases, one can call this function and tray icon will be destroyed. 
     Usually, tray icon will be destroyed right after the main window destroyed. 
     ----------------------------------------------------------------------------*/
-    api_DestroyWindow(this._msgWinHwnd);
-    removeItemFrom(app.trayHwnds, this._msgWinHwnd);
+    api_DestroyWindow(this.handle);
+    removeItemFrom(app.trayHwnds, this.handle);
 }
-
-
-
 
 fn void TrayIcon.resetIconInternal(&this) @private
 {
@@ -214,13 +259,18 @@ fn void TrayIcon.registerMessageWindow(&this) @private
 	api_RegisterClassEx(&wc);
 }
 
+fn bool TrayIcon.cmenuReadyToShow(&this, char c_value) @inline
+{
+    return this._cmenuUsed && ((this.menuTrigger.value & c_value) != 0);
+}
+
 fn void TrayIcon.create_message_window(&this) @private
 {
 	this.registerMessageWindow();
-	this._msgWinHwnd = api_CreateWindowEx(0, &msgWinClass[0], null, 0, 0, 0, 0, 0, HWND_MESSAGE, null, app.hins, null);
-    if (this._msgWinHwnd) {
-        app.trayHwnds.push(this._msgWinHwnd);  
-        api_SetWindowLongPtr(this._msgWinHwnd, GWLP_USERDATA, bitcast(this, Longptr));
+	this.handle = api_CreateWindowEx(0, &msgWinClass[0], null, 0, 0, 0, 0, 0, HWND_MESSAGE, null, app.hins, null);
+    if (this.handle) {
+        app.trayHwnds.push(this.handle);  
+        api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
     } else {
         ptf("Can't create message-only-window for tray menu, Error code is %d", api_GetLastError());
     }
@@ -238,7 +288,7 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
             if (this._hTrayIcon) api_DestroyIcon(this._hTrayIcon);
             if (this._cmenuUsed && this.contextMenu) this.contextMenu.destroy();
             allocator::free(mem, this);    
-            print("TrayIcon is destroyed");        
+            // print("TrayIcon is destroyed");        
             
 		case MM_TRAY_MSG:			
             switch(lp) {
@@ -265,14 +315,12 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
                    TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
                     if (this.onLeftMouseUp) this.onLeftMouseUp(this, &gea);
                     if (this.onLeftClick) this.onLeftClick(this, &gea);
-                    if (this._cmenuUsed && this.menuTrigger.value & 0b00000001) 
-                        {this.contextMenu.showMenu(0);}
+                    if (this.cmenuReadyToShow(1)) this.contextMenu.showMenu(0);
                     
                 case WM_LBUTTONDBLCLK:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
                     if (this.onLeftDoubleClick) this.onLeftDoubleClick(this, &gea);
-                    if (this._cmenuUsed && this.menuTrigger.value & 0b00000010) 
-                        {this.contextMenu.showMenu(0);}
+                    if (this.cmenuReadyToShow(2)) this.contextMenu.showMenu(0);
                     
                 case WM_RBUTTONDOWN:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
@@ -282,8 +330,7 @@ fn Lresult msg_window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);
                     if (this.onRightMouseUp) this.onRightMouseUp(this, &gea);
                     if (this.onRightClick) this.onRightClick(this, &gea);
-                    if (this._cmenuUsed && this.menuTrigger.value & 0b00000100) 
-                        {this.contextMenu.showMenu(0);}
+                    if (this.cmenuReadyToShow(4)) this.contextMenu.showMenu(0);
                     
                 case WM_MOUSEMOVE:
                     TrayIcon* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), TrayIcon*);

@@ -182,7 +182,7 @@ struct Form
 			app.mainLoopOn = true;
 			this._isMainWindow = true;
 			Msg pMsg; 
-			while (api_GetMessage(&pMsg, null, 0, 0) > 0) {
+			while (api_GetMessage(&pMsg, null, 0, 0) != 0) {
 				api_TranslateMessage(&pMsg);
 				api_DispatchMessage(&pMsg);
 			}

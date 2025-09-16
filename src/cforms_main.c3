@@ -30,7 +30,7 @@ struct AppData
 	// FormMap fmap;
 }
 
-AppData app;
+AppData app; // Global variable to hold cform's essential info.
 Wstring className = {'C', 'f', 'o', 'r', 'm', 's', '_', 'W', 'i', 'n', 'd', 'o', 'w',  0};
 Wstring mfclass = {'C', 'f', 'o', 'r', 'm', 's', '_', 'M', 's', 'g', 'F', 'o', 'r', 'm',  0};
 
@@ -71,12 +71,12 @@ fn void initMsgForm() // Called when first msg-only window starting
 
 
 fn void AppData.finalize(&this)
-{	 
+{	
 	if (this.trayHwnds.len()) {			
 		foreach (hwnd : this.trayHwnds) {
 			if(api_IsWindow(hwnd)) api_DestroyWindow(hwnd);
 		}			
 	}
 	this.trayHwnds.free();
-	print("Cforms is closing...");
+	print("Cforms is closed...");
 }
