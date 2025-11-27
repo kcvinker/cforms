@@ -137,7 +137,7 @@ fn void FileOpenDialog.extractFileNames(FileOpenDialog* this, Char16* buffer, in
         String dirPath = string::from_utf16(mem, wDir)!!;
         int offset = startPos;
 
-        for (int i = startPos; i <NEW_MAX_PATH; i++) {
+        for (int i = startPos; i <MULTI_SEL_MAX_BUFFER; i++) {
             Char16 wchar = buffer[i];
             if (wchar == '\u0000') {
                 Char16[] slice = buffer[offset..i];
@@ -205,23 +205,27 @@ fn void FileOpenDialog.setFilters(FileOpenDialog* this, String description, Stri
 
 
 // Helper macro to manage file open & save dialogs.
-macro showDialogMacro(this, Hwnd hwnd = null) @private
+macro showDialogMacro(this, Hwnd hwnd = null) @private => @pool()
 {
     OpenFileNameW ofn;
-    ofn.hwndOwner = hwnd;
-    Char16[NEW_MAX_PATH] buffer;
+    ofn.hwndOwner = hwnd;    
+    usz arr_size = MAX_PATH;
+    $if $typeof(this) == FileOpenDialog:
+        if (this.multiSelection) arr_size = MULTI_SEL_MAX_BUFFER; 
+    $endif   
+    Char16* buffer = mem::talloc_array(Char16, arr_size);    
     Char16* initDirBuff = this.initFolder == "" ? 
-        (Char16*)0 : String.to_utf16(this.initFolder, mem)!!;
+                        (Char16*)0 : String.to_utf16(this.initFolder, mem)!!;
     Char16* titleBuff = String.to_utf16(this.title, mem)!!;
     Char16* filBuff = String.to_utf16(this.filter, mem)!!;
     defer {free(initDirBuff); free(titleBuff); free(filBuff);}
     ofn.lStructSize = OpenFileNameW.sizeof;
-    ofn.lpstrFile = &buffer[0];
+    ofn.lpstrFile = buffer;
     ofn.lpstrFile[0] = '\u0000';
     ofn.lpstrInitialDir = initDirBuff;
     ofn.lpstrTitle = titleBuff;
     ofn.lpstrFilter = filBuff;
-    ofn.nMaxFile = NEW_MAX_PATH;
+    ofn.nMaxFile = (Dword)arr_size;
     ofn.lpstrDefExt = (Char16*)0; // Without this, we won't get any extension.
 
     Bool ret = 0;
@@ -233,7 +237,7 @@ macro showDialogMacro(this, Hwnd hwnd = null) @private
             ret = api_GetOpenFileName(&ofn);
             if (ret) {
                 if (this.multiSelection) {
-                    this.extractFileNames(&buffer, (int)ofn.nFileOffset);
+                    this.extractFileNames(buffer, (int)ofn.nFileOffset);
                     this.selectedPath = this.fileNames[0];
                 } else {
                     this.selectedPath = string::from_wstring(mem, (WString)&buffer)!!;
