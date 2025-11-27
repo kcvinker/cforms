@@ -38,7 +38,7 @@ fn void makeWindow()
 	//Add a tray icon for our program
 	ti = newTrayIcon("cforms sample tray icon!", "cforms.ico");
 	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
-	ti.addContextMenu(TrayMenuTrigger.ANY_CLICK, "Button", "|", "CheckBox", "Label");
+	ti.addContextMenu(false, TrayMenuTrigger.ANY_CLICK, "Button", "|", "CheckBox", "Label");
 	ti.contextMenu.menus(0).onClick = fn(c,e) => print("Button menu selected from tray");
 
 	// Let's add a timer. 400 is the ticking interval in ms.

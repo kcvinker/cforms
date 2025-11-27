@@ -173,7 +173,7 @@ struct Control
 
 	macro void Control.addContextMenu(&self, ...)
 	{
-		$if $vacount == 1 && @typeis($vaarg[0], ContextMenu*):
+		$if $vacount == 1 && $typeof($vaarg[0]) == ContextMenu*:
 			// One arg and it is ContextMenu ptr
 			return self.setContextMenu1($vaarg[0]); 
 		$else

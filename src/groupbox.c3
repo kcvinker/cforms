@@ -147,13 +147,13 @@ struct GroupBox
 	// Either pass a Font object or 3 parameters.
 	// (1) Font name, (2) Font size, (3) Font Weight enum
 	macro void GroupBox.setFont(&this, ... ) {
-		$if $vacount == 1 && @typeis($vaarg[0], Font): 
+		$if $vacount == 1 && $typeof($vaarg[0]) == Font: 
 			this.font.cloneFrom($vaarg[0]);
 			this.sendMsg(WM_SETFONT, this.font.handle, 1);
 			this._getWidth = true;
 			this._checkRedraw();
 		$else 
-			$if $vacount == 3 && @typeis($vaarg[0], String):
+			$if $vacount == 3 && $typeof($vaarg[0]) == String:
 				this._fontSetter($vasplat);
 			$endif
 		$endif

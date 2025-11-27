@@ -276,7 +276,7 @@ module cforms;
 
 // Dialog Constants
     const MAX_PATH = 260;
-    const NEW_MAX_PATH = 32768 + 256 * 100 + 1;
+    const NEW_MAX_PATH = 1000;
     const OFN_ALLOWMULTISELECT = 0x200;
     const OFN_PATHMUSTEXIST = 0x800;
     const OFN_FILEMUSTEXIST = 0x1000;
