@@ -80,11 +80,11 @@ struct FolderBrowserDialog
 }
 
 // Constructor for FileOpenDialog struct
-fn FileOpenDialog newFileOpenDialog(String title = "Select a file",
+fn FileOpenDialog* newFileOpenDialog(String title = "Select a file",
                                     String initialFolder = "",
                                     String typeFilter = "All files\0*.*\0")
 {
-    FileOpenDialog this;
+    FileOpenDialog* this = allocator::new(mem, FileOpenDialog);
     this.title = title;
     this.initFolder = initialFolder;
     this.filter = typeFilter;
@@ -96,27 +96,46 @@ macro void @newFileOpenDialog(String title = "Select a file",
                                 String initialFolder = "",
                                 String typeFilter = "All files\0*.*\0" ; @body(x))
 {
-    FileOpenDialog fod = newFileOpenDialog(title, initialFolder, typeFilter);
+    FileOpenDialog* fod = newFileOpenDialog(title, initialFolder, typeFilter);
     defer fod.destroy();
     @body(fod);
 }
 
-// Constructor for FileSaveDialog struct
-fn FileSaveDialog newFileSaveDialog(String title = "Save file",
+macro void @newFileSaveDialog(String title = "Save file",
+                                String initialFolder = "",
+                                String typeFilter = "All files\0*.*\0" ; @body(x))
+{
+    FileSaveDialog* fsd = newFileSaveDialog(title, initialFolder, typeFilter);
+    defer fsd.destroy();
+    @body(fsd);
+}
+
+macro void @newFolderBrowserDialog(String title = "Select folder",
+                                String initialFolder = "" ; @body(x))
+{
+    FolderBrowserDialog* fbd = newFolderBrowserDialog(title, initialFolder);
+    defer fbd.destroy();
+    @body(fbd);
+}
+
+
+
+// Constructor for FileSaveDialog struct, Make sure to call destroy method after use.
+fn FileSaveDialog* newFileSaveDialog(String title = "Save file",
                                     String initialFolder = "",
                                     String typeFilter = "All files\0*.*\0")
 {
-    FileSaveDialog this;
+    FileSaveDialog* this = allocator::new(mem, FileSaveDialog);
     this.title = title;
     this.initFolder = initialFolder;
     this.filter = typeFilter;
     return this;
 }
 
-// Constructor for FolderBrowserDialog struct
-fn FolderBrowserDialog newFolderBrowserDialog(String title = "Save file", String initialFolder = "")
+// Constructor for FolderBrowserDialog struct, make sure to call destroy method after use.
+fn FolderBrowserDialog* newFolderBrowserDialog(String title = "Save file", String initialFolder = "")
 {
-    FolderBrowserDialog this;
+    FolderBrowserDialog* this = allocator::new(mem, FolderBrowserDialog);
     this.title = title;
     this.initFolder = initialFolder;
     return this;
@@ -163,12 +182,11 @@ fn bool FileSaveDialog.showDialog(FileSaveDialog* this, Hwnd hwnd = null)
     return showDialogMacro(this, hwnd);
 }
 
-// Show a dialog to user to select a folder
-fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = null)
+// Show a dialog to user to select a folder, Make sure to call destroy method after use.
+fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = null) => @pool()
 {
     Char16[MAX_PATH] buffer;
-    Char16* titleBuff = String.to_utf16(this.title, mem)!!;
-    defer free(titleBuff);
+    Char16* titleBuff = String.to_temp_utf16(this.title)!!;    
     BrowseInfoW bi;
     bi.hwndOwner = hwnd;
     bi.lpszTitle = titleBuff;
@@ -179,9 +197,7 @@ fn bool FolderBrowserDialog.showDialog(FolderBrowserDialog* this, Hwnd hwnd = nu
     if (pidl) {
         if (api_SHGetPathFromIDList(pidl, &buffer[0])) {
             api_CoTaskMemFree(pidl);
-            String selPath = string::from_utf16(mem, buffer[..])!!;
-            defer free(selPath);
-            this.selectedPath = selPath;
+            this.selectedPath = string::from_utf16(mem, buffer[..])!!;             
             return true;
         }
         api_CoTaskMemFree(pidl);
@@ -214,11 +230,9 @@ macro showDialogMacro(this, Hwnd hwnd = null) @private => @pool()
         if (this.multiSelection) arr_size = MULTI_SEL_MAX_BUFFER; 
     $endif   
     Char16* buffer = mem::talloc_array(Char16, arr_size);    
-    Char16* initDirBuff = this.initFolder == "" ? 
-                        (Char16*)0 : String.to_utf16(this.initFolder, mem)!!;
-    Char16* titleBuff = String.to_utf16(this.title, mem)!!;
-    Char16* filBuff = String.to_utf16(this.filter, mem)!!;
-    defer {free(initDirBuff); free(titleBuff); free(filBuff);}
+    Char16* initDirBuff = this.initFolder == "" ? (Char16*)0 : String.to_temp_utf16(this.initFolder)!!;
+    Char16* titleBuff = String.to_temp_utf16(this.title)!!;
+    Char16* filBuff = String.to_temp_utf16(this.filter)!!;    
     ofn.lStructSize = OpenFileNameW.sizeof;
     ofn.lpstrFile = buffer;
     ofn.lpstrFile[0] = '\u0000';
@@ -240,13 +254,13 @@ macro showDialogMacro(this, Hwnd hwnd = null) @private => @pool()
                     this.extractFileNames(buffer, (int)ofn.nFileOffset);
                     this.selectedPath = this.fileNames[0];
                 } else {
-                    this.selectedPath = string::from_wstring(mem, (WString)&buffer)!!;
+                    this.selectedPath = string::from_wstring(mem, (WString)buffer)!!;                    
                 }
             }
         $case FileSaveDialog*:
             ofn.flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
             ret = api_GetSaveFileName(&ofn);
-            if (ret) this.selectedPath = string::from_wstring(mem, (WString)&buffer)!!;
+            if (ret) this.selectedPath = string::from_wstring(mem, (WString)buffer)!!;
     $endswitch
     if (ret) {
         this.fileNameStart = ofn.nFileOffset;
@@ -256,14 +270,43 @@ macro showDialogMacro(this, Hwnd hwnd = null) @private => @pool()
     return false;
 }
 
+
 // Release the memory
 fn void FileOpenDialog.destroy(FileOpenDialog* this)
 {
+    // ptf("=== DESTROY called ===");
+    // ptf("multiSelection: %s", this.multiSelection);
+    // ptf("selectedPath.len: %d", this.selectedPath.len);
+    // ptf("selectedPath.ptr: %p", this.selectedPath.ptr);
+    // ptf("selectedPath value: '%s'", this.selectedPath);
+
     if (this.multiSelection) {
         if (this.fileNames.len() > 0) foreach(name: this.fileNames) free(name);
         this.fileNames.free();
-    } else {
-        free(this.selectedPath);
-    }
-    print("File Open dialog destroyed");
+    } 
+    if (this.selectedPath.len > 0) {
+        // ptf("About to free selectedPath.ptr: %p", this.selectedPath.ptr);
+        allocator::free(mem, this.selectedPath.ptr);
+        // ptf("Freed selectedPath");
+     } //else {
+    //     ptf("selectedPath is empty, not freeing");
+    // }
+    allocator::free(mem, this);
+    ptf("=== DESTROY complete ===");
+}
+
+fn void FileSaveDialog.destroy(FileSaveDialog* this)
+{
+    if (this.selectedPath.len > 0) {
+        allocator::free(mem, this.selectedPath.ptr);
+     }
+    allocator::free(mem, this);
+}
+
+fn void FolderBrowserDialog.destroy(FolderBrowserDialog* this)
+{
+    if (this.selectedPath.len > 0) {
+        allocator::free(mem, this.selectedPath.ptr);
+     }
+    allocator::free(mem, this);
 }

@@ -163,7 +163,7 @@ fn void btnClick(any c, EventArgs* e) {
 	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
 	String tf = "PDF Files\0*.pdf\0";
 
-	@newFileOpenDialog("Testing fod", inf, tf; FileOpenDialog fod) {
+	@newFileOpenDialog("Testing fod", inf, tf; FileOpenDialog* fod) {
 		fod.showDialog(frm.handle);
 		ptf("Sel Path : %s", fod.selectedPath);
 	};
