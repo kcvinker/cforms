@@ -161,7 +161,7 @@ fn void onTimerTick(any f, EventArgs* e) {
 
 fn void btnClick(any c, EventArgs* e) {	
 	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
-	String tf = "PDF Files\0*.pdf\0";
+	String tf = "PDF Files|*.pdf";
 
 	@newFileOpenDialog("Testing fod", inf, tf; FileOpenDialog* fod) {
 		fod.showDialog(frm.handle);
