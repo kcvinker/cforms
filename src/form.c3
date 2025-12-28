@@ -138,7 +138,7 @@ struct Form
 		this._fDrawMode = FormDrawMode.DEFAULT;
 		this.maximizeBox = true;
 		this.minimizeBox = true;
-		this.font = newFont("Tahoma", 11);
+		this.font = newFont("Tahoma", 12);
 		this.hinst = app.hins;
 		this.backColor = app.defWinColor;
 		this._timerList.init(mem, 0);	

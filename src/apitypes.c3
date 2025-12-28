@@ -19,6 +19,7 @@ typedef Hpen = inline Handle;
 typedef Hwnd = inline Handle;
 typedef Hrgn = inline Handle;
 typedef Htreeitem = inline Handle;
+typedef DPIAwarenessContext = inline Handle;
 
 alias Intptr = iptr;
 alias Long = int;

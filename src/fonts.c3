@@ -58,9 +58,9 @@ fn void Font.cloneFrom(&this, Font src) {
 
 fn void Font.createHandle(&this)
 {
-	double scale = app.scaleFactor / 100;
-    int fsiz = (int)(scale * (double)this.size);  
-    int iHeight = -api_MulDiv(fsiz , app.sysDPI, 72);    
+	//double scale = app.scaleFactor / 100;
+    //int fsiz = (int)(scale * (double)this.size);  
+    int iHeight = api_MulDiv(this.size, app.sysDPI, 72); //-api_MulDiv(fsiz, app.sysDPI, 72);    
 	
 	LogFont lf;
 	fillBuffer(lf.lfFaceName[..], this.name);

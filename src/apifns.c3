@@ -9,6 +9,8 @@ module cforms;
 extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) @extern("MessageBoxW");
 
 // User32 dll functions
+	extern fn Bool api_SetProcessDpiAwarenessContext(DPIAwarenessContext) @extern("SetProcessDpiAwarenessContext");
+	extern fn uint api_GetDpiForSystem() @extern("GetDpiForSystem");
 	extern fn Hcursor api_LoadCursor(Hinstance instance, Lpcwstr cursorName) @extern("LoadCursorW");
 	extern fn Hicon api_LoadIcon(Hinstance instance, Lpcwstr iconName) @extern("LoadIconW");
 	extern fn Bool api_DestroyIcon(Hicon) @extern("DestroyIcon");

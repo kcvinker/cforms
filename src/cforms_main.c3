@@ -22,7 +22,7 @@ struct AppData
 	bool isMsgFormReg;
     int screenWidth;
     int screenHeight;	
-	int sysDPI;
+	uint sysDPI;
 	double scaleFactor;
 	HwndList trayHwnds;
 	Hinstance hins;
@@ -34,9 +34,15 @@ AppData app; // Global variable to hold cform's essential info.
 Wstring className = {'C', 'f', 'o', 'r', 'm', 's', '_', 'W', 'i', 'n', 'd', 'o', 'w',  0};
 Wstring mfclass = {'C', 'f', 'o', 'r', 'm', 's', '_', 'M', 's', 'g', 'F', 'o', 'r', 'm',  0};
 
+//const DPIAwarenessContext DPI_AWARENESS_CONTEXT_UNAWARE = (DPIAwarenessContext)(Ulongptr)-(1ul);
+const DPIAwarenessContext DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = (DPIAwarenessContext)(Ulongptr)-(2ul);
+//const DPIAwarenessContext DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE = (DPIAwarenessContext)(Ulongptr)-(3ul);
+//const DPIAwarenessContext DPIAPERMONITORAWAREV = (DPIAwarenessContext)(Ulongptr)-(4ul);
 
 fn void cforms_init() @init
 {	
+	Bool x = api_SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
+    // ptf("SetProcessDpiAwarenessContext returned %d", x);
 	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);	
 	app.trayHwnds.init(mem, 2);	
 }
@@ -47,7 +53,8 @@ fn void initNormalForm() // Called when first form starting.
 	app.defWinColor = colorFromUint(0xF0F0F0); //colorFromRgb(0xED, 0xED, 0xED);
 	app.screenWidth = api_GetSystemMetrics(0);
 	app.screenHeight = api_GetSystemMetrics(1);
-	app.scaleFactor = (double)api_GetScaleFactorForDevice(0);	
+	//app.scaleFactor = (double)api_GetScaleFactorForDevice(0);
+	app.sysDPI = api_GetDpiForSystem();	
 	registerClass();
 	InitCommonControls icc;
 	icc.dwSize = InitCommonControls.sizeof;
