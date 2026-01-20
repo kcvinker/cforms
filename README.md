@@ -1,6 +1,9 @@
 # cforms
 A simple GUI library for C3 programming language, based on Win32 API
 
+## License
+This project is licensed under the MIT License.
+
 # Screenshots
 
 ![image](Screenshot_423.jpg)

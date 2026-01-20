@@ -1,5 +1,6 @@
-// cforms.form - Created on 23-Jul-2024 00:47
-// There is no public methods or functions in this module. 
+// cforms main - Created on 23-Jul-2024 00:47
+// Copyright (c) 2026 kcvinker
+// SPDX-License-Identifier: MIT
 
 module cforms;
 
