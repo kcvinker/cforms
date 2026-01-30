@@ -42,8 +42,7 @@ const DPIAwarenessContext DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = (DPIAwarenessCont
 
 fn void cforms_init() @init
 {	
-	Bool x = api_SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
-    // ptf("SetProcessDpiAwarenessContext returned %d", x);
+	api_SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
 	app.hins = (Hinstance)api_GetModuleHandle((Lpcwstr) 0);	
 	app.trayHwnds.init(mem, 2);	
 }
@@ -54,16 +53,12 @@ fn void initNormalForm() // Called when first form starting.
 	app.defWinColor = colorFromUint(0xF0F0F0); //colorFromRgb(0xED, 0xED, 0xED);
 	app.screenWidth = api_GetSystemMetrics(0);
 	app.screenHeight = api_GetSystemMetrics(1);
-	//app.scaleFactor = (double)api_GetScaleFactorForDevice(0);
 	app.sysDPI = api_GetDpiForSystem();	
 	registerClass();
 	InitCommonControls icc;
 	icc.dwSize = InitCommonControls.sizeof;
 	icc.dwICC = ICC_STANDARD_CLASSES;
 	api_InitCommonControlsEx(&icc);
-	Hdc hdc = api_GetDC(null);
-    defer api_ReleaseDC(null, hdc);
-    app.sysDPI = api_GetDeviceCaps(hdc, LOGPIXELSY); 
 }
 
 fn void initMsgForm() // Called when first msg-only window starting

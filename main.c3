@@ -161,9 +161,10 @@ fn void onTimerTick(any f, EventArgs* e) {
 
 fn void btnClick(any c, EventArgs* e) {	
 	String inf = "D:\\Work\\Shashikumar\\2023\\Jack Ryan";
-	String tf = "PDF Files|*.pdf";
+	String tf = "Text Files|*.txt|Doc Files|*.docx";
 
-	@newFileOpenDialog("Testing fod", inf, tf; FileOpenDialog* fod) {
+	@newFileOpenDialog("Testing fod", inf; FileOpenDialog* fod) {
+		fod.setFilters(tf);
 		fod.showDialog(frm.handle);
 		ptf("Sel Path : %s", fod.selectedPath);
 	};
