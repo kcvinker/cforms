@@ -114,7 +114,7 @@ fn Thread? MessageForm.createFormThread(&this, ThreadFn func, void* args)
     if (catch error = uiThread.create(func, args))
     {
         ptf("Thread creation error: %s", error);
-        return THREAD_NOT_CREATED?;
+        return THREAD_NOT_CREATED~;
     }
     return uiThread;
 }
@@ -155,7 +155,7 @@ fn ulong? MessageForm.removeHotKey(&this, int hkeyid)
             }
         }
     }
-    return HKEYID_NOTFOUND?;
+    return HKEYID_NOTFOUND~;
 }
 
 fn void MessageForm.removeHotKeys(&this, int[] hkids)
@@ -198,7 +198,7 @@ fn ulong? MessageForm.getTimerIndex(&this, Uintptr tid)
     foreach (i, tmr: this._timerList) {
         if (tmr.idNum == tid) {return i;}
     }
-    return TIMER_INDEX_NOTFOUND?;
+    return TIMER_INDEX_NOTFOUND~;
 }
 
 fn void MessageForm.destroy(&this)
