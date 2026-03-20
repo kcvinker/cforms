@@ -214,13 +214,16 @@ struct Form
 		return tm;
 	}
 
-	// Sets a tray icon for this window.
+	fn void Form.enablePrintPoint(&this)
+	{
+		this.onMouseDown = &printPoint;
+	}
 	
 
 	// A handy function to help find the points where we can place new controls.
-	fn void Form.printPoint(Form* this, MouseEventArgs* m)
+	fn void printPoint(any this, MouseEventArgs* m)
 	{
-		cptf("X : %d,  Y : %d\n", m.x, m.y);
+		ptf("X : %d,  Y : %d", m.x, m.y);
 	}
 
 // End Public Functions

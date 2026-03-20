@@ -35,6 +35,7 @@ enum ControlType : char
     LIST_BOX,
     LIST_VIEW,
     NUM_PICKER,
+    PICTURE_BOX,
     PROGRESS_BAR,
     RADIO_BUTTON,
     TEXT_BOX,
@@ -171,6 +172,95 @@ enum DCMode : char
     WIN_DC,
     FREE_DC,
 
+}
+
+enum Status : int {
+    OKAY,
+    GENERIC_ERROR,
+    INVALID_PARAMETER,
+    OUT_OF_MEMORY,
+    OBJECT_BUSY,
+    INSUFFICIENT_BUFFER,
+    NOT_IMPLEMENTED,
+    WIN32_ERROR,
+    WRONG_STATE,
+    ABORTED,
+    FILE_NOT_FOUND,
+    VALUE_OVERFLOW,
+    ACCESS_DENIED,
+    UNKNOWN_IMAGE_FORMAT,
+    FONT_FAMILY_NOT_FOUND,
+    FONT_STYLE_NOT_FOUND,
+    NOT_TRUE_TYPE_FONT,
+    UNSUPPORTED_GDI_PLUS_VERSION,
+    GDI_PLUS_NOT_INITIALIZED,
+    PROPERTY_NOT_FOUND,
+    PROPERTY_NOT_SUPPORTED,
+    PROFILE_NOT_FOUND,
+}
+
+enum DebugEventLevel : int {
+    DEBUG_EVENT_LEVEL_FATAL,
+    DEBUG_EVENT_LEVEL_WARNING
+}
+
+enum PictureSizeMode : char {
+    NORMAL,     // draw at original size
+    STRETCH,    // stretch to control size
+    AUTO_SIZE,   // resize control to fit the image
+    CENTER,     // center the image
+    ZOOM        // scale while keeping aspect ratio
+}
+
+enum PixelFormat : int(int value)
+{
+    INDEXED_01BPP = 0x00030101, // 1 bpp, indexed
+    INDEXED_04BPP = 0x00030402, // 4 bpp, indexed
+    INDEXED_08BPP = 0x00030803, // 8 bpp, indexed
+    GRAY_SCALE_16BPP = 0x00101004, // 16 bpp, grayscale
+    RGB_16BPP_555 = 0x00021005, // 16 bpp -- 5 bits for each RGB
+    RGB_16BPP_565 = 0x00021006, // 16 bpp -- 5 bits red, 6 bits green, and 5 bits blue
+    RGB_16BPP_1555 = 0x00061007, // 16 bpp -- 1 bit for alpha and 5 bits for each RGB_ component
+    RGB_24BPP_888 = 0x00021808, // 24 bpp -- 8 bits for each RGB_
+    RGB_32BPP_888 = 0x00022009, // 32 bpp -- 8 bits for each RGB_. No alpha.
+    ARGB32BPP_8888 = 0x0026200A, // 32 bpp -- 8 bits for each RGB and alpha
+    PARGB32BPP_8888 = 0x000E200B, // 32 bpp -- 8 bits for each RGB and alpha, pre-mulitiplied
+    RGB_48BPP_FFF = 0x0010300C, // 48 bpp -- 16 bits for each RGB
+    ARGB_64FFFF = 0x0034400D, // 64 bpp -- 16 bits for each RGB and alpha
+    PARGB_64FFFF = 0x001A400E // 64 bpp --16 bits for each RGB and alpha, pre-multiplied
+}
+
+enum InterPolationMode : int(int value)
+{
+    INVALID_MODE = -1,
+    DEFAULT_MODE          =  0, // -1 + 1 = 0
+    LOW_QUALITY           =  1, //  0 + 1 = 1
+    HIGH_QUALITY          =  2, //  1 + 1 = 2
+    BILINEAR              =  3, //  2 + 1 = 3
+    BICUBIC               =  4, //  3 + 1 = 4
+    NEAREST_NEIGHBOUR     =  5, //  4 + 1 = 5
+    HIGH_QUALITY_BILINEAR =  6, //  5 + 1 = 6
+    HIGH_QUALITY_BICUBIC  =  7  //  6 + 1 = 7
+}
+
+enum PixelOffsetMode : int(int value)
+{
+    INVALID_MODE = -1,
+    DEFAULT_MODE = 0,
+    HIGH_SPEED = 1,
+    HIGH_QUALITY = 2,
+    NO_MODE = 3,
+    HALF_MODE = 4,
+}
+
+enum GpUnit : int {
+    UNIT_WORLD,
+    UNIT_DISPLAY,
+    UNIT_PIXEL, // = UNIT_PIXEL,
+    UNIT_POINT, // = UNIT_POINT,
+    UNIT_INCH, // = UNIT_INCH,
+    UNIT_DOCUMENT,
+    UNIT_MILLIMETER
 }
 
 enum Keys : int (String description, int value)

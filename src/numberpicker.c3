@@ -338,6 +338,7 @@ struct NumberPicker
 			}
 		} else {
             this.value = math::clamp(tvalue, this.minRange, this.maxRange);
+            // ptf("clamped value, %f", this.value);
 		}
 		this.displayValue();
 	}
@@ -349,6 +350,7 @@ struct NumberPicker
 			String tbstr = this.getTextInternal(this._buddyHandle);
 			defer free(tbstr);
 			this.value = strToDouble(tbstr);
+			
 			this.setValueInternal(nm.iDelta);
 			if (this.onValueChanged) this.onValueChanged(this, &gea);
 		}

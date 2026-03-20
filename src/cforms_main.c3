@@ -21,9 +21,11 @@ struct AppData
 	bool cmenuUsed;
 	bool isFormReg;
 	bool isMsgFormReg;
+	bool isGdipReg;
     int screenWidth;
     int screenHeight;	
 	uint sysDPI;
+	Ulongptr gdipToken;
 	double scaleFactor;
 	HwndList trayHwnds;
 	Hinstance hins;
@@ -72,6 +74,17 @@ fn void initMsgForm() // Called when first msg-only window starting
 	if (x) app.isMsgFormReg = true;
 }
 
+fn void AppData.initGdip(&this)
+{
+	if (this.isGdipReg) return;
+	GdiplusStartupInput stInp;     
+	stInp.gdiplusVersion = 1;       
+    if (api_GdiplusStartup(&this.gdipToken, &stInp, null) == Status.OKAY) {
+		this.isGdipReg = true;
+		print("Gdip started");
+	}
+}
+
 
 fn void AppData.finalize(&this)
 {	
@@ -81,5 +94,10 @@ fn void AppData.finalize(&this)
 		}			
 	}
 	this.trayHwnds.free();
+	if (this.isGdipReg) {
+		api_GdiplusShutdown(&this.gdipToken);
+		print("Gdip closed");
+	}
 	print("Cforms is closed...");
 }
+

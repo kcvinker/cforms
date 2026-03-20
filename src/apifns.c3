@@ -143,3 +143,39 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 //
 
 
+// GDI+ functions
+	extern fn Status api_GdiplusStartup(Ulongptr* token, GdiplusStartupInput* input,
+    								GdiplusStartupOutput* output) @extern("GdiplusStartup");
+
+	extern fn void api_GdiplusShutdown(Ulongptr* token) @extern("GdiplusShutdown");
+	extern fn Status api_GdipCreateBitmapFromFile(Wstring file, 
+													void* pBitmap) @extern("GdipCreateBitmapFromFile");
+	extern fn Status api_GdipCreateHBITMAPFromBitmap(void* pBitmap,	Hbitmap* pRetHbmp,
+													int argb) @extern("GdipCreateHBITMAPFromBitmap");
+	extern fn Status api_GdipBitmapSetResolution(void* pBitmap,	int xdpi, 
+													int ydpi) @extern("GdipBitmapSetResolution");
+	extern fn Status api_GdipLoadImageFromFile(Lpwstr file, void** image) @extern("GdipLoadImageFromFile");
+	extern fn Status api_GdipGetImageWidth(void* img, uint* width) @extern("GdipGetImageWidth");
+	extern fn Status api_GdipGetImageHeight(void* img, uint* height) @extern("GdipGetImageHeight");
+	extern fn Status api_GdipCreateBitmapFromScan0(int width, int height, int stride, 
+													PixelFormat pf, Byte* scan0, 
+													void* pBmp) @extern("GdipCreateBitmapFromScan0");
+	extern fn Status api_GdipGetImageGraphicsContext(void* image, 
+													void** graphics) @extern("GdipGetImageGraphicsContext");
+	extern fn Status api_GdipSetInterpolationMode(void* graphics, 
+												InterPolationMode ipMode) @extern("GdipSetInterpolationMode");
+	extern fn Status api_GdipSetPixelOffsetMode(void* graphics, 
+												PixelOffsetMode pxoMode) @extern("GdipSetPixelOffsetMode");
+	extern fn Status api_GdipCreateImageAttributes(void** imageattr) @extern("GdipCreateImageAttributes");
+	extern fn Status api_GdipDisposeImageAttributes(void* imageattr) @extern("GdipDisposeImageAttributes");
+	extern fn Status api_GdipDeleteGraphics(void* graphics) @extern("GdipDeleteGraphics");
+	extern fn Status api_GdipDisposeImage(void* image) @extern("GdipDisposeImage");
+	extern fn Status api_GdipDrawImageRect(GpGraphics* graphics, GpImage* image, float x, float y,
+										float width, float height) @extern("GdipDrawImageRect");
+	extern fn Status api_GdipDrawImageRectRect(void* graphics, void* image, int dstx, int dsty,
+											int dstwidth, int dstheight, int srcx, int srcy,
+											int srcwidth, int srcheight, GpUnit srcUnit,
+											void* imageAttributes, void* callback,
+											void* callbackData) @extern("GdipDrawImageRectRect");
+	extern fn Status api_GdipCreateFromHDC(Hdc hdc,	GpGraphics** graphics) @extern("GdipCreateFromHDC");
+

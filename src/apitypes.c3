@@ -39,6 +39,7 @@ alias Word = ushort;
 alias Bool = int;
 alias Hresult = Long;
 alias Wstring = Char16[];
+alias Byte = char;
 const Dword UINT_MAX = 1UL << 32 - 1;
 
 // Function pointer types
@@ -438,6 +439,25 @@ struct Guid
 	Dword dwInfoFlags;
 	// Guid guidItem;
 	// Hicon hBalloonIcon;
+}
+
+alias GpImage = void;
+typedef GpGraphics = void;
+
+alias DebugEventProc = fn void(DebugEventLevel level, char* message);
+alias NotificationHookProc = fn Status(Ulongptr* token);
+alias NotificationUnhookProc = fn void(Ulongptr* token);
+
+struct GdiplusStartupInput {
+    uint         	gdiplusVersion;
+    DebugEventProc 	debugEventCallback;
+    Bool           	suppressBackgroundThread;
+    Bool           	suppressExternalCodecs;    
+}
+
+struct GdiplusStartupOutput {
+  NotificationHookProc   notificationHook;  
+  NotificationUnhookProc notificationUnhook;
 }
 
 
