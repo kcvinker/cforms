@@ -1,0 +1,17 @@
+Created on: 29-Mar-2026 08:49 AM
+Purpose: Cforms changelog
+
+Version 1.01.131
+    Restructured WndProc function of all controls. 
+        Now we are using a base type's WndProc so that we can eliminate hundreds of lines of redundant code.
+    
+    Mouse events in ComboBox has been improved.       
+
+
+
+Version 1.01.130
+    Added PictureBox control 
+    Added Image type 
+
+
+

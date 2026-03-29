@@ -95,6 +95,21 @@ struct Msg {
 }
 alias LpMsg = Msg*;
 
+struct CreateStruct {
+	Pvoid    lpCreateParams;
+	Hinstance hInstance;
+	Hmenu     hMenu;
+	Hwnd      hwndParent;
+	int       cy;
+	int       cx;
+	int       y;
+	int       x;
+	Long      style;
+	Lpcwstr   lpszName;
+	Lpcwstr   lpszClass;
+	Dword     dwExStyle;
+} 
+
 const int LF_FACESIZE = 32;
 struct LogFont {
 	Long  lfHeight;
@@ -457,7 +472,7 @@ struct GdiplusStartupInput {
 
 struct GdiplusStartupOutput {
   NotificationHookProc   notificationHook;  
-  NotificationUnhookProc notificationUnhook;
+  NotificationUnhookProc notificationUnhook; 
 }
 
 

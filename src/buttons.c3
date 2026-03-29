@@ -290,54 +290,14 @@ fn Lresult btnWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 {
 	
 	// io::printfn("message %s", msg);
+	Button* this = bitcast(refData, Button*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
 		case WM_DESTROY: 
-			Button* this = bitcast(refData, Button*);
 			api_RemoveWindowSubclass(hw, &btnWndProc, scID);;
-			this.dtor(); 
-
-		case WM_LBUTTONDOWN: 
-			Button* this = bitcast(refData, Button*);
-			this.leftMouseDownHandler(msg, wp, lp);
-
-		case WM_LBUTTONUP: 
-			Button* this = bitcast(refData, Button*);
-			this.leftMouseUpHandler(msg, wp, lp);
-
-		case MM_MOUSE_LBCLICK: 
-			Button* this = bitcast(refData, Button*);
-			this.leftClickHandler(); //
-
-		case WM_RBUTTONDOWN: 
-			Button* this = bitcast(refData, Button*);
-			this.rightMouseDownHandler(msg, wp, lp);
-
-		case WM_RBUTTONUP: 
-			Button* this = bitcast(refData, Button*);
-			this.rightMouseUpHandler(msg, wp, lp);
-
-		case MM_MOUSE_RBCLICK: 
-			Button* this = bitcast(refData, Button*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE: 
-			Button* this = bitcast(refData, Button*);
-			this.mouseMoveHandler(msg, wp, lp);
-
-		case WM_MOUSELEAVE: 
-			Button* this = bitcast(refData, Button*);
-			this.mouseLeaveHandler();
-
-		case WM_MOUSEWHEEL: 
-			Button* this = bitcast(refData, Button*);
-			this.mouseWheelHandler(msg, wp, lp);
-
-		case WM_CONTEXTMENU: 
-			Button* this = bitcast(refData, Button*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
+			this.dtor(); 		
 
 		case MM_NOTIFY_REFLECT: 
-			Button* this = bitcast(refData, Button*);
 			return this.wmNotifyHandler(lp);
 
 		default:

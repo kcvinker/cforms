@@ -35,6 +35,7 @@ fn void makeWindow()
 	frm.enablePrintPoint(); // This will print x,y cordinates when we click on form. It's handy in design time.
 	frm.createHandle();
 	
+	
 	//Add a tray icon for our program
 	ti = newTrayIcon("cforms sample tray icon!", "cforms.ico");
 	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
@@ -71,7 +72,10 @@ fn void makeWindow()
 
 	//Now, add a combo box and items.
 	cmb = newComboBox(frm, b3.right() + 10, 10);
+	// cmb = newComboBox(frm, 10, 10);
 	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
+	cmb.onMouseEnter = fn(c, e) => print("Mouse entered on combo");
+	cmb.onMouseLeave = fn(c, e) => print("Mouse leaved from combo");
 
 	// Date time picker.
 	dtp = newDateTimePicker(frm, cmb.right() + 10, 10);
@@ -121,6 +125,8 @@ fn void makeWindow()
 
 	// Now, we are adding a PictureBox with lerno's image created by Gemini.
 	pbx = newPictureBox(frm, 245, 226, 400, 225, "c3cl.png", PictureSizeMode.STRETCH);
+	// pbx.onMouseEnter = fn(c, e) => print("Mouse entered on pbox");
+	// pbx.onMouseLeave = fn(c, e) => print("Mouse leaved from pbox");
 
 	// Now a ProgressBar with showing percentage 
 	pb = newProgressBar(frm, 15, np2.bottom() + 15);
@@ -143,6 +149,7 @@ fn void makeWindow()
     tv.addNodeWithChilds("Linux", "RedHat", "Mint", "Ubuntu", "Debian", "Kali");
 
 	// Everything is ready, now we are showing our form.
+	
 	frm.show(); 
 }
 
@@ -157,8 +164,8 @@ fn int main(String[] args)
 
 fn void frmOnMouseDown(any f, MouseEventArgs* e) {
 	// frm.printPoint(e);
-	ti.showBalloon("My Balloon", "See this balloon message", 
-					3500, noSound: true, icon : BalloonIcon.WARNING);
+	// ti.showBalloon("My Balloon", "See this balloon message", 
+	// 				3500, noSound: true, icon : BalloonIcon.WARNING);
 	// ti.updateIcon("D:\\Icons\\Dakirby309-Windows-8-Metro-Web-Microsoft-Store-Metro.ico");
 }
 
@@ -169,7 +176,7 @@ fn void frmMouseDown(any c, MouseEventArgs* e) {
 fn void onB2Click(any s, EventArgs* e){
 	print("Button pressed");
 	// tm.start();
-	ti.showBalloon("My Balloon", "this message has sound", 3500);
+	// ti.showBalloon("My Balloon", "this message has sound", 3500);
 }
 
 fn void onTimerTick(any f, EventArgs* e) {
@@ -193,7 +200,7 @@ fn void onMenuClick(any sender, EventArgs* e) {
 }
 
 fn void onTrackChange(any m, EventArgs* e) {
-	pb.setValue(tk.value);
+	// pb.setValue(tk.value);
 }
 
 

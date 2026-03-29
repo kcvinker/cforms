@@ -69,14 +69,17 @@ struct Control
 	Char16* _className;
 	Dword _style;
 	Dword _exStyle;
+	int _cachedWidth;
+	int _cachedHeight;
 	uint _drawMode;
 	bool _isCreated;
 	bool _lbDown;
 	bool _rbDown;
-	bool _isMouseEntered;
 	bool _textable;
 	bool _autoSizable;
 	bool _cmenuUsed;
+	bool _isMouseTracking;
+	bool _isPressed;
 	Hbrush _bkBrush;
 	Char16* _wideText;
 	WideString* _wtext;
@@ -89,6 +92,7 @@ struct Control
 	EventHandler onRightClick;
 	EventHandler onMouseEnter;
 	EventHandler onMouseLeave;
+	EventHandler onMouseHover;
 	MouseEventHandler onMouseDown;
 	MouseEventHandler onMouseUp;
 	MouseEventHandler onRightMouseDown;
@@ -189,22 +193,91 @@ struct Control
 
 // Private functions
 
-	fn void Control.createInternal(Control* ctl, bool special = false) @private => @pool()
+	fn void Control.createInternal(&this, bool special = false) @private => @pool()
 	{
-		if (!special) ctl.setCtlID();
-		Char16* text = ctl._textable ? ctl.text.to_temp_utf16()!!.ptr : null;
-		ctl.handle = api_CreateWindowEx(ctl._exStyle, ctl._className,
-										text, ctl._style,
-										ctl.xpos, ctl.ypos,
-										ctl.width, ctl.height,
-										ctl._parent.handle,
-										(Hmenu)ctl.ctlID,
-										app.hins, null);
-		if (ctl.handle) {
-			// ptf("control %s's handle is created.", ctl.name.str());
-			ctl._isCreated = true;
+		if (!special) this.setCtlID();
+		Char16* text = this._textable ? this.text.to_temp_utf16()!!.ptr : null;
+		Pvoid lastParam = this.kind == ControlType.PICTURE_BOX? (Pvoid)this : (Pvoid)null;
+		this.handle = api_CreateWindowEx(this._exStyle, this._className,
+										text, this._style,
+										this.xpos, this.ypos,
+										this.width, this.height,
+										this._parent.handle,
+										(Hmenu)this.ctlID,
+										app.hins, lastParam);
+		if (this.handle) {
+			// ptf("control %s's handle is created.", this.name.str());
+			this._isCreated = true;
+			this._cachedWidth = this.width;
+			this._cachedHeight = this.height;
+
 		}
 		// $echo("Compile check");
+	}
+
+	// Common event handling for all controls.
+	fn bool Control.baseWndProc(&this, Hwnd hw, uint msg, Wparam wp, Lparam lp)
+	{
+		switch (msg) {
+			case WM_LBUTTONDOWN: 
+			this.leftMouseDownHandler(msg, wp, lp);
+			return true;
+
+		case WM_LBUTTONUP: 
+			this.leftMouseUpHandler(msg, wp, lp);
+			return true;
+
+		case MM_MOUSE_LBCLICK: 
+			this.leftClickHandler();
+			return true; //
+
+		case WM_RBUTTONDOWN: 
+			this.rightMouseDownHandler(msg, wp, lp);
+			return true;
+
+		case WM_RBUTTONUP: 
+			this.rightMouseUpHandler(msg, wp, lp);
+			return true;
+
+		case MM_MOUSE_RBCLICK: 
+			this.rightClickHandler();
+			return true;
+
+		case WM_MOUSEMOVE: 
+			this.mouseMoveHandler(msg, wp, lp);
+			return true;
+
+		case WM_MOUSELEAVE: 
+			this.mouseLeaveHandler();
+			return true;
+
+		case WM_MOUSEHOVER:
+			this.mouseHoverHandler();
+			return true;
+
+		case WM_MOUSEWHEEL: 
+			this.mouseWheelHandler(msg, wp, lp);
+			return true;
+
+		case WM_CONTEXTMENU: 
+			if (this.contextMenu) this.contextMenu.showMenu(lp);
+			return true;
+
+		case WM_KEYDOWN:
+			this.keyDownHandler(wp);
+			return true;
+
+		case WM_KEYUP:
+			this.keyUpHandler(wp);
+			return true;
+
+		case WM_CHAR:
+			this.keyPressHandler(wp);
+			return true;
+		
+		default:
+			return false;
+		}
 	}
 
 	fn Rect Control.getMappedRect(&self)
@@ -359,6 +432,16 @@ struct Control
 		if (this.font.handle) this.font.destroy();
 	}
 
+	fn bool trackMouse(Hwnd hwnd, uint flags, uint hoverTime = HOVER_DEFAULT)
+	{
+		TrackMOUSEEVENT tme;
+		tme.cbSize = TrackMOUSEEVENT.sizeof;
+		tme.dwFlags = flags;
+		tme.hwndTrack = hwnd;
+		tme.dwHoverTime = hoverTime;
+		return api_TrackMouseEvent(&tme) != 0;
+	}
+
 // End private functions
 
 // Control Event Handlers
@@ -367,21 +450,33 @@ struct Control
 	fn void Control.leftClickHandler(Control* c) {if (c.onClick) c.onClick(c, &gea);}
 	fn void Control.rightClickHandler(Control* c) {if (c.onRightClick) c.onRightClick(c, &gea);}
 
-	fn void Control.leftMouseDownHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
+	fn void Control.leftMouseDownHandler(&this, uint msg, Wparam wpm, Lparam lpm)
 	{
-		if (c.onMouseDown) {
+		// Force the control to receive ALL mouse messages until released
+    	// api_SetCapture(this.handle);
+		this._isPressed = true;
+		if (this.onMouseDown) {
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
-			c.onMouseDown(c, &mea);
+			this.onMouseDown(this, &mea);
 		}
+
 	}
 
-	fn void Control.leftMouseUpHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
-	{
-		if (c.onMouseUp) {
+	fn void Control.leftMouseUpHandler(&this, uint msg, Wparam wpm, Lparam lpm)
+	{		
+		// api_ReleaseCapture(this.handle);
+		if (this.onMouseUp) {
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
-			c.onMouseUp(c, &mea);
+			this.onMouseUp(this, &mea);
 		}
-		if (c.onClick) c.onClick(c, &gea);		
+
+		// ONLY allow the click event, if the release happened INSIDE the control.
+		if (this._isPressed && this.onClick) {
+			Point pt = {(int)(short)loWord(lpm), (int)(short)hiWord(lpm)};
+			Rect rct = {0, 0, this._cachedWidth, this._cachedHeight};		
+			if (api_PtInRect(&rct, pt)) this.onClick(this, &gea);
+		}
+		this._isPressed = false;		
 	}
 
 	fn void Control.rightMouseDownHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
@@ -409,24 +504,48 @@ struct Control
 		}
 	}
 
-	fn void Control.mouseMoveHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
+	fn void Control.mouseMoveHandler(Control* this, uint msg, Wparam wpm, Lparam lpm)
 	{
-		if (c._isMouseEntered) {
-			if (c.onMouseMove) {
-				MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
-				c.onMouseMove(c, &mea);
-			}
-		} else {
-			c._isMouseEntered = true;
-			if (c.onMouseEnter) c.onMouseEnter(c, &gea);
+		// 1. Fire Mouse Move Event
+		if (this.onMouseMove) {
+			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			this.onMouseMove(this, &mea);
 		}
+
+		// 2. Determine if we need to start/restart tracking
+		bool needsLeave = (this.onMouseEnter != null || this.onMouseLeave != null);
+		bool needsHover = (this.onMouseHover != null);
+
+		if (needsLeave || needsHover) {
+			if (!this._isMouseTracking) {
+				uint flags = 0;
+				if (needsLeave) flags |= TME_LEAVE;
+				if (needsHover) flags |= TME_HOVER;
+
+				// Start tracking with combined flags
+				trackMouse(this.handle, flags); 				
+				this._isMouseTracking = true;
+
+				// Fire Mouse Enter immediately on transition
+				if (this.onMouseEnter) this.onMouseEnter(this, &gea); 
+			}
+			// if (this.name.str_view() == "ComboBox_1") ptf("combo mouse enter 525 = %s", this._isMouseTracking);
+		}       
 	}
 
-	fn void Control.mouseLeaveHandler(Control* c)
+	fn void Control.mouseHoverHandler(Control* this)
 	{
-		c._isMouseEntered = false;
-		if (c.onMouseLeave) c.onMouseLeave(c, &gea);
+		// IMPORTANT: Reset tracking so the next Move re-arms the hover timer
+		this._isMouseTracking = false; 
+		if (this.onMouseHover) this.onMouseHover(this, &gea);
 	}
+
+	fn void Control.mouseLeaveHandler(Control* this)
+	{
+		this._isMouseTracking = false;
+		if (this.onMouseLeave) this.onMouseLeave(this, &gea);
+	}
+
 
 	fn void Control.keyDownHandler(Control* c, Wparam wp)
 	{

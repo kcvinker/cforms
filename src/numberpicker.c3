@@ -407,71 +407,17 @@ struct NumberPicker
 
 fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	
 	// io::printfn("message %s", msg);
+	NumberPicker* this = bitcast(refData, NumberPicker*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
-		case WM_DESTROY:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
+		case WM_DESTROY:			
 			api_RemoveWindowSubclass(hw, &npWndProc, scID);
-			this.dtor();
-
-		case WM_LBUTTONDOWN:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.mouseWheelHandler(msg, wp, lp);
-		case WM_CONTEXTMENU:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case WM_KEYDOWN:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.keyDownHandler(wp);
-		case WM_KEYUP:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.keyUpHandler(wp);
-		case WM_CHAR:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
-			this.keyPressHandler(wp);
+			this.dtor();		
 
 		case MM_NOTIFY_REFLECT:
-			NumberPicker* this = bitcast(refData, NumberPicker*);
 			this.wmNotifyHandler(lp);
-		// case WM_PAINT:
-		// 	Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
-		// 	Hdc hdc = api_GetDC(hw);
-		// 	Hpen fpen = api_CreatePen(PS_SOLID, 2, this.backColor.ref);
-		// 	defer api_DeleteObject(fpen);
-		// 	api_SelectObject(hdc, fpen);
-		// 	api_MoveToEx(hdc, this._udRect.left, 1, null);
-		// 	api_LineTo(hdc, this._udRect.left, this._udRect.bottom - 2);
-		// 	api_ReleaseDC(hw, hdc);
-		// 	return ret;
-
-		// case MM_RUNDTOR: this.dtor(); return 0;
+		
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
 	}
@@ -480,36 +426,25 @@ fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 
 
 fn Lresult buddyWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
-{
-	
+{	
 	// io::printfn("message %s", msg);
+	NumberPicker* this = bitcast(refData, NumberPicker*);	
 	switch (msg) {
 		case WM_DESTROY: 
 			api_RemoveWindowSubclass(hw, &buddyWndProc, scID);
 
-		// case WM_ERASEBKGND:
-		// 	return api_DefSubclassProc(hw, msg, wp, lp);
-		// case WM_PRINTCLIENT:
-		// 	nextcase;
-
-		case WM_PAINT:			
-			NumberPicker* this = bitcast(refData, NumberPicker*);			
-			Lresult rs = api_DefSubclassProc(hw, msg, wp, lp); // Let the control do it's basic painting.			
-			// Hdc hdc = api_GetWindowDC(hw);
-			// defer api_ReleaseDC(hw, hdc);		
+		case WM_PAINT:						
+			Lresult rs = api_DefSubclassProc(hw, msg, wp, lp); // Let the control do it's basic painting.					
 			this.paintBuddyBorder(hw);				
 			return rs;
 
 		case EM_SETSEL: return 1; // To eliminate the selection back color in edit.
 		case MM_BUDDY_RESIZE: 
-			NumberPicker* this = bitcast(refData, NumberPicker*);
 			this.placeBuddy(); // Fix for the strange behaviour in UDM_SETBUDDY message.
 		case MM_COLOR_EDIT: 
-			NumberPicker* this = bitcast(refData, NumberPicker*);
 			return (Lresult)this.colorMsgHandler(wp);
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

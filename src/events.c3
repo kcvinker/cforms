@@ -100,18 +100,18 @@ fn MouseEventArgs newMouseEventArgs(uint msg, Wparam wpm, Lparam lpm)
 		case WM_MOUSEMOVE: nextcase WM_NCHITTEST;
 		case WM_MOUSEHOVER: nextcase WM_NCHITTEST;
 		case WM_NCHITTEST:
-			m.x = (int)(loWord((Dword) lpm));
-			m.y = (int)(hiWord((Dword) lpm));
+			m.x = (int)(short)loWord(lpm);
+			m.y = (int)(short)hiWord(lpm);
 		case WM_LBUTTONDOWN: nextcase WM_LBUTTONUP;
 		case WM_LBUTTONUP:
 			m.button = MouseButton.LEFT;
-			m.x = (int)(loWord((Dword) lpm));
-			m.y = (int)(hiWord((Dword) lpm));
+			m.x = (int)(short)loWord(lpm);
+			m.y = (int)(short)hiWord(lpm);
 		case WM_RBUTTONDOWN: nextcase WM_RBUTTONUP;
 		case WM_RBUTTONUP:
 			m.button = MouseButton.RIGHT;
-			m.x = (int) (loWord((Dword) lpm));
-			m.y = (int) (hiWord((Dword) lpm));
+			m.x = (int)(short)loWord(lpm);
+			m.y = (int)(short)hiWord(lpm);
 	}
 	return m;
 }

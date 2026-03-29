@@ -141,73 +141,27 @@ struct CheckBox
 
 
 fn Lresult cbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
-{
-	
+{	
 	// io::printfn("message %s", msg);
+	CheckBox* this = bitcast(refData, CheckBox*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
 		case WM_DESTROY:
-			CheckBox* this = bitcast(refData, CheckBox*);
 			api_RemoveWindowSubclass(hw, &cbWndProc, scID);
-			 this.dtor();
+			 this.dtor();		
 
-		case WM_LBUTTONDOWN:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.mouseWheelHandler(msg, wp, lp);
-
-		case WM_KEYDOWN:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.keyDownHandler(wp);
-		case WM_KEYUP:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.keyUpHandler(wp);
-		case WM_CHAR:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			this.keyPressHandler(wp);
-		case WM_CONTEXTMENU:
-			CheckBox* this = bitcast(refData, CheckBox*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_STATIC:
-			CheckBox* this = bitcast(refData, CheckBox*);
 			return (Lresult) this.colorMsgHandler(wp);
+
 		case MM_NOTIFY_REFLECT:
-			CheckBox* this = bitcast(refData, CheckBox*);
 			return this.wmNotifyHandler(lp);
 
 		case MM_CTL_COMMAND :
-			CheckBox* this = bitcast(refData, CheckBox*);
-						this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);
+			this.checked = (bool) this.sendMsg(BM_GETCHECK, 0, 0);
 			if (this.onCheckedChanged) this.onCheckedChanged(this, &gea);
 
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
-
-		// case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }

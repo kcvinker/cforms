@@ -17,8 +17,8 @@ fn Image* newImage(String filePath)
     @pool() {
         Status st = api_GdipLoadImageFromFile(filePath.to_temp_utf16()!!.ptr, &this.gpImage);
         if (st != Status.OKAY) {
-            print(st);
-            return null;
+            ptf("Load image failed: %s", st);
+            return null; 
         }
     };
     return this;

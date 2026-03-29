@@ -127,6 +127,8 @@ module cforms;
 	const Word CBN_CLOSEUP = 8;
 	const Word CBN_SELENDOK = 9;
 	const Word CBN_SELENDCANCEL = 10;
+	const int CB_GETDROPPEDSTATE = 0x0157;
+
 
 // End of Combo Constants
 

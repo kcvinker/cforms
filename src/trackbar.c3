@@ -525,70 +525,27 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 
 fn Lresult tkbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
-{
-	
+{	
 	// log("message %s", msg);
+	TrackBar* this = bitcast(refData, TrackBar*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
 		case WM_DESTROY:
-			TrackBar* this = bitcast(refData, TrackBar*);
 			api_RemoveWindowSubclass(hw, &tkbWndProc, scID);
 			this.dtor();
 
-		case WM_LBUTTONDOWN:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.mouseWheelHandler(msg, wp, lp);
-
-		case WM_KEYDOWN:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.keyDownHandler(wp);
-		case WM_KEYUP:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.keyUpHandler(wp);
-		case WM_CHAR:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			this.keyPressHandler(wp);
-		case WM_CONTEXTMENU:
-			TrackBar* this = bitcast(refData, TrackBar*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_HSCROLL:
-			TrackBar* this = bitcast(refData, TrackBar*);
 			this.scrollHandler(hw, wp);
+
 		case MM_VSCROLL:			
-			TrackBar* this = bitcast(refData, TrackBar*);
 			this.scrollHandler(hw, wp);
+
 		case MM_NOTIFY_REFLECT:
-			TrackBar* this = bitcast(refData, TrackBar*);
 			return this.wmNotifyHandler(hw, lp);
+
 		case MM_COLOR_STATIC:
-			TrackBar* this = bitcast(refData, TrackBar*);
 			return (Lresult)this._bkBrush;
-		// case MM_RUNDTOR: this.dtor(); return 0;
+		
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
 	}

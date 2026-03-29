@@ -214,86 +214,31 @@ struct GroupBox
 
 
 fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
-{
-	
+{	
 	// io::printfn("message %s", msg);
+	GroupBox* this = bitcast(refData, GroupBox*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
 		case WM_DESTROY:
-			GroupBox* this = bitcast(refData, GroupBox*);
 			api_RemoveWindowSubclass(hw, &gbWndProc, scID);
-			this.dtor();
-
-		case WM_LBUTTONDOWN:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.mouseWheelHandler(msg, wp, lp);
-
-		case WM_KEYDOWN:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.keyDownHandler(wp);
-		case WM_KEYUP:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.keyUpHandler(wp);
-		case WM_CHAR:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			this.keyPressHandler(wp);
-		case WM_CONTEXTMENU:
-			GroupBox* this = bitcast(refData, GroupBox*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
+			this.dtor();		
 			
 		case WM_PAINT:
-			GroupBox* this = bitcast(refData, GroupBox*);
 			if (this._gbStyle == GroupBoxStyle.OVERRRIDEN) {
 				Lresult ret = api_DefSubclassProc(hw, msg, wp, lp);
-				// @using(newGraphics(DCMode.ON_PAINT, hw); Graphics gfx) {
-				// 	gfx.drawLine(10, 10, this._txtWidth, this._pen);
-				// 	gfx.textOut2(this._wtext, 12, 0, this.foreColor);
-				// };
-				
-
 				@using(newGraphics(DCMode.GET_DC, hw); Graphics gfx) {
 					gfx.drawLine(10, 10, this._txtWidth, this._pen);
 					gfx.textOut2(this._wtext, 12, 0, this.foreColor);
 				};
 				return ret;
 			}
-			
-
-
 
 		case WM_GETTEXTLENGTH:
-			GroupBox* this = bitcast(refData, GroupBox*);
 			if (this._gbStyle == GroupBoxStyle.OVERRRIDEN) {
 			 	return 0;
 			}
 
 		case MM_COLOR_STATIC:
-			GroupBox* this = bitcast(refData, GroupBox*);
 			if (this._gbStyle == GroupBoxStyle.CLASSIC) {
 				Hdc hdc = (Hdc)wp;
 				api_SetBkMode(hdc, 1);
@@ -302,7 +247,6 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
         	return (Lresult)this._bkBrush;
 
 		case WM_ERASEBKGND:
-			GroupBox* this = bitcast(refData, GroupBox*);
 			Hdc hdc = (Hdc)wp;
 			if (this._getWidth) {
 				Size ss;

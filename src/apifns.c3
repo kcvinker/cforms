@@ -16,7 +16,7 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_DestroyIcon(Hicon) @extern("DestroyIcon");
 	extern fn Hicon api_LoadImage(Hinstance instance, Lpcwstr name, uint typ, int cx, int cy, uint fuload) @extern("LoadImageW");
 	extern fn short api_RegisterClassEx(WndClassEx*) @extern("RegisterClassExW");
-	extern fn Hwnd api_CreateWindowEx(Dword, Lpcwstr, Lpcwstr, Dword, int, int, int, int, Hwnd, Hmenu, Hinstance, void*) @extern("CreateWindowExW");
+	extern fn Hwnd api_CreateWindowEx(Dword, Lpcwstr, Lpcwstr, Dword, int, int, int, int, Hwnd, Hmenu, Hinstance, Pvoid) @extern("CreateWindowExW");
 	extern fn Bool api_ShowWindow(Hwnd, int) @extern("ShowWindow");
 	extern fn Bool api_UpdateWindow(Hwnd) @extern("UpdateWindow");
 	extern fn Bool api_GetMessage(LpMsg, Hwnd, uint, uint) @extern("GetMessageW");
@@ -74,6 +74,10 @@ extern fn int _msgBox(Hwnd hWnd, Char16* lpText, Char16* lpCaption, uint uType) 
 	extern fn Bool api_IsWindow(Hwnd) @extern("IsWindow");
 	extern fn Bool api_RegisterHotKey(Hwnd, int, uint, uint) @extern("RegisterHotKey");
 	extern fn Bool api_UnregisterHotKey(Hwnd, int) @extern("UnregisterHotKey");
+	extern fn Hwnd api_SetCapture(Hwnd) @extern("SetCapture");
+	extern fn Bool api_ReleaseCapture(Hwnd) @extern("ReleaseCapture");
+	extern fn Bool api_ScreenToClient(Hwnd, Point*) @extern("ScreenToClient");
+	extern fn Bool api_UnionRect(Rect*, Rect*, Rect*) @extern("UnionRect");
 
 
 

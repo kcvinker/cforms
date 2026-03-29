@@ -176,65 +176,20 @@ fn Lresult calWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 {
 	
 	// io::printfn("message %s", msg);
+	Calendar* this = bitcast(refData, Calendar*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
 		case WM_DESTROY:
-			Calendar* this = bitcast(refData, Calendar*);
 			api_RemoveWindowSubclass(hw, &calWndProc, scID);
 			this.dtor(); return 0;
 
-		case WM_LBUTTONDOWN:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.mouseWheelHandler(msg, wp, lp);
-
-		case WM_KEYDOWN:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.keyDownHandler(wp);
-		case WM_KEYUP:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.keyUpHandler(wp);
-		case WM_CHAR:
-			Calendar* this = bitcast(refData, Calendar*);
-			this.keyPressHandler(wp);
-		case WM_CONTEXTMENU:
-			Calendar* this = bitcast(refData, Calendar*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_NOTIFY_REFLECT:
-			Calendar* this = bitcast(refData, Calendar*);
 			return this.wmNotifyHandler(lp);
 		
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
-		// case MM_RUNDTOR:
-		// 	Calendar* this = bitcast(refData, Calendar*);
-		// 	this.dtor(); return 0;
 	}
-	return api_DefSubclassProc(hw, msg, wp, lp);
+	// return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
 

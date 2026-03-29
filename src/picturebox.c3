@@ -32,6 +32,7 @@ struct PictureBox
     Rect _rect;
     Size _size;
     String _imgPath;
+    
 
 }
 
@@ -64,9 +65,9 @@ fn void PictureBox.createHandle(&this)
 {
     if (this._imgPath.len > 0) this.setImageInternal(this._imgPath, false);
     this._size = {this.width, this.height};
-    this.createInternal();
+    this.createInternal(); 
     if (this.handle) {
-        api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
+        // api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
         api_GetClientRect(this.handle, &this._rect);
     }
 }
@@ -154,6 +155,8 @@ fn void PictureBox.invalidate(&this) @inline
 }
 
 
+
+
 fn void PictureBox.dtor(&this) @private
 {
     if (this.image) this.image.destroy();
@@ -188,24 +191,43 @@ fn void registerPBoxClass() @private
 fn Lresult pbxWinProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {
 	// log("WIn Message %s", msg);
+    PictureBox* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), PictureBox*);
+    if (this == null) {
+		if (msg == WM_NCCREATE) {
+            // Extract 'this' from the CREATESTRUCT
+            CreateStruct* cs = bitcast(lp, CreateStruct*);
+            this = bitcast(cs.lpCreateParams, PictureBox*);
+            
+            // Link the HWND to your object
+            this.handle = hw;			
+            
+            // Store it so subsequent messages have it
+            api_SetWindowLongPtr(hw, GWLP_USERDATA, bitcast(this, Longptr));
+            
+            return 1; // Continue PictureBox creation
+        }
+        // Messages before NCCREATE (rare) must go to default
+        return api_DefWindowProc(hw, msg, wp, lp);
+	}
+
+    if (this.baseWndProc(hw, msg, wp, lp)) return api_DefWindowProc(hw, msg, wp, lp);
+    
 	switch (msg) {
-        case WM_NCDESTROY:
-            PictureBox* pbx = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), PictureBox*);
-            pbx.dtor();
+        case WM_NCDESTROY:            
+            this.dtor();
             
         case WM_PAINT:
             PaintStruct ps;
-            PictureBox* pbx = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), PictureBox*);
             Hdc hdc = api_BeginPaint(hw, &ps); 
             defer api_EndPaint(hw, &ps);               
-            if (pbx.image) { 
-                pbx.image.draw(hdc, pbx._rect.left, pbx._rect.top, 
-                                pbx._rect.right - pbx._rect.left, 
-                                pbx._rect.bottom - pbx._rect.top);
+            if (this.image) { 
+                this.image.draw(hdc, this._rect.left, this._rect.top, 
+                                this._rect.right - this._rect.left, 
+                                this._rect.bottom - this._rect.top);
             } else {
                 // If no image, fill with background color
                 // print("No image to draw, filling with background color");
-                Hbrush hbr = api_CreateSolidBrush(pbx._parent.backColor.ref);
+                Hbrush hbr = api_CreateSolidBrush(this._parent.backColor.ref);
                 api_FillRect(hdc, &ps.rcPaint, hbr);
                 api_DeleteObject((Hgdiobj)hbr);
             }
@@ -216,14 +238,13 @@ fn Lresult pbxWinProc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
             return 1;
         
         case WM_SIZE:
-            PictureBox* pbx = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), PictureBox*);
-            if (pbx) {
-                if (pbx.sizeMode != PictureSizeMode.AUTO_SIZE) pbx.invalidate();
-            }
+            if (this) {
+                if (this.sizeMode != PictureSizeMode.AUTO_SIZE) this.invalidate();
+            }        
 
         default:
 			return api_DefWindowProc(hw, msg, wp, lp);
-
 	}
 	return api_DefWindowProc(hw, msg, wp, lp);
 }
+

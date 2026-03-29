@@ -608,74 +608,29 @@ struct TreeNode
 
 fn Lresult tvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	
 	// io::printfn("message %s", msg);
+	TreeView* this = bitcast(refData, TreeView*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
-		case WM_DESTROY:
-			TreeView* this = bitcast(refData, TreeView*);
+		case WM_DESTROY:			
 			api_RemoveWindowSubclass(hw, &tvWndProc, scID);
 			this.dtor();
 
 		case MM_NODE_ADDED:
-			TreeView* this = bitcast(refData, TreeView*);
 			TreeNode* node = (TreeNode*)((void*) wp);
 			TreeNode* pnode = (TreeNode*)((void*) lp);
 			this.addChildNode(pnode, node);
 
 		case MM_NODE_INSERTED:
-			TreeView* this = bitcast(refData, TreeView*);
 			NodePack* np = (NodePack*)((void*) lp);
 			this.insertChildNode(np.parent, np.node, np.indexNum);
 
 		case MM_NODE_DELETED:
-			TreeView* this = bitcast(refData, TreeView*);
 			TreeNode* node = (TreeNode*)((void*) lp);
 			Lresult ret = this.sendMsg(TVM_DELETEITEM, 0, (Lparam) node.handle);
 			this.nodes.remove_first_item(node);
-			node.destroy();
+			node.destroy();		
 
-		case WM_LBUTTONDOWN:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.mouseWheelHandler(msg, wp, lp);
-		case WM_CONTEXTMENU:
-			TreeView* this = bitcast(refData, TreeView*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
-		case WM_KEYDOWN:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.keyDownHandler(wp);
-		case WM_KEYUP:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.keyUpHandler(wp);
-		case WM_CHAR:
-			TreeView* this = bitcast(refData, TreeView*);
-			this.keyPressHandler(wp);
-		// case MM_RUNDTOR: this.dtor(); return 0;
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
 	}

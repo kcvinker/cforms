@@ -235,59 +235,16 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 
 fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	
 	// io::printfn("message %s", msg);
+	ProgressBar* this = bitcast(refData, ProgressBar*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
 		case WM_DESTROY:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
 			api_RemoveWindowSubclass(hw, &pbWndProc, scID);
-			this.dtor();
+			this.dtor();		
 
-		case WM_LBUTTONDOWN:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.mouseWheelHandler(msg, wp, lp);
-
-		case WM_KEYDOWN:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.keyDownHandler(wp);
-		case WM_KEYUP:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.keyUpHandler(wp);
-		case WM_CHAR:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			this.keyPressHandler(wp);
-		case WM_CONTEXTMENU:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case WM_PAINT:
-			ProgressBar* this = bitcast(refData, ProgressBar*);
-						if (this.showPercentage && this.barStyle != ProgressBarStyle.MARQUEE_STYLE) {
+			if (this.showPercentage && this.barStyle != ProgressBarStyle.MARQUEE_STYLE) {
 				api_DefSubclassProc(hw, msg, wp, lp);
 				return this.paintHandler2();
 			} else {
@@ -295,8 +252,6 @@ fn Lresult pbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 			}
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
-
-		// case MM_RUNDTOR: this.dtor(); return 0;
 
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);

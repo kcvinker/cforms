@@ -79,7 +79,6 @@ struct Form
 	bool minimizeBox;
 	bool _isLoaded;
 	bool _isMainWindow;
-	bool _isMouseTracking;
 	bool _isSizing;
 	bool _menuMapInited;
 	bool _menubarCreated;
@@ -160,13 +159,13 @@ struct Form
 										this.width, this.height,
 										(Hwnd)0,
 										(Hmenu)0,
-										app.hins, null);
+										app.hins, (Pvoid)this);
 		if (this.handle) {
-			
 			this._isCreated = true;
+			
 			// app.fmap[this.handle] = this;
 			this.controls.init(mem); // Init to hold 16 controls.
-			api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
+			// api_SetWindowLongPtr(this.handle, GWLP_USERDATA, bitcast(this, Longptr));
 			this.setFontInternal();
 			// $echo("163");
 			// api_ShowWindow(this.handle, 10);
@@ -328,15 +327,7 @@ struct Form
 		api_FillRect(hdc, &rc, this._bkBrush);
 	}
 
-	fn void trackMouseMove(Hwnd hw) @private
-	{
-		TrackMOUSEEVENT tme;
-		tme.cbSize = TrackMOUSEEVENT.sizeof;
-		tme.dwFlags = TME_HOVER|TME_LEAVE;
-		tme.dwHoverTime = HOVER_DEFAULT;
-		tme.hwndTrack = hw;
-		api_TrackMouseEvent(&tme);
-	}
+	
 
 	fn void Form.formShownHandler(&this) @private
 	{
@@ -357,25 +348,6 @@ struct Form
 				if (this.onActivate) this.onActivate(this, &gea);
 			}
 		}
-	}
-
-	fn void Form.formMouseMoveHandler(&this, uint msg, Wparam wp, Lparam lp) @private
-	{
-		if (!this._isMouseEntered) {
-			this._isMouseEntered = true;
-			if (this.onMouseEnter) this.onMouseEnter(this, &gea);
-		} else {
-			if (this.onMouseMove) {
-				MouseEventArgs mea = newMouseEventArgs(msg, wp, lp);
-				this.onMouseMove(this, &mea);
-			}
-		}
-	}
-
-	fn void Form.formMouseLeaveHandler(&this) @private
-	{
-		if (this._isMouseEntered) this._isMouseEntered = false;
-		if (this.onMouseLeave) this.onMouseLeave(this, &gea);
 	}
 
 	fn Lresult Form.formSizingHandler(&this, uint msg, Wparam wp, Lparam lp) @private
@@ -596,78 +568,52 @@ struct Form
 fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {
 	// log("WIn Message %s", msg);
+	Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+	if (this == null) {
+		if (msg == WM_NCCREATE) {
+            // Extract 'this' from the CREATESTRUCT
+            CreateStruct* cs = bitcast(lp, CreateStruct*);
+            this = bitcast(cs.lpCreateParams, Form*);
+            
+            // Link the HWND to your object
+            this.handle = hw;			
+            
+            // Store it so subsequent messages have it
+            api_SetWindowLongPtr(hw, GWLP_USERDATA, bitcast(this, Longptr));
+            
+            return 1; // Continue window creation
+        }
+        // Messages before NCCREATE (rare) must go to default
+        return api_DefWindowProc(hw, msg, wp, lp);
+	}
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefWindowProc(hw, msg, wp, lp);
 	switch (msg) {
 	// Common msgs
-		case WM_SHOWWINDOW:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
+		case WM_SHOWWINDOW:			
 		 	this.formShownHandler();
 
 		case WM_ACTIVATEAPP :
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formActivateHandler(wp);
-
-		case WM_LBUTTONDOWN:		
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);	
-		 	this.leftMouseDownHandler(msg, wp, lp);
-
-		case WM_LBUTTONUP:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	this.leftMouseUpHandler(msg, wp, lp);
-
-		case MM_MOUSE_LBCLICK:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	this.rightMouseDownHandler(msg, wp, lp);
-
-		case WM_RBUTTONUP:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	this.rightMouseUpHandler(msg, wp, lp);
-
-		case MM_MOUSE_RBCLICK:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	this.formMouseMoveHandler(msg, wp, lp);
 		
-		case WM_MOUSELEAVE:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	this.formMouseLeaveHandler();
-
-		case WM_MOUSEWHEEL:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
-		 	this.mouseWheelHandler(msg, wp, lp);
-
 		case WM_SIZING:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return this.formSizingHandler(msg, wp, lp);
 			
 		case WM_SIZE :
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return this.formSizedHandler(msg, wp, lp);
 
 		case WM_MOVING :
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return this.formMovingHandler(lp);
 
 		case WM_MOVE :
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	return this.formMovedHandler(lp);
 
 		case WM_SYSCOMMAND :
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formSysCommandHandler(wp);
 
 		case WM_CLOSE :
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formCloseHandler();
 
 		case WM_DESTROY:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.formDestroyHandler();
 
 		case WM_HSCROLL:
@@ -677,15 +623,12 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 		 	return api_SendMessage((Hwnd)lp, MM_VSCROLL, wp, lp);
 
 		case WM_TIMER:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	this.timerHandler(wp);
 
 		case MM_THREAD_MSG:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 		 	if (this.onThreadMsg) this.onThreadMsg(wp, lp);
 
 		case WM_ERASEBKGND :
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			this.setBackColorInternal((Hdc)wp);
 			return 1;
 	// end of commons
@@ -703,12 +646,12 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			return api_SendMessage(hc, MM_COLOR_EDIT, wp, lp);
 
 		case WM_CTLCOLORLISTBOX:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			Hwnd hc = (Hwnd)lp;
 			if (this._comboList.size) {
 				foreach (ci: this._comboList) {
 					if (ci.listHwnd == hc) {
 						hc = ci.cmbHwnd;
+						// ptf("hc: %d, ci.cmbHwnd: %d", hc, ci.cmbHwnd);
 						break;
 					}
 				}
@@ -716,33 +659,26 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 			return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);			
 
 		case WM_MEASUREITEM:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			return this.measureItemHandler(hw, lp);
 
 		case WM_DRAWITEM:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			return this.drawItemHandler(lp);
 
 		case WM_COMMAND:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
             return this.commandHandler(wp, lp);
 
 		case WM_MENUSELECT:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			return this.menuSelectHandler(wp, lp);
 
 		case WM_INITMENUPOPUP:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			MenuItem* menu = this.getMenuFromHmenu((uint) wp);
 			if (menu && menu.onPopup) menu.onPopup(menu, &gea);
 
 		case WM_UNINITMENUPOPUP:
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
         	MenuItem* menu = this.getMenuFromHmenu((uint) wp);
         	if (menu && menu.onCloseup) menu.onCloseup(menu, &gea);
 
 		case WM_CONTEXTMENU: 
-			Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 			if (this.contextMenu) this.contextMenu.showMenu(lp);
 
 		default:

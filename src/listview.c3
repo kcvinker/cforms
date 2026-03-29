@@ -708,103 +708,43 @@ struct ListViewColumn
 
 fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
-	// ListView* this = bitcast(refData, ListView*);
+	ListView* this = bitcast(refData, ListView*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY:
-			ListView* this = bitcast(refData, ListView*);
 			api_RemoveWindowSubclass(hw, &lvWndProc, scID);
-			this.dtor();
-
-		case WM_LBUTTONDOWN:
-			ListView* this = bitcast(refData, ListView*);
-			this.leftMouseDownHandler(msg, wp, lp);
-
-		case WM_LBUTTONUP:
-			ListView* this = bitcast(refData, ListView*);
-			this.leftMouseUpHandler(msg, wp, lp);
-
-		case MM_MOUSE_LBCLICK:
-			ListView* this = bitcast(refData, ListView*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			ListView* this = bitcast(refData, ListView*);
-			this.rightMouseDownHandler(msg, wp, lp);
-
-		case WM_RBUTTONUP:
-			ListView* this = bitcast(refData, ListView*);
-			this.rightMouseUpHandler(msg, wp, lp);
-
-		case MM_MOUSE_RBCLICK:
-			ListView* this = bitcast(refData, ListView*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			ListView* this = bitcast(refData, ListView*);
-			this.mouseMoveHandler(msg, wp, lp);
-
-		case WM_MOUSELEAVE:
-			ListView* this = bitcast(refData, ListView*);
-			this.mouseLeaveHandler();
-
-		case WM_MOUSEWHEEL:
-			ListView* this = bitcast(refData, ListView*);
-			this.mouseWheelHandler(msg, wp, lp);
-
-		case WM_KEYDOWN:
-			ListView* this = bitcast(refData, ListView*);
-			this.keyDownHandler(wp);
-
-		case WM_KEYUP:
-			ListView* this = bitcast(refData, ListView*);
-			this.keyUpHandler(wp);
-
-		case WM_CHAR:
-			ListView* this = bitcast(refData, ListView*);
-			this.keyPressHandler(wp);
+			this.dtor();		
 
 		case WM_NOTIFY:
-			ListView* this = bitcast(refData, ListView*);
 			return this.headerNotifyHandler(lp);
-			
-		case WM_CONTEXTMENU:
-			ListView* this = bitcast(refData, ListView*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
 
 		case MM_NOTIFY_REFLECT:
-			ListView* this = bitcast(refData, ListView*);
 			return this.wmNotifyHandler(lp);
 
-		// case WM_COMMAND:
-		// 	print("list view rcvd command");
-		// case MM_RUNDTOR: this.dtor(); return 0;
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
-
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
 
 fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
-{
-	
+{	
 	// io::printfn("message %s", msg);
+	ListView* this = bitcast(refData, ListView*);
 	switch (msg) {
-		case WM_DESTROY: 
-			ListView* this = bitcast(refData, ListView*);
+		case WM_DESTROY: 			
 			api_RemoveWindowSubclass(hw, &hdrWndProc, scID);
+
 		case WM_MOUSEMOVE:
-			ListView* this = bitcast(refData, ListView*);
 			Point mp = getMousePoints(lp);
 			HDHitTestInfo hti; hti.pt = mp;
 			this._hotHdrIndex = (int) api_SendMessage(hw, HDM_HITTEST, 0, (Lparam) &hti);
 
 		case WM_MOUSELEAVE: 
-			ListView* this = bitcast(refData, ListView*);
 			this._hotHdrIndex = -1;
+
 		case WM_PAINT: // Drawing the last part of header.
-			ListView* this = bitcast(refData, ListView*);
 			api_DefSubclassProc(hw, msg, wp, lp);
 			Rect hrc;
 			api_SendMessage(hw, HDM_GETITEMRECT, (Wparam)this.columns.len() - 1, (Lparam)&hrc);
@@ -815,7 +755,6 @@ fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 			return 0;
 
 		case HDM_LAYOUT:
-			ListView* this = bitcast(refData, ListView*);
 			HdLayout* phl = (HdLayout*)lp;
 			WindowPos* wps = phl.pwpos;
 			wps.flags = SWP_FRAMECHANGED;
@@ -826,6 +765,7 @@ fn Lresult hdrWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 			wps.cy = this.headerHeight;
 			phl.prc.top = this.headerHeight;
 			return -1;
+
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
 	}

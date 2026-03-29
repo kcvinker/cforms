@@ -126,48 +126,16 @@ struct Label
 
 
 fn Lresult lbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
-{
-	
+{	
 	// io::printfn("message %s", msg);
+	Label* this = bitcast(refData, Label*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
 		case WM_DESTROY:
-			Label* this = bitcast(refData, Label*);
 			api_RemoveWindowSubclass(hw, &lbWndProc, scID);
-			this.dtor();
-		case WM_LBUTTONDOWN:
-			Label* this = bitcast(refData, Label*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			Label* this = bitcast(refData, Label*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			Label* this = bitcast(refData, Label*);
-			this.leftClickHandler();
+			this.dtor();		
 
-		case WM_RBUTTONDOWN:
-			Label* this = bitcast(refData, Label*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			Label* this = bitcast(refData, Label*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			Label* this = bitcast(refData, Label*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			Label* this = bitcast(refData, Label*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			Label* this = bitcast(refData, Label*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			Label* this = bitcast(refData, Label*);
-			this.mouseWheelHandler(msg, wp, lp);
-		case WM_CONTEXTMENU:
-			Label* this = bitcast(refData, Label*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_STATIC:
-			Label* this = bitcast(refData, Label*);
 			return (Lresult) this.colorMsgHandler(wp);
 
 		default:

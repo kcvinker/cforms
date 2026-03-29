@@ -164,68 +164,24 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 
 
 fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
-{
-	
+{	
 	// io::printfn("message %s", msg);
+	TextBox* this = bitcast(refData, TextBox*);
+	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
 	switch (msg) {
 		case WM_DESTROY:
-			TextBox* this = bitcast(refData, TextBox*);
 			api_RemoveWindowSubclass(this.handle, &tbWndProc, scID);
 			this.dtor();
 
-		case WM_LBUTTONDOWN:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.leftMouseDownHandler(msg, wp, lp);
-		case WM_LBUTTONUP:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.leftMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_LBCLICK:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.leftClickHandler();
-
-		case WM_RBUTTONDOWN:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.rightMouseDownHandler(msg, wp, lp);
-		case WM_RBUTTONUP:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.rightMouseUpHandler(msg, wp, lp);
-		case MM_MOUSE_RBCLICK:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.rightClickHandler();
-
-		case WM_MOUSEMOVE:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.mouseMoveHandler(msg, wp, lp);
-		case WM_MOUSELEAVE:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.mouseLeaveHandler();
-		case WM_MOUSEWHEEL:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.mouseWheelHandler(msg, wp, lp);
-
-		case WM_KEYDOWN:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.keyDownHandler(wp);
-		case WM_KEYUP:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.keyUpHandler(wp);
-		case WM_CHAR:
-			TextBox* this = bitcast(refData, TextBox*);
-			this.keyPressHandler(wp);
-		case WM_CONTEXTMENU:
-			TextBox* this = bitcast(refData, TextBox*);
-			if (this.contextMenu) this.contextMenu.showMenu(lp);
 		case MM_COLOR_EDIT:
-			TextBox* this = bitcast(refData, TextBox*);
 			return (Lresult) this.colorMsgHandler(wp);
+
 		case MM_CTL_COMMAND:
-			TextBox* this = bitcast(refData, TextBox*);
-						Word ncode = hiWord(wp);
+			Word ncode = hiWord(wp);
 			if ((ncode == EN_CHANGE) && this.onTextChanged) this.onTextChanged(this, &gea);
 
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
-		// case MM_RUNDTOR: this.dtor(); return 0;
 	}
 	return api_DefSubclassProc(hw, msg, wp, lp);
 }
