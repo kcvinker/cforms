@@ -586,7 +586,12 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
         // Messages before NCCREATE (rare) must go to default
         return api_DefWindowProc(hw, msg, wp, lp);
 	}
-	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefWindowProc(hw, msg, wp, lp);
+	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);
+	if (res == MsgHandlerResult.CALL_DEF_PROC) {
+		return api_DefWindowProc(hw, msg, wp, lp);
+	} else if (res == MsgHandlerResult.RET_IMMEDIATE) {
+		return 1;
+	}
 	switch (msg) {
 	// Common msgs
 		case WM_SHOWWINDOW:			

@@ -709,7 +709,12 @@ struct ListViewColumn
 fn Lresult lvWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {
 	ListView* this = bitcast(refData, ListView*);
-	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
+	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);	
+	if (res == MsgHandlerResult.CALL_DEF_PROC) {
+		return api_DefSubclassProc(hw, msg, wp, lp);
+	} else if (res == MsgHandlerResult.RET_IMMEDIATE) {
+		return 1;
+	}
 	// io::printfn("message %s", msg);
 	switch (msg) {
 		case WM_DESTROY:

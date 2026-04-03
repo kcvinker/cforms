@@ -1,6 +1,11 @@
 Created on: 29-Mar-2026 08:49 AM
 Purpose: Cforms changelog
 
+
+Version 1.01.132 (04-Mar-2026)
+    Fixed bug in ComboBox mouse leave event.
+
+
 Version 1.01.131
     Restructured WndProc function of all controls. 
         Now we are using a base type's WndProc so that we can eliminate hundreds of lines of redundant code.

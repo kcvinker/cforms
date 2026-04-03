@@ -71,7 +71,7 @@ fn void makeWindow()
 	cal = newCalendar(frm, 750, 50);
 
 	//Now, add a combo box and items.
-	cmb = newComboBox(frm, b3.right() + 10, 10);
+	cmb = newComboBox(frm, b3.right() + 10, 10, enableInput: true);
 	// cmb = newComboBox(frm, 10, 10);
 	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
 	cmb.onMouseEnter = fn(c, e) => print("Mouse entered on combo");

@@ -9,6 +9,8 @@ enum ViewMode : int
     CENTUARY_VIEW,
 }
 
+enum MsgHandlerResult : char {CALL_DEF_PROC, CONTINUE, RET_IMMEDIATE}
+
 enum TextAlignment : char
 { // For label &
     TOPLEFT,

@@ -217,7 +217,12 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {	
 	// io::printfn("message %s", msg);
 	GroupBox* this = bitcast(refData, GroupBox*);
-	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
+	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);	
+	if (res == MsgHandlerResult.CALL_DEF_PROC) {
+		return api_DefSubclassProc(hw, msg, wp, lp);
+	} else if (res == MsgHandlerResult.RET_IMMEDIATE) {
+		return 1;
+	}
 	switch (msg) {
 		case WM_DESTROY:
 			api_RemoveWindowSubclass(hw, &gbWndProc, scID);

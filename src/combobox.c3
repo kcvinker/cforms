@@ -75,7 +75,7 @@ struct ComboBox
 // Public functions
 	// ComboBox constructor
 	fn ComboBox* newComboBox(Form* parent, int x = 10, int y = 10,
-								int width = 140, int height = 27)
+								int width = 140, int height = 27, bool enableInput = false)
 	{
 		ComboBox* this = allocator::new(mem, ComboBox);
 		this.kind = ControlType.COMBO_BOX;
@@ -94,9 +94,11 @@ struct ComboBox
 		this.foreColor = newColor(0x000000);
 		this.selectedIndex = -1;
 		this.items.init(mem, 10);
+		this.hasInput = enableInput;
 		cmbNumber += 1;
 		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
+		this._spMLeaveProc = (SpecialMouseLeaveProc)&ComboBox.specialMouseLeaveHandler;
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}
@@ -216,12 +218,12 @@ struct ComboBox
 		this.sendMsg(CB_GETCOMBOBOXINFO, 0, &cmbInfo);
 		ComboInfo ci = {cmbInfo.hwndList, cmbInfo.hwndCombo};
 		this._editHwnd = cmbInfo.hwndItem;
-		api_UnionRect(&this._myRect, &cmbInfo.rcItem, &cmbInfo.rcButton);
+		api_GetClientRect(this.handle, &this._myRect);
+
 		// Parent needs to keep track of combo's list handle
 		this._parent._comboList.push(ci); 
 		api_SetWindowSubclass(cmbInfo.hwndItem, &cmbEditWndProc, editSubId, bitcast(this, Dwordptr));
 		editSubId += 1;
-		// ptf("Item hwnd - %s, List Hwnd - %s", cmbInfo.hwndItem, cmbInfo.hwndList );
 	}
 
 	fn void ComboBox.insertItems(ComboBox* this) @private
@@ -242,41 +244,6 @@ struct ComboBox
 		int x = (int)((short)loWord(value));
 		int y = (int)((short)hiWord(value));
 		return {x, y};
-	}
-
-	fn Bool isMouseInCombo(Hwnd hwn) @private
-	{
-		Rect rc;
-		api_GetWindowRect(hwn, &rc);
-		Point pts = getComboMousePoints();
-		return api_PtInRect(&rc, pts);
-	}
-
-	fn Lresult ComboBox.cmbMouseLeaveHandler(ComboBox* this) @private
-	{
-        if (this._dropped) return (Lresult)true; 
-		// ptf("Mouse leave fired. Dropped state: %s", this._dropped);
-
-		if (this.hasInput) {
-			// Point pt;
-			// api_GetCursorPos(&pt);
-			Dword value = api_GetMessagePos();
-			Point pt = {(int)((short)loWord(value)), (int)((short)hiWord(value))};
-
-			// api_ScreenToClient(this.handle, &pt); // Normalize to the MAIN combo handle						
-			if (api_PtInRect(&this._myRect, pt)) {
-				return 1; // Still inside the combo, ignore the leave
-			} else {
-				// this._isHovered = false;
-				this._isMouseTracking = false; // Reset tracking to allow future tracking
-				if (this.onMouseLeave) this.onMouseLeave(this, &gea);
-				return 0; // Consume the leave to prevent flickering
-			}			
-		} else {
-			this._isMouseTracking = false; // Reset tracking to allow future tracking
-			if (this.onMouseLeave) this.onMouseLeave(this, &gea);
-		}
-		return 0;
 	}
 
 
@@ -338,85 +305,35 @@ struct ComboBox
 		}
 	}
 
-	// In your ComboBox or Base class
-	fn void ComboBox.ensureMouseTracking(&this, Hwnd hw) {
-		// Don't track if the dropdown is currently visible
-    	if (api_SendMessage(this.handle, CB_GETDROPPEDSTATE, 0, 0)) return;
-
-		// Determine which flag to check/set based on the HWND
-		bool* activeFlag = (hw == this._editHwnd) ? &this._trackingEdit : &this._trackingCombo;
-		if (*activeFlag) return; 
-		if (trackMouse(hw, TME_LEAVE | TME_HOVER)) {
-			*activeFlag = true; // Mark this specific window as tracked
-		}
-	}
+	// int x1 = 1;
+	// fn void printRct(Rect r, Point p, Bool res) {
+	// 	ptf("[%d]  [%d, %d, %d, %d], [%d, %d] == %s", x1, r.left, r.top, r.right, r.bottom, p.x, p.y, res);
+	// 	x1 += 1;
+	// }
 
 
-	// Special mouse enter/hover/leave handler for ComboBox.
-	fn bool ComboBox.specialMouseMessageHandler(&this, Hwnd hw, uint msg, Wparam wp, Lparam lp) 
+	fn MsgHandlerResult ComboBox.specialMouseLeaveHandler(&this)
 	{
-		print("special mouse message");
-		switch (msg) {
-			case WM_MOUSEMOVE:
-				// Trigger your base class TrackMouseEvent logic for this specific HWND
-				this.ensureMouseTracking(hw); 
-				
-				// If we weren't hovered before, this is effectively a 'MouseEnter'
-				if (!this._isHovered) {
-					this._isHovered = true;
-					if (this.onMouseEnter) this.onMouseEnter(this, &gea); 
-				}
-				// Continuous Mouse Move Logic
-				if (this.onMouseMove) {
-					MouseEventArgs mea = newMouseEventArgs(msg, wp, lp);
-
-					// Coordinate Patch: Normalize Edit-local to Combo-local
-					if (hw == this._editHwnd) {
-						Point pt = { (short)mea.x, (short)mea.y };
-						api_MapWindowPoints(this._editHwnd, this.handle, &pt, 1);
-						mea.x = (int)pt.x;
-						mea.y = (int)pt.y;
-					}
-					this.onMouseMove(this, &mea);
-				}
-				return false; // Let base class or switch handle coordinate updates
-
-			case WM_MOUSEHOVER:
-				// Reset the specific flag for the window that fired the hover
-				if (hw == this._editHwnd) {
-					this._trackingEdit = false;
-				} else {
-					this._trackingCombo = false;
-				}
-				if (this.onMouseHover) this.onMouseHover(this, &gea);
-				return true; // We handled the hover
-
-			case WM_MOUSELEAVE:
-				// Reset the specific flag for the window that fired the leave
-				if (hw == this._editHwnd) {
-					this._trackingEdit = false;
-				} else {
-					this._trackingCombo = false;
-				}				
-				
-				Point pt; // Physical check: Did we actually leave the ComboBox boundary?
-				api_GetCursorPos(&pt);			
-				api_ScreenToClient(this.handle, &pt); // Convert to coordinates relative to the MAIN Combo HWND
-				
-				Rect rc; // Get the bounding rect of the entire ComboBox
-				api_GetClientRect(this.handle, &rc);
-				
-				// Check if the mouse is still physically inside the control's bounds
-				if (!api_PtInRect(&rc, pt)) {
-					this._isHovered = false;
-					if (this.onMouseLeave) this.onMouseLeave(this, &gea); // Only trigger true leave if outside both parts
-				}
-				return true; // Consume the leave to prevent flickering
+		/* Since combo box is a combination of a button control and an
+		 * edit control, we need special treatment for mouse leave event.
+		 * We need to check if the mouse pointer is inside our control
+		 * rect each time we get a mouse leave message. Some times, user
+		 * moves the mouse from edit to arrow button or vice versa.*/
+		if (this.onMouseLeave || this.onMouseEnter || this.onMouseMove) {
+			Point pt;
+			api_GetCursorPos(&pt);
+			api_ScreenToClient(this.handle, &pt);        
+			Bool inside = api_PtInRect(&this._myRect, pt);
+			if (inside) {        
+				return MsgHandlerResult.RET_IMMEDIATE;
+			} else {
+				// this._isMouseEntered = false;
+				this._isMouseTracking = false;
+				if (this.onMouseLeave) this.onMouseLeave(this, &gea);
+			}
 		}
-		return false;
+		return MsgHandlerResult.CALL_DEF_PROC;  
 	}
-
-
 
 
 	// Freeing resources used for this ComboBox.
@@ -438,14 +355,13 @@ fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 	
 	// io::printfn("message %s", msg);
 	ComboBox* this = bitcast(refData, ComboBox*);
-	if (msg == WM_MOUSELEAVE) {
-        return this.cmbMouseLeaveHandler();
-        //return 0; // Consume it so baseWndProc doesn't fire a "False Leave"
-    }
-	if (this.baseWndProc(hw, msg, wp, lp)) {
+	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);
+	if (res == MsgHandlerResult.CALL_DEF_PROC) {
 		return api_DefSubclassProc(hw, msg, wp, lp);
-	} 
-		
+	} else if (res == MsgHandlerResult.RET_IMMEDIATE) {
+		return 1;
+	}
+
 	switch (msg) {
 		case WM_DESTROY:
 			api_RemoveWindowSubclass(hw, &cmbWndProc, scID);
@@ -469,12 +385,11 @@ fn Lresult cmbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwo
 fn Lresult cmbEditWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {	
 	ComboBox* this = bitcast(refData, ComboBox*);
-	if (msg == WM_MOUSELEAVE) {
-        return this.cmbMouseLeaveHandler();
-        //return 0; // Consume it so baseWndProc doesn't fire a "False Leave"
-    }
-	if (this.baseWndProc(hw, msg, wp, lp)) {		
+	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);
+	if (res == MsgHandlerResult.CALL_DEF_PROC) {
 		return api_DefSubclassProc(hw, msg, wp, lp);
+	} else if (res == MsgHandlerResult.RET_IMMEDIATE) {
+		return 1;
 	}
 	switch (msg) {
 		case WM_DESTROY:

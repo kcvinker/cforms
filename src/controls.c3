@@ -52,6 +52,9 @@ iptr globalCtlID = 100;
 ulong globalSubClsID = 1000;
 EventArgs gea; // Global instance of EventArgs.
 
+alias SpecialMouseMoveProc = fn MsgHandlerResult(Control* this, Hwnd hw, uint msg, Wparam wp, Lparam lp);
+alias SpecialMouseLeaveProc = fn MsgHandlerResult(Control* this);
+
 struct Control
 {
 	ControlType kind;
@@ -80,11 +83,14 @@ struct Control
 	bool _cmenuUsed;
 	bool _isMouseTracking;
 	bool _isPressed;
+	SpecialMouseMoveProc _spMMoveProc;
+	SpecialMouseLeaveProc _spMLeaveProc;
 	Hbrush _bkBrush;
 	Char16* _wideText;
 	WideString* _wtext;
 	Font font;
 	Form* _parent;
+
 
 	EventHandler onGotFocus;
 	EventHandler onLostFocus;
@@ -216,67 +222,75 @@ struct Control
 	}
 
 	// Common event handling for all controls.
-	fn bool Control.baseWndProc(&this, Hwnd hw, uint msg, Wparam wp, Lparam lp)
+	fn MsgHandlerResult Control.baseWndProc(&this, Hwnd hw, uint msg, Wparam wp, Lparam lp)
 	{
 		switch (msg) {
 			case WM_LBUTTONDOWN: 
 			this.leftMouseDownHandler(msg, wp, lp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_LBUTTONUP: 
 			this.leftMouseUpHandler(msg, wp, lp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case MM_MOUSE_LBCLICK: 
 			this.leftClickHandler();
-			return true; //
+			return MsgHandlerResult.CALL_DEF_PROC; //
 
 		case WM_RBUTTONDOWN: 
 			this.rightMouseDownHandler(msg, wp, lp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_RBUTTONUP: 
 			this.rightMouseUpHandler(msg, wp, lp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case MM_MOUSE_RBCLICK: 
 			this.rightClickHandler();
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_MOUSEMOVE: 
-			this.mouseMoveHandler(msg, wp, lp);
-			return true;
+			if (!this._spMMoveProc) {
+				this.mouseMoveHandler(msg, wp, lp);
+				return MsgHandlerResult.CALL_DEF_PROC;
+			} else {
+				return this._spMMoveProc(this, hw, msg, wp, lp);
+			}
 
 		case WM_MOUSELEAVE: 
-			this.mouseLeaveHandler();
-			return true;
+			if (!this._spMLeaveProc) {
+				this.mouseLeaveHandler();
+				return MsgHandlerResult.CALL_DEF_PROC;
+			} else {
+				return this._spMLeaveProc(this);
+			}
 
 		case WM_MOUSEHOVER:
 			this.mouseHoverHandler();
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_MOUSEWHEEL: 
 			this.mouseWheelHandler(msg, wp, lp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_CONTEXTMENU: 
 			if (this.contextMenu) this.contextMenu.showMenu(lp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_KEYDOWN:
 			this.keyDownHandler(wp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_KEYUP:
 			this.keyUpHandler(wp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_CHAR:
 			this.keyPressHandler(wp);
-			return true;
+			return MsgHandlerResult.CALL_DEF_PROC;
 		
 		default:
-			return false;
+			return MsgHandlerResult.CONTINUE;
 		}
 	}
 
@@ -504,9 +518,9 @@ struct Control
 		}
 	}
 
-	fn void Control.mouseMoveHandler(Control* this, uint msg, Wparam wpm, Lparam lpm)
+	fn void Control.mouseMoveHandler(Control* this,  uint msg, Wparam wpm, Lparam lpm)
 	{
-		// 1. Fire Mouse Move Event
+		// 1. Fire Mouse Move Event		
 		if (this.onMouseMove) {
 			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
 			this.onMouseMove(this, &mea);
@@ -530,7 +544,7 @@ struct Control
 				if (this.onMouseEnter) this.onMouseEnter(this, &gea); 
 			}
 			// if (this.name.str_view() == "ComboBox_1") ptf("combo mouse enter 525 = %s", this._isMouseTracking);
-		}       
+		} 		      
 	}
 
 	fn void Control.mouseHoverHandler(Control* this)

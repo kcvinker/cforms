@@ -167,7 +167,12 @@ fn Lresult tbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 {	
 	// io::printfn("message %s", msg);
 	TextBox* this = bitcast(refData, TextBox*);
-	if (this.baseWndProc(hw, msg, wp, lp)) return api_DefSubclassProc(hw, msg, wp, lp);
+	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);	
+	if (res == MsgHandlerResult.CALL_DEF_PROC) {
+		return api_DefSubclassProc(hw, msg, wp, lp);
+	} else if (res == MsgHandlerResult.RET_IMMEDIATE) {
+		return 1;
+	}
 	switch (msg) {
 		case WM_DESTROY:
 			api_RemoveWindowSubclass(this.handle, &tbWndProc, scID);
