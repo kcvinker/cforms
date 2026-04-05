@@ -74,8 +74,8 @@ fn void makeWindow()
 	cmb = newComboBox(frm, b3.right() + 10, 10, enableInput: true);
 	// cmb = newComboBox(frm, 10, 10);
 	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
-	cmb.onMouseEnter = fn(c, e) => print("Mouse entered on combo");
-	cmb.onMouseLeave = fn(c, e) => print("Mouse leaved from combo");
+	// cmb.onMouseEnter = fn(c, e) => print("Mouse entered on combo");
+	// cmb.onMouseLeave = fn(c, e) => print("Mouse leaved from combo");
 
 	// Date time picker.
 	dtp = newDateTimePicker(frm, cmb.right() + 10, 10);
@@ -96,6 +96,8 @@ fn void makeWindow()
 
 	// Now, create a Number picker.
 	np1 = newNumberPicker(frm, lb.right() + 30, gb2.ypos + 30);
+	np1.onMouseEnter = fn(c, e) => print("Mouse entered on Numpick");
+	np1.onMouseLeave = fn(c, e) => print("Mouse leaved from Numpick");
 
 	Label* lb2 = newLabel(frm, "Thread Count", 20, np1.bottom() + 14);
 	np2 = newNumberPicker(frm, lb2.right() + 10, np1.bottom() + 10, btnLeft:true);

@@ -571,21 +571,15 @@ fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 	Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 	if (this == null) {
 		if (msg == WM_NCCREATE) {
-            // Extract 'this' from the CREATESTRUCT
             CreateStruct* cs = bitcast(lp, CreateStruct*);
-            this = bitcast(cs.lpCreateParams, Form*);
-            
-            // Link the HWND to your object
-            this.handle = hw;			
-            
-            // Store it so subsequent messages have it
+            this = bitcast(cs.lpCreateParams, Form*);            
+            this.handle = hw;
             api_SetWindowLongPtr(hw, GWLP_USERDATA, bitcast(this, Longptr));
-            
             return 1; // Continue window creation
         }
-        // Messages before NCCREATE (rare) must go to default
         return api_DefWindowProc(hw, msg, wp, lp);
 	}
+	
 	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);
 	if (res == MsgHandlerResult.CALL_DEF_PROC) {
 		return api_DefWindowProc(hw, msg, wp, lp);

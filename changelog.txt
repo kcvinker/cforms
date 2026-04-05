@@ -1,6 +1,9 @@
 Created on: 29-Mar-2026 08:49 AM
 Purpose: Cforms changelog
 
+Version 1.01.133 (05-Mar-2026)
+	Fixed bug in NuberPicker mouse enter & leave event.
+
 
 Version 1.01.132 (04-Mar-2026)
     Fixed bug in ComboBox mouse leave event.

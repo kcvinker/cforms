@@ -51,6 +51,7 @@ struct NumberPicker
 	bool hasSeperator;
 	bool autoRotate;
 	bool _keyPressed;
+	bool _isMouseEntered;
 	double minRange;
 	double maxRange;
 	double value;
@@ -111,6 +112,8 @@ struct NumberPicker
 		this.font.cloneFrom(parent.font);
 		this._parent.controls.push(this);
 		if (evtFn) this.onValueChanged = evtFn;
+		this._spMMoveProc = &numpSpecialMouseMoveHandler;
+		this._spMLeaveProc = &numpSpecialMouseLeaveHandler;
 		npNumber += 1;
 		if (parent.createChilds) this.createHandle();
 		return this;
@@ -132,6 +135,7 @@ struct NumberPicker
 			api_GetClientRect(this.handle, &this._udRect);
 			this.placeBuddy();
 			if (oldBuddy) api_SendMessage(oldBuddy, MM_BUDDY_RESIZE, 0, 0);
+			api_SetRect(&this._myRect, this.xpos, this.ypos, (this.xpos + this.width), (this.ypos + this.height));
 			this.displayValue();
 		}
 	}
@@ -292,6 +296,72 @@ struct NumberPicker
 		globalSubClsID += 1;
 	}
 
+	fn MsgHandlerResult numpSpecialMouseMoveHandler(Control* ctl, Hwnd hw, uint msg, Wparam wpm, Lparam lpm)
+	{
+		// 1. Fire Mouse Move Event		
+		if (ctl.onMouseMove) {
+			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			ctl.onMouseMove(ctl, &mea);
+		}
+
+		// 2. Determine if we need to start/restart tracking
+		bool needsLeave = (ctl.onMouseEnter != null || ctl.onMouseLeave != null);
+		bool needsHover = (ctl.onMouseHover != null);
+
+		if (needsLeave || needsHover) {
+			NumberPicker* this = (NumberPicker*) ctl;
+			if (!this._isMouseTracking && hw == this._buddyHandle) {
+				uint flags = 0;
+				if (needsLeave) flags |= TME_LEAVE;
+				if (needsHover) flags |= TME_HOVER;
+
+				// Start tracking with combined flags
+				trackMouse(this.handle, flags); 				
+				this._isMouseTracking = true;				
+			}
+			if (!this._isMouseEntered) {
+				this._isMouseEntered = true;
+				if (this.onMouseEnter) this.onMouseEnter(this, &gea); 
+			}
+		} 
+		return MsgHandlerResult.CALL_DEF_PROC;
+
+	}
+
+	// int x1 = 1;
+	// fn void printRct(Rect r, Point p, Bool res) {
+	// 	ptf("[%d]  [%d, %d, %d, %d], [%d, %d] == %s", x1, r.left, r.top, r.right, r.bottom, p.x, p.y, res);
+	// 	x1 += 1;
+	// }
+
+	fn MsgHandlerResult numpSpecialMouseLeaveHandler(Control* ctl)
+	{
+		/*-----------------------------------------------------------------------------
+        Mouse leave event in NumberPicker control is a bit tricky. It's a combination
+        of a text box and button. And if we use UDS_HOTTRACK style, the
+        control internally uses TrackMouseEvent function to track the mouse movement
+        in the rect of the arrow button only. So we have to create an imaginary rect over 
+        the bondaries of these two controls. If mouse is inside that rect, 
+        there is no mouse leave. A perfect hack!
+    	----------------------------------------------------------------------------------*/
+		if (ctl.onMouseLeave || ctl.onMouseEnter || ctl.onMouseMove) {
+			NumberPicker* this = (NumberPicker*) ctl;
+			Point pt;
+			api_GetCursorPos(&pt);
+			api_ScreenToClient(this._parent.handle, &pt);        
+			Bool inside = api_PtInRect(&this._myRect, pt);
+			// printRct(this._myRect, pt, inside);
+			if (inside) {        
+				return MsgHandlerResult.RET_IMMEDIATE;
+			} else {
+				this._isMouseEntered = false;
+				this._isMouseTracking = false;
+				if (this.onMouseLeave) this.onMouseLeave(this, &gea);
+			}
+		}
+		return MsgHandlerResult.CALL_DEF_PROC;
+	}
+
 	fn void NumberPicker.displayValue(NumberPicker* this) @private
 	{
 		this._valStr.clear();
@@ -434,6 +504,12 @@ fn Lresult buddyWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, D
 {	
 	// io::printfn("message %s", msg);
 	NumberPicker* this = bitcast(refData, NumberPicker*);	
+	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);	
+	if (res == MsgHandlerResult.CALL_DEF_PROC) {
+		return api_DefSubclassProc(hw, msg, wp, lp);
+	} else if (res == MsgHandlerResult.RET_IMMEDIATE) {
+		return 1;
+	}
 	switch (msg) {
 		case WM_DESTROY: 
 			api_RemoveWindowSubclass(hw, &buddyWndProc, scID);

@@ -305,12 +305,6 @@ struct ComboBox
 		}
 	}
 
-	// int x1 = 1;
-	// fn void printRct(Rect r, Point p, Bool res) {
-	// 	ptf("[%d]  [%d, %d, %d, %d], [%d, %d] == %s", x1, r.left, r.top, r.right, r.bottom, p.x, p.y, res);
-	// 	x1 += 1;
-	// }
-
 
 	fn MsgHandlerResult ComboBox.specialMouseLeaveHandler(&this)
 	{
