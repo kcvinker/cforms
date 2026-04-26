@@ -48,12 +48,29 @@
 
 module cforms;
 
+import std::collections::enummap;
+
 iptr globalCtlID = 100;
 ulong globalSubClsID = 1000;
 EventArgs gea; // Global instance of EventArgs.
+const int SM_CXMENUCHECK = 71;
 
-alias SpecialMouseMoveProc = fn MsgHandlerResult(Control* this, Hwnd hw, uint msg, Wparam wp, Lparam lp);
-alias SpecialMouseLeaveProc = fn MsgHandlerResult(Control* this);
+
+bitstruct ColorMode : uint
+{
+    BackColorMode back : 0..1;  // 2 bits
+    ForeColorMode fore : 2..2;  // 1 bit
+}
+
+// bkg
+// 	pbk == checkbox, groupbox, label, radiobutton, trackbar
+// 	white == calendar, combo, dtp, listbox, listview, nump, tb, treeview
+
+// fgc
+// 	black == calendar, checkbox, combo, dtp, group, label, listbox, listview, nump, pgb, rb, tb, treeview
+
+// alias SpecialMouseMoveProc = fn MsgHandlerResult(Control* this, Hwnd hw, uint msg, Wparam wp, Lparam lp);
+// alias SpecialMouseLeaveProc = fn MsgHandlerResult(Control* this);
 
 struct Control
 {
@@ -82,14 +99,21 @@ struct Control
 	bool _autoSizable;
 	bool _cmenuUsed;
 	bool _isMouseTracking;
+	bool _isMouseEntered;
 	bool _isPressed;
-	SpecialMouseMoveProc _spMMoveProc;
-	SpecialMouseLeaveProc _spMLeaveProc;
+	bool createChilds;
+	
+	// SpecialMouseMoveProc _spMMoveProc;
+	// SpecialMouseLeaveProc _spMLeaveProc;
 	Hbrush _bkBrush;
 	Char16* _wideText;
 	WideString* _wtext;
+	MouseEventFlags _mouseEvents;
+	MouseTrackingFlags _tmeFlags;
 	Font font;
-	Form* _parent;
+	Control* _parent;
+	Form* _ownerForm;
+	ControlList controls;
 
 
 	EventHandler onGotFocus;
@@ -108,6 +132,17 @@ struct Control
 	KeyEventHandler onKeyDown;
 	KeyEventHandler onKeyUp;
 	KeyEventHandler onKeyPress;
+}
+
+bitstruct MouseEventFlags : char {
+	bool enter : 0;
+	bool hover : 1;
+	bool leave : 2;
+}
+
+bitstruct MouseTrackingFlags : Dword {
+	bool hover : 0;
+	bool leave : 1;
 }
 
 // fault StringFault
@@ -144,6 +179,7 @@ struct Control
 	//Set back color for Control
 	fn void Control.setBackColor(Control* this, uint clr)
 	{
+		
 		this.backColor.updateColor(clr);
 		if ((this._drawMode & 2) != 2) this._drawMode += 2;
 		if (this.kind == ControlType.NUM_PICKER) {
@@ -155,8 +191,28 @@ struct Control
 		}
 	}
 
+	fn void Control.setWidth(&this, int newWidth) 
+	{
+		this.width = newWidth;
+		api_SetWindowPos(this.handle, null, 0, 0, newWidth, this.height, SWP_NOMOVE | SWP_NOZORDER);
+	}
+
+	fn void Control.setHeight(&this, int newHeight) 
+	{
+		this.height = newHeight;
+		api_SetWindowPos(this.handle, null, 0, 0, this.width, newHeight, SWP_NOMOVE | SWP_NOZORDER);
+	}
+
+	fn void Control.setSize(&this, int newWidth, int newHeight) 
+	{
+		this.width = newWidth;
+		this.height = newHeight;
+		api_SetWindowPos(this.handle, null, 0, 0, newWidth, newHeight, SWP_NOMOVE | SWP_NOZORDER);
+	}
+	
+
 	//Set the control's text.
-	fn void Control.setText(Control* this, String value)
+	fn void Control.setText(&this, String value)
 	{
 		this.text = value;
 		if (this._isCreated && this._textable) {
@@ -192,6 +248,42 @@ struct Control
 		$endif
 	}
 
+	fn void Control.setMouseEnterHandler(&this, EventHandler evtProc)
+	{
+		this._mouseEvents.enter = true;
+		this._tmeFlags.leave = true;
+		this.onMouseEnter = evtProc;
+	}
+
+	fn void Control.setMouseHoverHandlerInternal(&this, EventHandler evtProc) @private
+	{
+		this._mouseEvents.hover = true;
+		this._tmeFlags.hover = true;
+		this.onMouseHover = evtProc;
+	}
+
+	macro void Control.setMouseHoverHandler(&this, EventHandler evtProc)
+	{
+		this.setMouseHoverHandlerInternal(evtProc);
+		if(this.kind == ControlType.COMBO_BOX) {
+			ComboBox* cmb = (ComboBox*)(this);
+			if (cmb._hoverTimer) cmb._hoverTimer.destroy();
+			cmb._hoverTimer = newTimer(cmb.handle, 400);
+		} else if(this.kind == ControlType.NUM_PICKER) {
+			NumberPicker* nump = (NumberPicker*)(this);
+			if (nump._hoverTimer) nump._hoverTimer.destroy();
+			nump._hoverTimer = newTimer(nump.handle, 400);
+		}
+	}
+
+	fn void Control.setMouseLeaveHandler(&this, EventHandler evtProc)
+	{
+		this._mouseEvents.leave = true;
+		this._tmeFlags.leave = true;
+		this.onMouseLeave = evtProc;
+	}
+
+
 	fn int Control.right(&self)	{ return self.getMappedRect().right;	}
 	fn int Control.bottom(&self)	{ return self.getMappedRect().bottom;	}
 // End Public Functions
@@ -199,26 +291,85 @@ struct Control
 
 // Private functions
 
+	// Centralized init for common properties
+	fn void Control.initBase(&this, Control* parent, int x, int y, 
+							int w, int h, int* ctlCounter, String ctxt = "") @private
+	{
+		this._parent = parent;
+		this.xpos = x;
+		this.ypos = y;
+		this.width = w;
+		this.height = h;
+		this.name = dstring::new(mem, this.kind.prefix);
+		this.name.appendf("%d", *ctlCounter);
+		*ctlCounter += 1;
+
+		if (ctxt != "" && this.kind.info.isTextable) {
+			this.text = ctxt;
+			this._wideText = String.to_utf16(ctxt, mem)!!.ptr;
+		}
+
+		// Handle Style Inheritance (The GroupBox passthrough)
+		if (parent) {
+			Control* styleSource = (parent.kind == ControlType.GROUP_BOX) ? parent._parent : parent;
+			if (styleSource) {
+				if (this.kind.info.hasFont) {this.font.cloneFrom(styleSource.font);	}
+				if (this.kind.info.bcm == BackColorMode.INHERIT_BGC) {
+					this.backColor = styleSource.backColor;
+				} else if (this.kind.info.bcm == BackColorMode.WHITE_BGC) {
+					this.backColor = newColor(0xFFFFFF);
+				} else {
+					this.backColor = {};
+				}
+
+				if (this.kind.info.blackForeColor) {
+					this.foreColor = newColor(0x000000);
+				} else {
+					this.foreColor = {};
+				}
+			}
+			parent.controls.push(this);
+		}
+	}
+
+
+
 	fn void Control.createInternal(&this, bool special = false) @private => @pool()
 	{
 		if (!special) this.setCtlID();
-		Char16* text = this._textable ? this.text.to_temp_utf16()!!.ptr : null;
+		Char16* text = this.kind.info.isTextable ? this._wideText : null;
 		Pvoid lastParam = this.kind == ControlType.PICTURE_BOX? (Pvoid)this : (Pvoid)null;
-		this.handle = api_CreateWindowEx(this._exStyle, this._className,
+		this.handle = api_CreateWindowEx(this._exStyle, &this.kind.clsName[0],
 										text, this._style,
 										this.xpos, this.ypos,
 										this.width, this.height,
 										this._parent.handle,
 										(Hmenu)this.ctlID,
 										app.hins, lastParam);
-		if (this.handle) {
-			// ptf("control %s's handle is created.", this.name.str());
+		// ptf("control %s's handle is created., Error: %d", this.name.str_view(), api_GetLastError());
+		if (this.handle) {			
 			this._isCreated = true;
 			this._cachedWidth = this.width;
 			this._cachedHeight = this.height;
-
+			if (this._parent.kind == ControlType.NONE) {
+				this._ownerForm = (Form*)(this._parent);
+			} else {
+				this._ownerForm = this._parent._ownerForm;
+			}
 		}
 		// $echo("Compile check");
+		
+	}
+
+	fn void Control.setComboInfo(&this, ComboInfo ci)
+	{
+		if (this.kind == ControlType.NONE) {
+			Form* frm = (Form*)(this);
+			frm._comboList.push(ci); 
+		} else if (this.kind == ControlType.GROUP_BOX) {
+			GroupBox* gb = (GroupBox*)(this);
+			gb._ownerForm._comboList.push(ci);
+		}
 	}
 
 	// Common event handling for all controls.
@@ -250,23 +401,36 @@ struct Control
 			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_MOUSEMOVE: 
-			if (!this._spMMoveProc) {
-				this.mouseMoveHandler(msg, wp, lp);
-				return MsgHandlerResult.CALL_DEF_PROC;
-			} else {
-				return this._spMMoveProc(this, hw, msg, wp, lp);
+			switch (this.kind) {
+				case ControlType.NUM_PICKER:
+					((NumberPicker*)(this)).mouseMoveHandler(msg, wp, lp);
+				case ControlType.COMBO_BOX:
+					((ComboBox*)(this)).mouseMoveHandler(msg, wp, lp);
+				default:
+					this.mouseMoveHandler(msg, wp, lp);
 			}
+			
+			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_MOUSELEAVE: 
-			if (!this._spMLeaveProc) {
-				this.mouseLeaveHandler();
-				return MsgHandlerResult.CALL_DEF_PROC;
-			} else {
-				return this._spMLeaveProc(this);
+			switch (this.kind) {
+				case ControlType.COMBO_BOX:
+					((ComboBox*)(this)).mouseLeaveHandler();
+				case ControlType.NUM_PICKER:
+					((NumberPicker*)(this)).mouseLeaveHandler();		
+				default:
+					this._isMouseEntered = false;
+					if (this._isMouseTracking) {
+						this._isMouseTracking = false;
+						if (this.onMouseLeave) this.onMouseLeave(this, &gea);
+					}
 			}
+			
+			return MsgHandlerResult.CALL_DEF_PROC;
+			
 
 		case WM_MOUSEHOVER:
-			this.mouseHoverHandler();
+			if (this.onMouseHover) this.onMouseHover(this, &gea);
 			return MsgHandlerResult.CALL_DEF_PROC;
 
 		case WM_MOUSEWHEEL: 
@@ -332,7 +496,12 @@ struct Control
 	fn void Control.setFontInternal(Control* ctl) @private
 	{
 		// if (!ctl.font._isCreated) ctl.font.createFontHandle(ctl.handle);
-		if (!ctl.font._isCreated) ctl.font.createHandle(); //Not working properly.
+		if (!ctl.font._isCreated) {
+			ctl.font.createHandle(); //Not working properly.
+			// if (ctl.kind == ControlType.RADIO_BUTTON) {
+			// 	print("rb font set");
+			// }
+		}
 		ctl.sendMsg(WM_SETFONT, ctl.font.handle, true);
 	}
 
@@ -363,14 +532,20 @@ struct Control
 		if (c._isCreated) c.setFontInternal();
 	}
 
-	fn void Control.setIdealSize(Control* this) @private  //261023 // Only used CheckBox & RadioButton
+	fn void Control.setIdealSize(&this) @private  //261023 // Only used CheckBox & RadioButton
 	{
 		Size ss ;
-        this.sendMsg(BCM_GETIDEALSIZE, 0, &ss);
-        this.width = ss.cx;
+        Lresult x = this.sendMsg(BCM_GETIDEALSIZE, 0, &ss);
+        this.width = ss.cx + 5; // 8px for internal spacing/margins
         this.height = ss.cy;
         api_MoveWindow(this.handle, this.xpos, this.ypos, ss.cx, ss.cy, true);
+		// ptf("MoveWindow: %d, %d, ret: %d, name: %s", ss.cx, ss.cy, x, this.name.str_view());
 	}
+
+	fn void pwc(Control* this, String msg) @private{
+		ptf("Control %s: %s, x: %d, y: %d, w: %d, h: %d", msg, this.name.str_view(), this.xpos, this.ypos, this.width, this.height);
+	}
+
 
 	// Get the string from this control. Free the return value when you are done.
 	fn String Control.getTextInternal(Control* this, Hwnd hw = null) @private
@@ -470,7 +645,8 @@ struct Control
     	// api_SetCapture(this.handle);
 		this._isPressed = true;
 		if (this.onMouseDown) {
-			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			MouseEventArgs mea;
+			fillMouseEventArgs(&mea, msg, wpm, lpm);
 			this.onMouseDown(this, &mea);
 		}
 
@@ -480,7 +656,8 @@ struct Control
 	{		
 		// api_ReleaseCapture(this.handle);
 		if (this.onMouseUp) {
-			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			MouseEventArgs mea;
+			fillMouseEventArgs(&mea, msg, wpm, lpm);
 			this.onMouseUp(this, &mea);
 		}
 
@@ -496,7 +673,8 @@ struct Control
 	fn void Control.rightMouseDownHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
 	{
 		if (c.onRightMouseDown) {
-			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			MouseEventArgs mea;
+			fillMouseEventArgs(&mea, msg, wpm, lpm);
 			c.onRightMouseDown(c, &mea);
 		}
 	}
@@ -504,7 +682,8 @@ struct Control
 	fn void Control.rightMouseUpHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
 	{
 		if (c.onRightMouseUp) {
-			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			MouseEventArgs mea;
+			fillMouseEventArgs(&mea, msg, wpm, lpm);
 			c.onRightMouseUp(c, &mea);
 		}
 		if (c.onRightClick) c.onRightClick(c, &gea);
@@ -513,51 +692,33 @@ struct Control
 	fn void Control.mouseWheelHandler(Control* c, uint msg, Wparam wpm, Lparam lpm)
 	{
 		if (c.onMouseWheel) {
-			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			MouseEventArgs mea;
+			fillMouseEventArgs(&mea, msg, wpm, lpm);
 			c.onMouseWheel(c, &mea);
 		}
 	}
 
-	fn void Control.mouseMoveHandler(Control* this,  uint msg, Wparam wpm, Lparam lpm)
-	{
-		// 1. Fire Mouse Move Event		
+	
+
+	fn void Control.mouseMoveHandler(&this,  uint msg, Wparam wpm, Lparam lpm)
+	{	
+		// if (this.kind == ControlType.NONE) echo("Form mmove", 589);
 		if (this.onMouseMove) {
-			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
+			MouseEventArgs mea;
+			fillMouseEventArgs(&mea, msg, wpm, lpm);
 			this.onMouseMove(this, &mea);
 		}
 
-		// 2. Determine if we need to start/restart tracking
-		bool needsLeave = (this.onMouseEnter != null || this.onMouseLeave != null);
-		bool needsHover = (this.onMouseHover != null);
-
-		if (needsLeave || needsHover) {
+		if (this._tmeFlags.leave || this._tmeFlags.hover) {
 			if (!this._isMouseTracking) {
-				uint flags = 0;
-				if (needsLeave) flags |= TME_LEAVE;
-				if (needsHover) flags |= TME_HOVER;
-
-				// Start tracking with combined flags
-				trackMouse(this.handle, flags); 				
-				this._isMouseTracking = true;
-
-				// Fire Mouse Enter immediately on transition
-				if (this.onMouseEnter) this.onMouseEnter(this, &gea); 
+				this._isMouseTracking = trackMouse(this.handle, (uint)this._tmeFlags);					
 			}
-			// if (this.name.str_view() == "ComboBox_1") ptf("combo mouse enter 525 = %s", this._isMouseTracking);
-		} 		      
-	}
-
-	fn void Control.mouseHoverHandler(Control* this)
-	{
-		// IMPORTANT: Reset tracking so the next Move re-arms the hover timer
-		this._isMouseTracking = false; 
-		if (this.onMouseHover) this.onMouseHover(this, &gea);
-	}
-
-	fn void Control.mouseLeaveHandler(Control* this)
-	{
-		this._isMouseTracking = false;
-		if (this.onMouseLeave) this.onMouseLeave(this, &gea);
+		} 	
+			
+		if (!this._isMouseEntered) {
+			this._isMouseEntered = true;
+			if (this.onMouseEnter) this.onMouseEnter(this, &gea); 
+		}  		    
 	}
 
 

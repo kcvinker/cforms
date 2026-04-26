@@ -55,27 +55,14 @@ struct Calendar
 
 // Public functions
 	// Calendar constructor
-	fn Calendar* newCalendar(Form* parent, int x = 10, int y = 10)
+	fn Calendar* newCalendar(Control* parent, int x = 10, int y = 10)
 	{
 		Calendar* this = allocator::new(mem, Calendar);
 		this.kind = ControlType.CALENDAR;
-		this.name = dstring::new( mem, "Calendar_");
-		this.name.appendf("%d", calNumber);
-		this._className = &calClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;
 		this._exStyle = 0;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = 0;
-		this.height = 0;
 		this.viewMode = ViewMode.MONTH_VIEW;
-		this.backColor = newColor(0xffffff);
-		this.foreColor = newColor(0x000000);
-		calNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, 0, 0, &calNumber);
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}
@@ -87,7 +74,6 @@ struct Calendar
 		this.createInternal();
 		if (this.handle) {
 			this.setSubClass(&calWndProc);
-			this.setFontInternal();
 			this.postCreationTasks();
 		}
 	}

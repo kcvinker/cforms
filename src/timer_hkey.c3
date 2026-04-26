@@ -41,9 +41,16 @@ fn void Timer.stop(&this)
     }
 }
 
+fn void Timer.restart(&this)
+{
+    if (this._isEnabled) api_KillTimer(this.parentHwnd, this.idNum);
+    api_SetTimer(this.parentHwnd, this.idNum, this.interval, null);
+    this._isEnabled = true;
+}
+
 fn void Timer.destroy(&this)
 {
-    if (this._isEnabled) {
+    if (this && this._isEnabled) {
         api_KillTimer(this.parentHwnd, this.idNum);
         this._isEnabled = false;
     }

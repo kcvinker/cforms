@@ -35,37 +35,20 @@ struct CheckBox
 
 // Public functions
 	// CheckBox constructor
-	fn CheckBox* newCheckBox(Form* parent, String text,
+	fn CheckBox* newCheckBox(Control* parent, String text,
 								int x = 10, int y = 10,
 								int width = 140, int height = 27,
 								EventHandler evtFn = null)
 	{
 		CheckBox* this = allocator::new(mem, CheckBox);
 		this.kind = ControlType.CHECK_BOX;
-		this.name = dstring::new(mem, "CheckBox_");
-		this.name.appendf("%d", cbNumber);
-		this._className = &btnClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX;
 		this._exStyle = WS_EX_LTRREADING | WS_EX_LEFT;
 		this._textStyle = DT_SINGLELINE | DT_VCENTER;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
-		this.text = text;
-		this._wideText = String.to_utf16(text, mem)!!.ptr;
-		this.backColor = parent.backColor;
-		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
 		this._autoSizable = true;
-		this._textable = true;
-		cbNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
-		if (parent.createChilds) this.createHandle();
-		
+		this.initBase(parent, x, y, width, height, &cbNumber, text);	
+		if (parent.createChilds) this.createHandle();		
 		return this;
 	}
 

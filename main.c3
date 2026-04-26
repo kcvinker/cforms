@@ -35,7 +35,8 @@ fn void makeWindow()
 	frm.enablePrintPoint(); // This will print x,y cordinates when we click on form. It's handy in design time.
 	frm.createHandle();
 	
-	
+
+	// ptf("frm hwnd: %s", frm.handle);
 	//Add a tray icon for our program
 	ti = newTrayIcon("cforms sample tray icon!", "cforms.ico");
 	ti.onLeftMouseDown = fn(c, e) => print("left mouse down on tray");
@@ -53,9 +54,10 @@ fn void makeWindow()
 	mb.menus("Linux").addItems("Debian",  "Fedora", "Ubuntu" );
 	mb.menus(0).menus("Windows11").onClick = &onMenuClick;
 
-	// Now add some buttons. This one will look like a normal .net button.
+	// // Now add some buttons. This one will look like a normal .net button.
 	b1 = newButton(frm, "Normal Btn", 10, 10);
 	b1.onClick = &btnClick;	
+
 
 	// This is a flat colored button. 
 	b2 = newButton(frm, "Flat Color", b1.right() + 10, 10);
@@ -74,33 +76,43 @@ fn void makeWindow()
 	cmb = newComboBox(frm, b3.right() + 10, 10, enableInput: true);
 	// cmb = newComboBox(frm, 10, 10);
 	cmb.addItems("Windows", "Linux", "MacOS", "ReactOS");
-	// cmb.onMouseEnter = fn(c, e) => print("Mouse entered on combo");
-	// cmb.onMouseLeave = fn(c, e) => print("Mouse leaved from combo");
-
+	cmb.setMouseEnterHandler(fn(c, e) => print("Mouse entered on Combo"));
+	cmb.setMouseLeaveHandler(fn(c, e) => print("Mouse leaved from Combo"));
+	cmb.setMouseHoverHandler(fn(c, e) => print("Mouse hovered in Combo"));
 	// Date time picker.
 	dtp = newDateTimePicker(frm, cmb.right() + 10, 10);
 
 	// Now a group box and set the forecolor.
 	gb = newGroupBox(frm,"Compiler Options", 10, b1.bottom() + 10, height:150);
 	gb.setForeColor(0x007f5f);	
+	gb.setMouseEnterHandler(fn(c, e) => print("Mouse entered on GroupBox"));
+	gb.setMouseLeaveHandler(fn(c, e) => print("Mouse leaved from GroupBox"));
+	gb.setMouseHoverHandler(fn(c, e) => print("Mouse hovered in GroupBox"));
 
-	// Two check boxes.
-	cb = newCheckBox(frm, "Threads On", 20, gb.ypos + 30);
-	CheckBox* cb2 = newCheckBox(frm, "Hints Off", 20, cb.bottom() + 10);	
+	// Two check boxes inside the group box.
+	cb = newCheckBox(gb, "Threads On", 10, 30);
+	CheckBox* cb2 = newCheckBox(gb, "Hints Off", 10, 64);	
 
-	GroupBox* gb2 = newGroupBox(frm,"Project Data", 10, gb.bottom() + 10, height:150);
+	GroupBox* gb2 = newGroupBox(frm,"Output Options", 10, gb.bottom() + 10, height:140);
 	gb2.setFont("Verdana", 12, FontWeight.BOLD);
+	// gb2.enablePrintPoint();
+	CheckBox* cb3 = newCheckBox(gb, "Benchmark", 10, 100);
 
-	// Now a Label.
-	lb = newLabel(frm, "Line Space", 20, gb2.ypos + 30);
+	// Radio buttons inside the group box.
+	// rb1 = newRadioButton(frm, "Gui App0123", 880, 375);
+	// rb2 = newRadioButton(frm, "Gui App", 880, 410);
+	// RadioButton* rb3 = newRadioButton(frm, "Gui App", 880, 450);
+	rb1 = newRadioButton(gb2, "Console App", 10, 30);
+	rb2 = newRadioButton(gb2, "Gui App", 10, 65);
+	// RadioButton* rb3 = newRadioButton(gb2, "Gui App", 10, 95);
 
-	// Now, create a Number picker.
-	np1 = newNumberPicker(frm, lb.right() + 30, gb2.ypos + 30);
+	np1 = newNumberPicker(frm, 882, 317);
 	np1.onMouseEnter = fn(c, e) => print("Mouse entered on Numpick");
 	np1.onMouseLeave = fn(c, e) => print("Mouse leaved from Numpick");
 
-	Label* lb2 = newLabel(frm, "Thread Count", 20, np1.bottom() + 14);
-	np2 = newNumberPicker(frm, lb2.right() + 10, np1.bottom() + 10, btnLeft:true);
+
+	Label* lb2 = newLabel(gb2, "Optimize", 10, 100);
+	np2 = newNumberPicker(gb2, lb2.right() + 10, 100, btnLeft:true);
 	np2.setBackColor(0xcdb4db);	
 
 	// Let's create a List box and add some items.
@@ -130,13 +142,14 @@ fn void makeWindow()
 	// pbx.onMouseEnter = fn(c, e) => print("Mouse entered on pbox");
 	// pbx.onMouseLeave = fn(c, e) => print("Mouse leaved from pbox");
 
-	// Now a ProgressBar with showing percentage 
-	pb = newProgressBar(frm, 15, np2.bottom() + 15);
+	//Now a ProgressBar with showing percentage 
+	pb = newProgressBar(frm, 15, 465);
 	pb.showPercentage = true;
 
 	// This is a RadioButton.
-	rb1 = newRadioButton(frm, "Console App", 20, cb2.bottom() + 10);
-	rb2 = newRadioButton(frm, "Gui App", 20, rb1.bottom() + 10);
+	// rb1 = newRadioButton(gb2, "Console App", 20, cb2.bottom() + 10);
+	// rb2 = newRadioButton(gb2, "Gui App", 20, rb1.bottom() + 10);
+
 
 	// Let's create TextBox now.
 	tb = newTextBox(frm, "Enter some text", 700, 10);
@@ -151,7 +164,7 @@ fn void makeWindow()
     tv.addNodeWithChilds("Linux", "RedHat", "Mint", "Ubuntu", "Debian", "Kali");
 
 	// Everything is ready, now we are showing our form.
-	
+
 	frm.show(); 
 }
 

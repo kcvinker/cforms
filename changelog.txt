@@ -1,6 +1,12 @@
 Created on: 29-Mar-2026 08:49 AM
 Purpose: Cforms changelog
 
+Version 1.02.0 (26-Apr-2026)
+    GroupBox can now act as a parent control (like Form).
+    Reduced redundant code using base Control methods.
+    Improved mouse events: enter, hover, and leave.
+    
+
 Version 1.01.133 (05-Mar-2026)
 	Fixed bug in NuberPicker mouse enter & leave event.
 

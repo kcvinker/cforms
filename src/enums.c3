@@ -24,25 +24,121 @@ enum TextAlignment : char
 	BOTTOMRIGHT
 }
 
-enum ControlType : char
+
+// {
+// 	NONE,
+//     BUTTON,
+//     CALENDAR,
+//     CHECK_BOX,
+//     COMBO_BOX,
+//     DATE_TIME_PICKER,
+//     GROUP_BOX,
+//     LABEL,
+//     LIST_BOX,
+//     LIST_VIEW,
+//     NUM_PICKER,
+//     PICTURE_BOX,
+//     PROGRESS_BAR,
+//     RADIO_BUTTON,
+//     TEXT_BOX,
+//     TRACK_BAR,
+//     TREE_VIEW
+// }
+
+bitstruct ControlTypeInfo : char
 {
-	NONE,
-    BUTTON,
-    CALENDAR,
-    CHECK_BOX,
-    COMBO_BOX,
-    DATE_TIME_PICKER,
-    GROUP_BOX,
-    LABEL,
-    LIST_BOX,
-    LIST_VIEW,
-    NUM_PICKER,
-    PICTURE_BOX,
-    PROGRESS_BAR,
-    RADIO_BUTTON,
-    TEXT_BOX,
-    TRACK_BAR,
-    TREE_VIEW
+    BackColorMode bcm: 0..1;
+    bool blackForeColor: 2..2;
+    bool isTextable: 3..3;
+    bool hasFont: 4..4;
+}
+
+enum ControlType : int ( String prefix, Wstring clsName, char value, ControlTypeInfo info)
+{ 
+    NONE = {"Form_", {'C', 'f', 'o', 'r', 'm', 's', '_', 'W', 'i', 'n', 'd', 'o', 'w',  0}, 
+                0, {NONE, false, false, false}},
+
+    BUTTON = {"Button_", {'B','u','t','t','o','n',0}, 1, {NONE, false, true, true}},
+
+    CALENDAR = {"Calendar_", {'S','y','s','M','o','n','t','h','C','a','l','3','2',0}, 
+                2, {NONE, false, false, false}},
+
+    CHECK_BOX = {"CheckBox_", {'B','u','t','t','o','n',0}, 3, {INHERIT_BGC, true, true, true}},
+
+    COMBO_BOX = {"ComboBox_", {'C','o','m','b','o','B','o','x',0}, 4, {WHITE_BGC, true, true, true}},
+
+    DATE_TIME_PICKER = {"DateTimePicker_", 
+                        {'S','y','s','D','a','t','e','T','i','m','e','P','i','c','k','3','2',0}, 
+                        5, {WHITE_BGC, true, true, true}},
+
+    GROUP_BOX = {"GroupBox_", {'B','u','t','t','o','n',0}, 6, {INHERIT_BGC, true, true, true}},
+
+    LABEL = {"Label_", {'S','t','a','t','i','c',0}, 7, {INHERIT_BGC, true, true, true}},
+
+    LIST_BOX = {"ListBox_", {'L', 'i', 's', 't', 'B', 'o', 'x', 0}, 9,
+                 {WHITE_BGC, true, false, true}},
+
+    LIST_VIEW = {"ListView_", {'S','y','s','L','i','s','t','V','i','e','w','3','2',0}, 9, 
+                    {WHITE_BGC, true, false, true}},
+
+    NUM_PICKER = {"NumberPicker_", 
+                    {'m', 's', 'c', 't', 'l', 's', '_', 'u', 'p', 'd', 'o', 'w', 'n', '3', '2', 0},
+                    10, {WHITE_BGC, true, true, true}},
+
+    PICTURE_BOX = {"PictureBox_", 
+                    {'C','f','o','r','m', 's', '_', 'P', 'i', 'c', 't', 'u', 'r', 'e', 'B', 'o', 'x', 0}, 
+                    11, {NONE, false, false, false}},
+
+    PROGRESS_BAR = {"ProgressBar_", 
+                    {'m','s','c','t','l','s','_','p','r','o','g','r','e','s','s','3','2',0}, 
+                    12, {NONE, true, true, true}},   
+
+    RADIO_BUTTON = {"RadioButton_", {'B','u','t','t','o','n',0}, 13, 
+                    {INHERIT_BGC, true, true, true}}, 
+
+    TEXT_BOX = {"TextBox_", {'E','d','i','t',0}, 14, {WHITE_BGC, true, true, true}},
+
+    TRACK_BAR = {"TrackBar_", 
+                    {'m','s','c','t','l','s','_','t','r','a','c','k','b','a','r','3','2',0}, 
+                    15, {INHERIT_BGC, false, false, false}},
+
+    TREE_VIEW = {"TreeView_", 
+                    {'S','y','s','T','r','e','e','V','i','e','w','3','2',0}, 
+                    16, {WHITE_BGC, true, false, true}},
+}
+
+enum Teste : int(String desc, Wstring clsName, int value)
+{
+    NONE = {"No Control", {0}, 0},
+    BUTTON = {"Button Control", {0}, 1},
+    CALENDAR = {"Calendar Control", {'S', 'y', 's', 'M', 'o', 'n', 't', 'h', 'C', 'a', 'l', '3', '2', 0}, 2},
+    // CHECK_BOX = {"CheckBox Control", L"Button", 3},
+    // COMBO_BOX = {"ComboBox Control", L"ComboBox", 4},
+    // DATE_TIME_PICKER = {"Date Time Picker Control", L"SysDateTimePick32", 5},
+    // GROUP_BOX = {"Group Box Control", L"Button", 6},
+    // LABEL = {"Label Control", L"Static", 7},
+    // LIST_BOX = {"List Box Control", L"ListBox", 8},
+    // LIST_VIEW = {"List View Control", L"SysListView32", 9},
+    // NUM_PICKER = {"Number Picker Control", L"msctls_updown32", 10},
+    // PICTURE_BOX = {"Picture Box Control", L"Static", 11},
+    // PROGRESS_BAR = {"Progress Bar Control", L"msctls_progress32", 12},	
+    // RADIO_BUTTON = {"Radio Button Control", L"Button", 13},
+    // TEXT_BOX = {"Text Box Control", L"Edit", 14},
+    // TRACK_BAR = {"Track Bar Control", L"msctls_trackbar32", 15},
+    // TREE_VIEW = {"Tree View Control", L"SysTreeView32", 16},
+}
+
+enum BackColorMode : char
+{
+    NONE,
+    INHERIT_BGC,
+    WHITE_BGC, 
+}
+
+enum ForeColorMode : char
+{    
+    NONE,
+    BLACK_FGC,
 }
 
 enum FontWeight : int

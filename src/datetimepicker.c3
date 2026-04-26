@@ -67,27 +67,15 @@ enum DTPFormat : int(String descrption, int value )
 
 // Public functions
 	// DateTimePicker constructor
-	fn DateTimePicker* newDateTimePicker(Form* parent, int x = 10, int y = 10)
+	fn DateTimePicker* newDateTimePicker(Control* parent, int x = 10, int y = 10)
 	{
 		DateTimePicker* this = allocator::new(mem, DateTimePicker);
 		this.kind = ControlType.DATE_TIME_PICKER;
-		this.name = dstring::new(mem, "DateTimePicker_");
-		this.name.appendf("%d", dtpNumber);
-		this._className = &dtpClass[0];
-		this._parent = parent;
 		this._style = WS_VISIBLE | WS_CHILD | WS_TABSTOP;
 		this._exStyle = 0;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = 0;
-		this.height = 0;
 		this.format = DTPFormat.CUSTOM;
 		this.formatStr = " dd-MM-yyyy";
-		this.backColor = newColor(0xffffff);
-		this.foreColor = newColor(0x000000);
-		dtpNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, 0, 0, &dtpNumber);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}

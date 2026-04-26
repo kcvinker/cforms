@@ -56,33 +56,21 @@ enum ProgressBarState : int {NONE, NORMAL, ERROR, PAUSED}
 
 // Public functions
 	// ProgressBar constructor - Create and returns a New ProgressBar struct
-	fn ProgressBar* newProgressBar(Form* parent, int x = 10, int y = 10,
+	fn ProgressBar* newProgressBar(Control* parent, int x = 10, int y = 10,
 									int width = 200, int height = 25, bool perc = false)
 	{
 		ProgressBar* this = allocator::new(mem, ProgressBar);
 		this.kind = ControlType.PROGRESS_BAR;
-		this.name = dstring::new(mem, "ProgressBar_");
-		this.name.appendf("%d", pbNumber);
-		this._className = &pgbClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD;
 		this._exStyle = 0;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
 		this.minValue = 0;
 		this.maxValue = 100;
 		this.step = 1;
 		this.barState = ProgressBarState.NORMAL;
 		this.barStyle = ProgressBarStyle.BLOCK_STYLE;
-		this.foreColor = newColor(0x000000);
 		this.marqueeSpeed = 30; // Animation updated in each 30 milliseconds.
 		this.showPercentage = perc;
-		pbNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, width, height, &pbNumber);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}

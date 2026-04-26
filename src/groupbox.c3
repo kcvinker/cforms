@@ -15,7 +15,7 @@ module cforms;
 
 int gbNumber = 1;
 const Dword PEN_WIDTH = 4;
-Dword gbStyleFlag = WS_CHILD | WS_VISIBLE | BS_GROUPBOX | BS_NOTIFY | BS_TEXT | BS_TOP | WS_OVERLAPPED | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+Dword gbStyleFlag = WS_CHILD | WS_VISIBLE | BS_GROUPBOX | BS_NOTIFY | BS_TEXT | BS_TOP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 Char16[1] ewsa = {0};
 const Char16* EMP_WSTR_PTR = &ewsa[0];
 
@@ -41,37 +41,25 @@ struct GroupBox
 
 // Public functions
 	// GroupBox constructor - Create and returns a New GroupBox struct
-	fn GroupBox* newGroupBox(Form* parent, String text = "", int x = 10, 
+	fn GroupBox* newGroupBox(Control* parent, String text = "", int x = 10, 
 							int y = 10, int width = 230, int height = 250, 
 							GroupBoxStyle style = GroupBoxStyle.SYSTEM)
 	{
 		GroupBox* this = allocator::new(mem, GroupBox);
-		this.kind = ControlType.GROUP_BOX;
-		this.name = dstring::new(mem, "GroupBox_");
-		this.name.appendf("%d", gbNumber);
-		this._className = &btnClass[0];
-		this.text = text == "" ? this.name.str_view() : text;
-		this._wideText = String.to_utf16(this.text, mem)!!.ptr;
-		this._parent = parent;
+		this.kind = ControlType.GROUP_BOX;		
+		String gbtext = text == "" ? this.name.str_view() : text;
 		this._style = gbStyleFlag;
 		this._exStyle = WS_EX_CONTROLPARENT;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
-		this.backColor = parent.backColor;
-		this.foreColor = newColor(0x000000);
-		this._textable = true;
+		this.createChilds = true;
 		this._normalText = true;
 		this._dbFill = true;
 		this._getWidth = true;
 		this._gbStyle = style;
-		this._controls.init(mem, 8); 
-		gbNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._wtext = newWideString(this.text);
-		this._parent.controls.push(this);
+		this.controls.init(mem, 8); 
+		this._wtext = newWideString(gbtext);
+		this.initBase(parent, x, y, width, height, &gbNumber, gbtext);	
 		if (parent.createChilds) this.createHandle();
+		if (this._ownerForm._enablePrintPoint) this.onMouseDown = &printPoint;
 		// ptf("gb bkg %d", this.backColor.value);
 		return this;
 	}
@@ -159,6 +147,11 @@ struct GroupBox
 		$endif
 	}
 
+	fn void GroupBox.enablePrintPoint(&this)
+	{
+		this.onMouseDown = &printPoint;
+	}
+
 
 // End of Public functions
 
@@ -206,7 +199,7 @@ struct GroupBox
 		if (this._pen) api_DeleteObject((Hgdiobj)this._pen);  
 		if (this._hbmp) api_DeleteObject((Hgdiobj)this._hbmp); 
 		if (this._hdc) api_DeleteDC(this._hdc);
-		this._controls.free();
+		this.controls.free();
 		this.baseDestroy(); 
 		allocator::free(mem, this);
 	}
@@ -215,7 +208,7 @@ struct GroupBox
 
 fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwordptr refData) @private
 {	
-	// io::printfn("message %s", msg);
+	// ptf("message %s", msg);
 	GroupBox* this = bitcast(refData, GroupBox*);
 	MsgHandlerResult res = this.baseWndProc(hw, msg, wp, lp);	
 	if (res == MsgHandlerResult.CALL_DEF_PROC) {
@@ -243,6 +236,11 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 			 	return 0;
 			}
 
+		case WM_NCHITTEST:
+			Lresult hit = api_DefSubclassProc(hw, msg, wp, lp);
+			if (hit == HTTRANSPARENT) return HTCLIENT;
+			return hit;
+
 		case MM_COLOR_STATIC:
 			if (this._gbStyle == GroupBoxStyle.CLASSIC) {
 				Hdc hdc = (Hdc)wp;
@@ -269,6 +267,32 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 			}
 			api_BitBlt(hdc, 0, 0, this.width, this.height, this._hdc, 0, 0, SRCCOPY);
         	return 1;
+
+		case WM_NOTIFY:			
+			NMHdr* nmh = (NMHdr*)lp;
+			return api_SendMessage(nmh.hwndFrom, MM_NOTIFY_REFLECT, wp, lp);
+
+		case WM_CTLCOLORSTATIC:
+			Hwnd hc = (Hwnd)lp;
+			return api_SendMessage(hc, MM_COLOR_STATIC, wp, lp);
+
+		case WM_CTLCOLOREDIT:
+            Hwnd hc = (Hwnd)lp;
+			return api_SendMessage(hc, MM_COLOR_EDIT, wp, lp);
+
+		case WM_CTLCOLORLISTBOX:
+			Hwnd hc = (Hwnd)lp;
+			if (this._ownerForm._comboList.size) {
+				foreach (ci: this._ownerForm._comboList) {
+					if (ci.listHwnd == hc) {
+						hc = ci.cmbHwnd;
+						// ptf("hc: %d, ci.cmbHwnd: %d", hc, ci.cmbHwnd);
+						break;
+					}
+				}
+			}
+			return api_SendMessage(hc, MM_COLOR_LBOX, wp, lp);
+		
 		default:
 			return api_DefSubclassProc(hw, msg, wp, lp);
 		// case MM_RUNDTOR: this.dtor(); return 0;
@@ -285,6 +309,8 @@ fn Lresult gbWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 	const BS_TOP = 1024;
 	const WS_EX_TRANSPARENT = 32;
 	const WS_EX_CONTROLPARENT = 65536;
+	const HTTRANSPARENT = -1;
+	const HTCLIENT = 1;
 
 // End Constants
 

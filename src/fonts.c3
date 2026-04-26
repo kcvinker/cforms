@@ -47,6 +47,7 @@ fn void Font.cloneFrom(&this, Font src) {
 		if (this.handle) api_DeleteObject((Hgdiobj)this.handle);
 		LogFont lf;
 		if (api_GetObject(src.handle, LogFont.sizeof, (Pvoid)&lf)) {
+			// print("font clone success");
 			this.handle = api_CreateFontIndirect(&lf);
 		} else {
 			ptf("font clone error %d", api_GetLastError());

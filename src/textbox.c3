@@ -53,32 +53,17 @@ enum TextCase : char {NORMAL, LOWERCASE, UPPERCASE}
 
 // Public functions
 	// TextBox constructor
-	fn TextBox* newTextBox(Form* parent, String text, int x = 10, int y = 10,
+	fn TextBox* newTextBox(Control* parent, String text, int x = 10, int y = 10,
 							int width = 140, int height = 27)
 	{
 		TextBox* this = allocator::new(mem, TextBox);
 		this.kind = ControlType.TEXT_BOX;
-		this.name = dstring::new(mem, "TextBox_");
-		this.name.appendf("%d", tbNumber);
-		this._className = &tbClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = 0x50010080;
 		this._exStyle = 0x00000204;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
-		this.text = text;
-		this.backColor = newColor(0xffffff);
-		this.foreColor = newColor(0x000000);
 		this.textCase = TextCase.NORMAL;
 		this.textType = TextType.NORMAL;
 		this.textAlign = Alignment.CENTER;
-		this._textable = true;
-		tbNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, width, height, &tbNumber, text);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}

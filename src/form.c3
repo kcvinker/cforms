@@ -74,7 +74,6 @@ struct Form
 	FormState formState;
 	FormDrawMode _fDrawMode;
 	bool topMost;
-	bool createChilds;
 	bool maximizeBox;
 	bool minimizeBox;
 	bool _isLoaded;
@@ -82,10 +81,11 @@ struct Form
 	bool _isSizing;
 	bool _menuMapInited;
 	bool _menubarCreated;
+	bool _enablePrintPoint;
 	int _formID;
 	CmbList _comboList;
 	MenuItems _menuItemList;
-	ControlList controls;	
+		
 	TimerList _timerList;
 	Hinstance hinst;	
 	MenuBar* menubar;
@@ -215,6 +215,7 @@ struct Form
 
 	fn void Form.enablePrintPoint(&this)
 	{
+		this._enablePrintPoint = true;
 		this.onMouseDown = &printPoint;
 	}
 	
@@ -567,7 +568,7 @@ struct Form
 
 fn Lresult window_proc(Hwnd hw, uint msg, Wparam wp, Lparam lp) @private
 {
-	// log("WIn Message %s", msg);
+	// log("Window Message %s", msg);
 	Form* this = bitcast(api_GetWindowLongPtr(hw, GWLP_USERDATA), Form*);
 	if (this == null) {
 		if (msg == WM_NCCREATE) {

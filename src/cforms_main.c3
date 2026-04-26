@@ -36,6 +36,7 @@ struct AppData
 AppData app; // Global variable to hold cform's essential info.
 Wstring className = {'C', 'f', 'o', 'r', 'm', 's', '_', 'W', 'i', 'n', 'd', 'o', 'w',  0};
 Wstring mfclass = {'C', 'f', 'o', 'r', 'm', 's', '_', 'M', 's', 'g', 'F', 'o', 'r', 'm',  0};
+ColorMode cmNone = {.back = BackColorMode.NONE, .fore = ForeColorMode.NONE};
 
 //const DPIAwarenessContext DPI_AWARENESS_CONTEXT_UNAWARE = (DPIAwarenessContext)(Ulongptr)-(1ul);
 const DPIAwarenessContext DPI_AWARENESS_CONTEXT_SYSTEM_AWARE = (DPIAwarenessContext)(Ulongptr)-(2ul);
@@ -101,3 +102,17 @@ fn void AppData.finalize(&this)
 	print("Cforms is closed...");
 }
 
+
+
+macro echo(String msg, ...)
+{
+	static int x = 0;
+	x++;
+    $switch $vacount:
+		$case 0: ptf("[%d] %s", x, msg);
+		$case 1: ptf("[%d] %s, %s", x, msg, $vaarg[0]);
+		$case 2: ptf("[%d] %s, %s, %s", x, msg, $vaarg[0], $vaarg[1]);
+		$case 3: ptf("[%d] %s, %s, %s, %s", x, msg, $vaarg[0], $vaarg[1], $vaarg[2]);
+	$endswitch
+    
+}

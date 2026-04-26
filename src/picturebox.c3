@@ -36,27 +36,17 @@ struct PictureBox
 
 }
 
-fn PictureBox* newPictureBox(Form* parent, int x, int y,
+fn PictureBox* newPictureBox(Control* parent, int x, int y,
 								int width, int height, String imgPath,
                                 PictureSizeMode sizeMode)
 {
     if (!_isPbxClassReg) registerPBoxClass();
     PictureBox* this = allocator::new(mem, PictureBox);
     this.kind = ControlType.PICTURE_BOX;
-    this.name = dstring::new(mem, "PictureBox_");
-    this.name.appendf("%d", _pbxNumber);
-    this._className = &_pBoxClass[0];
-    this._parent = parent;
     this._style = WS_CHILD | WS_VISIBLE | WS_TABSTOP;
     this._exStyle = 0;
-    this.xpos = x;
-    this.ypos = y;
-    this.width = width;
-    this.height = height;
     this._imgPath = imgPath;
-    
-    _pbxNumber += 1;
-    this._parent.controls.push(this);
+    this.initBase(parent, x, y, width, height, &_pbxNumber);	
     if (parent.createChilds) this.createHandle();    
     return this;
 }

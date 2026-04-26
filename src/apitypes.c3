@@ -50,22 +50,22 @@ alias BrowserCbProc = fn int(Hwnd, uint, Lparam, Lparam);
 alias TimerProc = fn Uintptr(Hwnd, uint, Uintptr, Dword);
 
 struct Size {
-	Long cx;
-	Long cy;
+	int cx;
+	int cy;
 }
 alias LpSize = Size*;
 
 struct Point {
-	Long x;
-	Long y;
+	int x;
+	int y;
 }
 alias LpPoint = Point*;
 
 struct Rect {
-	Long left;
-	Long top;
-	Long right;
-	Long bottom;
+	int left;
+	int top;
+	int right;
+	int bottom;
 }
 alias LpRect = Rect*;
 

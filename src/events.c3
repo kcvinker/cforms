@@ -83,37 +83,40 @@ struct LVItemCheckEventArgs
 	bool isChecked;
 }
 
-fn MouseEventArgs newMouseEventArgs(uint msg, Wparam wpm, Lparam lpm)
+fn void fillMouseEventArgs(MouseEventArgs* this, uint msg, Wparam wpm, Lparam lpm)
 {
 	Word fwKeys = getKeyStateWparam(wpm);
-	MouseEventArgs m;
-	m.delta = (int)(hiWord(wpm));
-	switch (fwKeys) {
-		case 5: m.isShiftPressed = true;
-		case 9: m.isCtrlPressed = true;
-	}
-	if (fwKeys == 17) m.button = MouseButton.MIDDLE;
-	if (fwKeys == 33) m.button = MouseButton.XBUTTON1;
+	this.isShiftPressed = ((uint)wpm & MK_SHIFT) != 0;
+	this.isCtrlPressed = ((uint)wpm & MK_CONTROL) != 0;
+	this.delta = (int)(hiWord(wpm));
+	this.x = (int)(short)loWord(lpm);
+	this.y = (int)(short)hiWord(lpm);
+
+	// if (fwKeys == 17) this.button = MouseButton.MIDDLE;
+	// if (fwKeys == 33) this.button = MouseButton.XBUTTON1;
 
 	switch (msg) {
-		case WM_MOUSEWHEEL: nextcase WM_NCHITTEST;
-		case WM_MOUSEMOVE: nextcase WM_NCHITTEST;
-		case WM_MOUSEHOVER: nextcase WM_NCHITTEST;
-		case WM_NCHITTEST:
-			m.x = (int)(short)loWord(lpm);
-			m.y = (int)(short)hiWord(lpm);
 		case WM_LBUTTONDOWN: nextcase WM_LBUTTONUP;
 		case WM_LBUTTONUP:
-			m.button = MouseButton.LEFT;
-			m.x = (int)(short)loWord(lpm);
-			m.y = (int)(short)hiWord(lpm);
+			this.button = MouseButton.LEFT;
+		
 		case WM_RBUTTONDOWN: nextcase WM_RBUTTONUP;
 		case WM_RBUTTONUP:
-			m.button = MouseButton.RIGHT;
-			m.x = (int)(short)loWord(lpm);
-			m.y = (int)(short)hiWord(lpm);
+			this.button = MouseButton.RIGHT;
+			
+		case WM_MBUTTONDOWN: nextcase WM_MBUTTONUP;
+		case WM_MBUTTONUP:
+            this.button = MouseButton.MIDDLE;
+		default:
+            // For WM_MOUSEMOVE, check flags for the "held" button if needed
+            if (((uint)wpm & MK_LBUTTON) != 0) {
+				this.button = MouseButton.LEFT;
+			} else if (((uint)wpm & MK_RBUTTON) != 0) {
+				this.button = MouseButton.RIGHT;
+			}else if (((uint)wpm & MK_MBUTTON) != 0) {
+				this.button = MouseButton.MIDDLE;
+			}
 	}
-	return m;
 }
 
 fn SizeEventArgs newSizeEventArgs(uint msg, Wparam wpm, Lparam lpm)
@@ -176,3 +179,11 @@ interface IMouseEvents
     // fn void test() ;
     fn void onleftClick(Control* c, EventArgs* e) @optional;
 }
+
+const uint MK_LBUTTON  = 0x0001;
+const uint MK_RBUTTON  = 0x0002;
+const uint MK_SHIFT    = 0x0004;
+const uint MK_CONTROL  = 0x0008;
+const uint MK_MBUTTON  = 0x0010;
+const uint MK_XBUTTON1 = 0x0020;
+const uint MK_XBUTTON2 = 0x0040;

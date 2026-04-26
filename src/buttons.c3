@@ -109,35 +109,20 @@ fn void GradDraw.dtor(GradDraw* g) @private
 
 // Public functions
 	// Button constructor
-	fn Button* newButton(Form* parent, String text,
+	fn Button* newButton(Control* parent, String text,
 							int x = 10, int y = 10,
 							int width = 120, int height = 35,
 							EventHandler evtFn = null)
 	{
 		Button* this = allocator::new(mem, Button);
 		this.kind = ControlType.BUTTON;
-		this._className = &btnClass[0];
-		this.name = dstring::new(mem, "Button_");
-		this.name.appendf("%d", btnNumber);
-		this._wideText = String.to_utf16(text, mem)!!.ptr;
-		this._parent = parent;
-		// this.font = parent.font;
+		// this._className = &btnClass[0];
+		this._textable = true;	
 		this._style = btnStyle;
 		this._exStyle = 0;// 0x00000004;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
-		this.text = text;
-		this.backColor = {};
-		this.foreColor = {};
-		this._textable = true;
-		btnNumber += 1;
-		this.font.cloneFrom(parent.font);
+		this.initBase(parent, x, y, width, height, &btnNumber, text);				
 		if (evtFn) this.onClick = evtFn;
-		this._parent.controls.push(this);
 		if (parent.createChilds) this.createHandle();
-
 		return this;
 	}
 

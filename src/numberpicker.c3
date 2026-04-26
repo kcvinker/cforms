@@ -52,6 +52,7 @@ struct NumberPicker
 	bool autoRotate;
 	bool _keyPressed;
 	bool _isMouseEntered;
+	bool _hoverTriggered;
 	double minRange;
 	double maxRange;
 	double value;
@@ -73,28 +74,22 @@ struct NumberPicker
 	Rect _udRect;
 	Rect _tbRect;
 	Rect _myRect;
+	Point _lastMpos;
+	Timer* _hoverTimer;
 	EventHandler onValueChanged;
 }
 
 // Public functions
 	// NumberPicker constructor
-	fn NumberPicker* newNumberPicker(Form* parent, int x = 10, int y = 10,
+	fn NumberPicker* newNumberPicker(Control* parent, int x = 10, int y = 10,
 										int width = 75, int height = 25,
 										EventHandler evtFn = null,
 										bool btnLeft = false)
 	{
 		NumberPicker* this = allocator::new(mem, NumberPicker);
 		this.kind = ControlType.NUM_PICKER;
-		this.name = dstring::new(mem, "NumberPicker_");
-		this._className = &npClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = NPSTYLE;
 		this._exStyle = 0;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
 		this.maxRange = 100;
 		this.minRange = 0;
 		this.deciPrec = 0;
@@ -107,14 +102,8 @@ struct NumberPicker
 		this.textPos = Alignment.LEFT;
 		this.fmtStr = dstring::new(mem, "%d");
 		this._valStr = dstring::new(mem, "0");
-		this.backColor = newColor(0xffffff);
-		this.foreColor = newColor(0x000000);
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
 		if (evtFn) this.onValueChanged = evtFn;
-		this._spMMoveProc = &numpSpecialMouseMoveHandler;
-		this._spMLeaveProc = &numpSpecialMouseLeaveHandler;
-		npNumber += 1;
+		this.initBase(parent, x, y, width, height, &npNumber);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}
@@ -137,6 +126,7 @@ struct NumberPicker
 			if (oldBuddy) api_SendMessage(oldBuddy, MM_BUDDY_RESIZE, 0, 0);
 			api_SetRect(&this._myRect, this.xpos, this.ypos, (this.xpos + this.width), (this.ypos + this.height));
 			this.displayValue();
+			// ptf("np this._bkBrush %d, name: %s", this._bkBrush, this.name.str_view());
 		}
 	}
 
@@ -157,7 +147,7 @@ struct NumberPicker
 	{
 		this.buttonLeft = value;
 		if (value) {
-			print("setButtonLeft is working");
+			// print("setButtonLeft is working");
 			this._style ^= UDS_ALIGNRIGHT;
 			this._style |= UDS_ALIGNLEFT;
 			this._topEdgeFlag = BF_TOP;
@@ -244,6 +234,7 @@ struct NumberPicker
 	{
 		if (this._borderPen) api_DeleteObject((Hgdiobj)this._borderPen);
 		this._borderPen = api_CreatePen(PS_SOLID, 2, this.backColor.ref);
+		// print("border pen recreated");
 	}
 
 	fn void NumberPicker.createUpdown(NumberPicker* this) @private
@@ -256,7 +247,7 @@ struct NumberPicker
 											null, this._style,
 											0, 0, 0, 0,
 											this._parent.handle, (Hmenu)this.ctlID,
-											this._parent.hinst, null);
+											app.hins, null);
 		if (this.handle) this._isCreated = true;
 	}
 
@@ -272,7 +263,7 @@ struct NumberPicker
                                                 this.xpos, this.ypos,
                                                 this.width, this.height,
                                                 this._parent.handle, (Hmenu)this._buddyCid,
-                                                this._parent.hinst, null);
+                                                app.hins, null);
 		api_SendMessage(this._buddyHandle, WM_SETFONT, (Wparam)this.font.handle, (Lparam)true);
 	}
 
@@ -296,45 +287,30 @@ struct NumberPicker
 		globalSubClsID += 1;
 	}
 
-	fn MsgHandlerResult numpSpecialMouseMoveHandler(Control* ctl, Hwnd hw, uint msg, Wparam wpm, Lparam lpm)
+	fn void NumberPicker.mouseMoveHandler(&this, uint msg, Wparam wpm, Lparam lpm)
 	{
-		// 1. Fire Mouse Move Event		
-		if (ctl.onMouseMove) {
-			MouseEventArgs mea = newMouseEventArgs(msg, wpm, lpm);
-			ctl.onMouseMove(ctl, &mea);
+		if (this.onMouseMove) {
+			MouseEventArgs mea;
+			fillMouseEventArgs(&mea, msg, wpm, lpm);
+			this.onMouseMove(this, &mea);
 		}
 
-		// 2. Determine if we need to start/restart tracking
-		bool needsLeave = (ctl.onMouseEnter != null || ctl.onMouseLeave != null);
-		bool needsHover = (ctl.onMouseHover != null);
-
-		if (needsLeave || needsHover) {
-			NumberPicker* this = (NumberPicker*) ctl;
-			if (!this._isMouseTracking && hw == this._buddyHandle) {
-				uint flags = 0;
-				if (needsLeave) flags |= TME_LEAVE;
-				if (needsHover) flags |= TME_HOVER;
-
-				// Start tracking with combined flags
-				trackMouse(this.handle, flags); 				
-				this._isMouseTracking = true;				
-			}
-			if (!this._isMouseEntered) {
-				this._isMouseEntered = true;
-				if (this.onMouseEnter) this.onMouseEnter(this, &gea); 
-			}
+		// We need special treatment for mouse hover event. That's why
+		// we are overriding base class method
+		if (this._mouseEvents.hover && !this._hoverTriggered) {
+			this._lastMpos.x = (int)(loWord(lpm));
+			this._lastMpos.y = (int)(hiWord(lpm));
+			this._hoverTimer.restart();
+			this._hoverTriggered = true;
 		} 
-		return MsgHandlerResult.CALL_DEF_PROC;
 
+		if (!this._isMouseEntered) {
+			this._isMouseEntered = true;
+			if (this.onMouseEnter) this.onMouseEnter(this, &gea); 
+		} 
 	}
 
-	// int x1 = 1;
-	// fn void printRct(Rect r, Point p, Bool res) {
-	// 	ptf("[%d]  [%d, %d, %d, %d], [%d, %d] == %s", x1, r.left, r.top, r.right, r.bottom, p.x, p.y, res);
-	// 	x1 += 1;
-	// }
-
-	fn MsgHandlerResult numpSpecialMouseLeaveHandler(Control* ctl)
+	fn void NumberPicker.mouseLeaveHandler(&this)
 	{
 		/*-----------------------------------------------------------------------------
         Mouse leave event in NumberPicker control is a bit tricky. It's a combination
@@ -344,25 +320,28 @@ struct NumberPicker
         the bondaries of these two controls. If mouse is inside that rect, 
         there is no mouse leave. A perfect hack!
     	----------------------------------------------------------------------------------*/
-		if (ctl.onMouseLeave || ctl.onMouseEnter || ctl.onMouseMove) {
-			NumberPicker* this = (NumberPicker*) ctl;
-			Point pt;
-			api_GetCursorPos(&pt);
-			api_ScreenToClient(this._parent.handle, &pt);        
-			Bool inside = api_PtInRect(&this._myRect, pt);
-			// printRct(this._myRect, pt, inside);
-			if (inside) {        
-				return MsgHandlerResult.RET_IMMEDIATE;
-			} else {
-				this._isMouseEntered = false;
-				this._isMouseTracking = false;
-				if (this.onMouseLeave) this.onMouseLeave(this, &gea);
+		if (this._tmeFlags.leave || this._tmeFlags.hover) {
+			if (this._isMouseTracking || this._isMouseEntered || this._hoverTriggered) {
+				Point pt;
+				api_GetCursorPos(&pt);
+				api_ScreenToClient(this._parent.handle, &pt);        
+				Bool inside = api_PtInRect(&this._myRect, pt);
+				// printRct(this._myRect, pt, inside);
+				if (!inside) {        
+					this._isMouseEntered = false;
+					this._isMouseTracking = false;
+					if (this._hoverTriggered) {
+						this._hoverTriggered = false;
+						this._hoverTimer.stop();
+					}
+
+					if (this.onMouseLeave) this.onMouseLeave(this, &gea);
+				}
 			}
 		}
-		return MsgHandlerResult.CALL_DEF_PROC;
 	}
 
-	fn void NumberPicker.displayValue(NumberPicker* this) @private
+	fn void NumberPicker.displayValue(&this) @private
 	{
 		this._valStr.clear();
 		this._valStr.appendf(this.fmtStr.str_view(), this.value);
@@ -395,7 +374,7 @@ struct NumberPicker
 		};
 	}
 
-	fn void NumberPicker.setValueInternal(NumberPicker* this, int delta) @private
+	fn void NumberPicker.setValueInternal(&this, int delta) @private
 	{
 		double tvalue = this.value + (delta * this.step);
         if (this.autoRotate) {
@@ -413,7 +392,7 @@ struct NumberPicker
 		this.displayValue();
 	}
 
-	fn void NumberPicker.wmNotifyHandler(NumberPicker* this, Lparam lpm) @private
+	fn void NumberPicker.wmNotifyHandler(&this, Lparam lpm) @private
 	{
 		NMUpdown* nm = (NMUpdown*) lpm;
 		if (nm.hdr.code == UDN_DELTAPOS) {
@@ -427,14 +406,16 @@ struct NumberPicker
 	}
 
 	// Handling back & fore color changing in WndProc function
-	fn Hbrush NumberPicker.colorMsgHandler(NumberPicker* this, Wparam wpm) @private
+	fn Hbrush NumberPicker.colorMsgHandler(&this, Wparam wpm) @private
 	{
+		// ptf("np this._bkBrush %d", this._bkBrush);
 		Hdc hdc = (Hdc)wpm;
 		api_SetBkMode(hdc, TRANSPARENT);
 		if (this._drawMode & 1) {
 			api_SetTextColor(hdc, this.foreColor.ref);
 		}
 		api_SetBkColor(hdc, this.backColor.ref);
+		// ptf("np bkg in np clr msg %x", this.backColor.value);
 		return this._bkBrush;
 	}
 
@@ -463,12 +444,13 @@ struct NumberPicker
 	}
 
 	// Freeing resources used for this NumberPicker.
-	fn void NumberPicker.dtor(NumberPicker* this) @private
+	fn void NumberPicker.dtor(&this) @private
 	{
 		this.fmtStr.free();
 		this._valStr.free();
 		api_DeleteObject((Hgdiobj)this._borderBrush);
 		api_DeleteObject((Hgdiobj)this._borderPen);
+		if (this._hoverTimer) this._hoverTimer.destroy();
 		this.baseDestroy();
 		allocator::free(mem, this);
 	}
@@ -488,7 +470,14 @@ fn Lresult npWndProc(Hwnd hw, uint msg, Wparam wp, Lparam lp, Uintptr scID, Dwor
 	switch (msg) {
 		case WM_DESTROY:			
 			api_RemoveWindowSubclass(hw, &npWndProc, scID);
-			this.dtor();		
+			this.dtor();
+
+		case WM_TIMER:
+			if (this.onMouseHover) {
+				this._hoverTimer.stop();
+				this.onMouseHover(this, &gea);
+			}
+			return 0;
 
 		case MM_NOTIFY_REFLECT:
 			this.wmNotifyHandler(lp);

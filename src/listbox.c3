@@ -68,29 +68,16 @@ struct ListBox
 
 // Public functions
 	// ListBox constructor
-	fn ListBox* newListBox(Form* parent, int x = 10, int y = 10,
+	fn ListBox* newListBox(Control* parent, int x = 10, int y = 10,
 							int width = 150, int height = 150)
 	{
 		ListBox* this = allocator::new(mem, ListBox);
 		this.kind = ControlType.LIST_BOX;
-		this.name = dstring::new(mem, "ListBox_");
-		this.name.appendf("%d", lbxNumber);
-		this._className = &lbxClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = WS_VISIBLE | WS_CHILD | WS_BORDER  | LBS_NOTIFY | LBS_HASSTRINGS;
 		this._exStyle = 0;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
-		this.backColor = newColor(0xffffff);
-		this.foreColor = newColor(0x000000);
 		this._dummyIndex = -1;
 		this.selectedIndex = -1;
-		lbxNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, width, height, &lbxNumber);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}

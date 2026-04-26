@@ -132,23 +132,14 @@ struct ListViewColumn
 
 // Public functions
 	// ListView constructor - Create and returns a New ListView struct
-	fn ListView* newListView(Form* parent, int x = 10, int y = 10,
+	fn ListView* newListView(Control* parent, int x = 10, int y = 10,
 								int width = 300, int height = 200)
 	{
 		ListView* this = allocator::new(mem, ListView);
 		this.kind = ControlType.LIST_VIEW;
-		this.name = dstring::new(mem, "ListView_");
-		this.name.appendf("%d", lvNumber);
-		this._className = &lvClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this.headerFont = this.font;
 		this._style = LVSTYLE;
 		this._exStyle = 0;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
 		this.viewStyle = ListViewStyle.REPORT_VIEW;
 		this.showGrid = true;
 		this.fullRowSelect = true;
@@ -158,14 +149,10 @@ struct ListViewColumn
 		this._itemIndex = -1;
 		this._hotHdrIndex = -1;
 		this.headerHeight = 25;
-		this.backColor = newColor(0xFFFFFF);
-		this.foreColor = newColor(0x000000);
 		this.headerBackColor = newColor(0xb3cccc);
 		this.headerForeColor = newColor(0x000000);
-		lvNumber += 1;
-		this.font.cloneFrom(parent.font);
 		this.columns.init(mem, 5);
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, width, height, &lvNumber);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}

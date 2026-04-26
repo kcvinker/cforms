@@ -116,30 +116,17 @@ struct TreeNode
 
 // Public functions
 	// TreeView constructor - Create and returns a New TreeView struct
-	fn TreeView* newTreeView(Form* parent, int x = 10, int y = 10,
+	fn TreeView* newTreeView(Control* parent, int x = 10, int y = 10,
 								int width = 200, int height = 200)
 	{
 		TreeView* this = allocator::new(mem, TreeView);
 		this.kind = ControlType.TREE_VIEW;
-		this.name = dstring::new(mem, "TreeView_");
-		this.name.appendf("%d", tvNumber);
-		this._className = &tvClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = TVSTYLE;
 		this._exStyle = 0;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
-		this.backColor = newColor(0xFFFFFF);
-		this.foreColor = newColor(0x000000);
 		this.lineColor = newColor(0x000000);
 		this._uniqNodeID = 100;
 		this.nodes.init(mem, 8);
-		tvNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, width, height, &tvNumber);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}

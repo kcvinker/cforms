@@ -38,32 +38,16 @@ struct Label
 
 // Public functions
 	// Label constructor
-	fn Label* newLabel(Form* parent, String text,
+	fn Label* newLabel(Control* parent, String text,
 						int x = 10, int y = 10, int width = 0, int height = 0)
 	{
 		Label* this = allocator::new(mem, Label);
 		this.kind = ControlType.LABEL;
-		this.name = dstring::new(mem, "Label_");
-		this.name.appendf("%d", lbNumber);
-		this._className = &lblClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = LBSTYLE;
 		this._exStyle = 0;// 0x00000004;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
-		this.text = text;
-		this._wideText = String.to_utf16(text, mem)!!.ptr;
-		this.backColor = parent.backColor;
-		this.foreColor = newColor(0x000000);
 		this.autoSize = true;
 		this._autoSizable = true;
-		this._textable = true;
-		lbNumber += 1;
-		this.font.cloneFrom(parent.font);
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, width, height, &lbNumber, text);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 

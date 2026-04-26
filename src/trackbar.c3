@@ -104,29 +104,19 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
 
 // Public functions
 	// TrackBar constructor - Create and returns a New TrackBar struct
-	fn TrackBar* newTrackBar(Form* parent, int x = 10, int y = 10,
+	fn TrackBar* newTrackBar(Control* parent, int x = 10, int y = 10,
 								int width = 200, int height = 35,
 								EventHandler evtFn = null)
 	{
 		TrackBar* this = allocator::new(mem, TrackBar);
 		this.kind = ControlType.TRACK_BAR;
-		this.name = dstring::new(mem, "TrackBar_");
-		this.name.appendf("%d", tkbNumber);
-		this._className = &trkClass[0];
-		this._parent = parent;
-		//this.font = parent.font;
 		this._style = WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS;
 		this._exStyle = WS_EX_RIGHTSCROLLBAR | WS_EX_LTRREADING |WS_EX_LEFT;;
-		this.xpos = x;
-		this.ypos = y;
-		this.width = width;
-		this.height = height;
 		this.minRange = 0;
 		this.maxRange = 100;
 		this.frequency = 10;
 		this.pageSize = 10;
 		this._chnFlag = BF_RECT | BF_ADJUST;
-		this.backColor = parent.backColor;
 		this.ticWidth = 1;
 		this.ticLen = 4;
 		this.ticPos = TicPosition.DOWNSIDE;
@@ -137,10 +127,8 @@ enum TrackChange : char {NONE, ARROWLOW, ARROWHIGH, PAGELOW, PAGEHIGH, MOUSECLIC
         this.selColor = newColor(0x99ff33);
         this.ticColor = newColor(0x3385ff);
 		this.customDraw = true;
-		tkbNumber += 1;
-
 		this.onValueChanged = evtFn;
-		this._parent.controls.push(this);
+		this.initBase(parent, x, y, width, height, &tkbNumber);	
 		if (parent.createChilds) this.createHandle();
 		return this;
 	}
